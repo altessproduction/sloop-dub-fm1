@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#161512">
+  <title>SLOOP DUB — FM-1 playground</title>
+  <meta name="description" content="Une première interface jouable pour le firmware SLOOP Dub FM-1 : sirène, skank, séquenceur et isolateur quatre bandes.">
+  <style>
+    :root { --paper:#161512; --surface:#211f1c; --ink:#f7f6f4; --body:#b3aca4; --muted:#8a847c; --line:rgba(247,246,244,.11); --blue:#3b96f0; --blue-tint:rgba(59,150,240,.16); --gold:#ffb110; --coral:#f64932; --sky:#62aef0; --green:#83b86a; --panel-gold:#6b4a08; --panel-coral:#6b1f14; --panel-sky:#1f4a6b; --panel-mocha:#4a3527; --card:12px; --button:8px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; min-width:320px; background:var(--paper); color:var(--ink); font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; font-feature-settings:"lnum"; }
+    button, input { font:inherit; }
+    button { border:0; cursor:pointer; }
+    button:focus-visible, input:focus-visible { outline:2px solid var(--sky); outline-offset:3px; }
+    .shell { width:min(1440px,100%); margin:auto; padding:0 24px; }
+    .nav { position:sticky; top:0; z-index:10; height:64px; display:flex; align-items:center; justify-content:space-between; gap:20px; background:rgba(22,21,18,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(12px); }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.02em; }
+    .brand-mark { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--gold); border-radius:50%; color:var(--gold); font-size:12px; }
+    .nav .status { color:var(--muted); font-size:12px; }
+    .hero { display:grid; grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr); gap:64px; align-items:center; padding:72px 0 64px; }
+    .eyebrow, .label { color:rgba(247,246,244,.6); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
+    h1,h2,h3,p { margin:0; }
+    h1 { max-width:760px; font-size:clamp(40px,5.8vw,82px); line-height:1.02; letter-spacing:-.045em; font-weight:600; }
+    h1 span { display:inline-block; padding:3px 14px 6px; border-radius:999px; background:var(--gold); color:var(--paper); font-size:.78em; letter-spacing:inherit; }
+    .lede { max-width:58ch; margin-top:24px; color:var(--body); font-size:18px; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+    .btn { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:9px 15px; border-radius:var(--button); font-size:14px; font-weight:600; transition:background .2s ease,color .2s ease,transform .2s ease; }
+    .btn:hover { transform:translateY(-2px); }
+    .primary { background:var(--blue); color:#fff; }
+    .ghost { background:var(--blue-tint); color:#7ab8f7; }
+    .outline { background:transparent; border:1px solid var(--line); color:var(--ink); }
+    .hardware { position:relative; border:1px solid var(--line); border-radius:var(--card); background:var(--surface); padding:24px; box-shadow:0 4px 16px rgba(0,0,0,.5); overflow:hidden; }
+    .hardware:before { content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--gold); }
+    .hardware-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:18px; border-bottom:1px solid var(--line); }
+    .hardware-title { letter-spacing:.08em; font-size:12px; color:var(--body); }
+    .screen { margin:20px 0; padding:18px; border:1px solid rgba(98,174,240,.45); background:#0b171d; color:#a7dcff; border-radius:4px; box-shadow:inset 0 0 28px rgba(59,150,240,.08); }
+    .screen-top { display:flex; justify-content:space-between; color:#72bdf2; font-size:12px; }
+    #preset-name { margin-top:10px; font-size:26px; font-weight:700; letter-spacing:.05em; }
+    #step-position { color:#a7dcff; font-size:13px; }
+    .meter { height:8px; margin-top:16px; border-radius:999px; background:#142931; overflow:hidden; }
+    .meter > span { display:block; width:36%; height:100%; background:var(--sky); transition:width .1s linear; }
+    .keys { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; }
+    .keys i { height:38px; border-radius:4px; background:#e9e5dc; border-bottom:4px solid #aaa69d; }
+    .keys i:nth-child(4n) { background:#f3bc42; }
+    section { padding:64px 0; }
+    .section-head { display:flex; justify-content:space-between; gap:24px; align-items:end; margin-bottom:28px; }
+    .section-head h2 { max-width:22ch; font-size:clamp(28px,3.4vw,48px); font-weight:500; line-height:1.1; letter-spacing:-.03em; }
+    .section-head p { max-width:54ch; color:var(--body); }
+    .console { display:grid; grid-template-columns:1.1fr .9fr; gap:20px; }
+    .card { border:1px solid var(--line); border-radius:var(--card); background:var(--surface); padding:24px; }
+    .card h3 { margin:4px 0 4px; font-size:22px; letter-spacing:-.015em; }
+    .help { color:var(--muted); font-size:14px; }
+    .transport { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; }
+    .transport-output { color:var(--sky); font-size:13px; font-weight:600; letter-spacing:.04em; }
+    .seq-controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 12px; }
+    .small-btn { padding:7px 10px; border-radius:4px; background:rgba(247,246,244,.06); color:var(--body); font-size:12px; font-weight:700; }
+    .small-btn.active { background:var(--blue); color:white; }
+    .step-grid { display:grid; grid-template-columns:repeat(16,minmax(0,1fr)); gap:5px; }
+    .step-grid button { height:35px; min-width:0; border-radius:4px; color:var(--muted); background:#181715; border:1px solid rgba(247,246,244,.08); font-size:10px; }
+    .step-grid button:nth-child(4n+1) { border-left-color:var(--gold); }
+    .step-grid button.active { background:var(--gold); color:var(--paper); border-color:var(--gold); }
+    .step-grid button.playhead { outline:2px solid var(--sky); outline-offset:1px; }
+    .step-grid button:disabled { opacity:.25; cursor:not-allowed; }
+    .skank { display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; margin-top:20px; padding:18px; border-radius:var(--card); background:var(--panel-mocha); }
+    #skank-readout { color:#f6d5b8; font-size:13px; letter-spacing:.08em; }
+    .siren { border-radius:var(--card); padding:24px; background:var(--panel-coral); }
+    .siren button { width:100%; min-height:86px; border-radius:var(--button); background:rgba(246,73,50,.25); border:1px solid rgba(247,246,244,.22); color:var(--ink); font-weight:700; letter-spacing:.05em; }
+    .siren button[aria-pressed="true"] { background:var(--coral); }
+    .knob-row { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:20px; }
+    .range { display:grid; gap:5px; color:var(--body); font-size:12px; }
+    input[type="range"] { accent-color:var(--sky); width:100%; }
+    .preset-panel { margin-top:20px; }
+    .presets { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
+    .preset { min-height:74px; border-radius:4px; padding:10px; background:#191816; border:1px solid var(--line); color:var(--body); text-align:left; font-size:12px; font-weight:700; line-height:1.2; }
+    .preset.active { border-color:var(--gold); color:var(--gold); background:rgba(255,177,16,.08); }
+    .isolator { border-radius:var(--card); background:var(--panel-sky); padding:24px; }
+    .iso-top { display:flex; justify-content:space-between; align-items:center; gap:18px; }
+    .iso-top h2 { font-size:clamp(30px,4vw,54px); line-height:1; letter-spacing:-.035em; }
+    .toggle { min-height:40px; padding:8px 12px; border-radius:var(--button); background:rgba(247,246,244,.12); color:var(--ink); font-weight:700; font-size:12px; }
+    .toggle[aria-pressed="true"] { background:var(--blue); }
+    .bands { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:24px; }
+    .band-card { padding:18px; border-radius:var(--card); background:rgba(7,21,28,.44); border:1px solid rgba(247,246,244,.16); }
+    .band-card h3 { font-size:16px; letter-spacing:.06em; }
+    .band-card .hz { color:#8ac8ff; font-size:12px; }
+    .band-card.muted { opacity:.42; }
+    .band-card .mute { margin-top:12px; width:100%; padding:8px; background:rgba(247,246,244,.1); border-radius:4px; color:var(--ink); font-size:12px; font-weight:700; }
+    .band-card .mute[aria-pressed="true"] { background:var(--coral); }
+    .band-card input { margin:12px 0 2px; }
+    .band-readout { color:#d4ebff; font-size:12px; }
+    .foundation { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .foundation .card:nth-child(1) { background:var(--panel-gold); border:0; }
+    .foundation .card:nth-child(2) { background:var(--panel-coral); border:0; }
+    .foundation .card:nth-child(3) { background:var(--surface); }
+    .foundation p { color:rgba(247,246,244,.74); margin-top:10px; font-size:14px; }
+    footer { border-top:1px solid var(--line); padding:28px 0 42px; color:var(--muted); font-size:12px; }
+    footer a { color:#7ab8f7; }
+    .notice { margin-top:18px; padding:12px; border-left:2px solid var(--gold); background:rgba(255,177,16,.08); color:var(--body); font-size:13px; }
+    @media (max-width:900px) { .hero,.console { grid-template-columns:1fr; gap:36px; } .foundation { grid-template-columns:1fr; } .hero { padding-top:48px; } }
+    @media (max-width:640px) { .shell { padding:0 24px; } .nav .status { display:none; } section { padding:40px 0; } .hero { padding-bottom:40px; } .section-head { display:block; } .section-head p { margin-top:14px; } .bands { grid-template-columns:repeat(2,1fr); } .presets { grid-template-columns:repeat(2,1fr); } .preset:last-child { grid-column:span 2; } .skank { grid-template-columns:1fr; } .step-grid { gap:4px; } .step-grid button { height:29px; font-size:9px; } .card,.isolator,.siren,.hardware { padding:18px; } }
+    @media (prefers-reduced-motion:reduce) { *,*:before,*:after { transition-duration:.01ms!important; scroll-behavior:auto!important; } }
+  </style>
+</head>
+<body>
+  <main id="dub-app">
+    <div class="shell nav">
+      <div class="brand"><span class="brand-mark">SD</span> SLOOP DUB <span style="color:var(--muted);font-weight:500">/ FM-1</span></div>
+      <span class="status" id="engine-status">MOTEUR DUB PRÊT</span>
+    </div>
+    <div class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">SLOOP v2.8.5 · prototype reggae/dub</p>
+          <h1>Tourne le <span>Dub</span> dans la bonne direction.</h1>
+          <p class="lede">Une première surface de jeu pour le FM-1 : basses profondes, accords skank, sirène, séquenceur jusqu’à 64 pas et isolateur quatre bandes.</p>
+          <div class="hero-actions">
+            <button class="btn primary" id="play-toggle" aria-pressed="false">▶ Jouer la boucle</button>
+            <button class="btn ghost" id="audio-enable">Activer l’audio</button>
+            <a class="btn outline" href="../webapp/editor/" target="_blank" rel="noopener">Éditeur SLOOP complet ↗</a>
+          </div>
+          <p class="notice">Le lecteur embarqué est jouable dans le navigateur. Le moteur SLOOP/WASM est disponible pour les sons de base ; les nouveaux contrôles Dub sont pour l’instant prévisualisés par une couche audio navigateur dédiée, avant intégration finale et mesure CPU sur le FM-1.</p>
+        </div>
+        <div class="hardware" aria-label="Aperçu de l’état de la machine">
+          <div class="hardware-top"><span class="hardware-title">M-VAVE FM-1 · DUB PAGE</span><span class="label">44.1 kHz</span></div>
+          <div class="screen"><div class="screen-top"><span>DUB / PERFORMANCE</span><span id="bpm-readout">72 BPM</span></div><div id="preset-name">ROOTS BASS</div><div id="step-position">STEP 01 / 16</div><div class="meter"><span id="meter-bar"></span></div></div>
+          <div class="keys" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </section>
+
+      <section id="performance">
+        <div class="section-head"><div><p class="eyebrow">01 — performance</p><h2>Le rythme, la basse et l’accord au même endroit.</h2></div><p>Les patterns utilisent des pas de 16, 32 ou 64 cases. Les accents sont inspirés du jeu one-drop / steppers et peuvent être modifiés pas par pas.</p></div>
+        <div class="console">
+          <article class="card">
+            <p class="label">DUB SEQUENCER</p><h3>Pattern basse / batterie</h3><p class="help">Clique les pas orange. Le playhead bleu suit la boucle.</p>
+            <div class="seq-controls" role="group" aria-label="Longueur de séquence"><button class="small-btn active" id="seq-length-16">16 PAS</button><button class="small-btn" id="seq-length-32">32 PAS</button><button class="small-btn" id="seq-length-64">64 PAS</button><button class="small-btn" id="pattern-clear">EFFACER</button></div>
+            <div class="step-grid" id="seq-grid" aria-label="Grille de séquence"></div>
+            <div class="transport"><span class="transport-output" id="pattern-info">ONE DROP · 16 PAS</span><label class="range">TEMPO <input id="tempo" type="range" min="60" max="140" value="72"></label></div>
+            <div class="skank"><div><p class="label">SKANK À UNE TOUCHE</p><h3 id="skank-name">C MINOR</h3><p id="skank-readout">C3 + D♯3 + G3</p></div><button class="btn primary" id="skank-pad">JOUER LE SKANK</button></div>
+          </article>
+          <aside>
+            <div class="siren"><p class="label">DUB SIREN</p><h3>Sirène modulée</h3><p class="help" style="color:rgba(247,246,244,.7);margin:8px 0 18px">Oscillateur et LFO pour les montées de tension.</p><button id="siren-trigger" aria-pressed="false">TENIR / LÂCHER LA SIRÈNE</button><div class="knob-row"><label class="range">FREQUENCY <input id="siren-freq" type="range" min="220" max="1200" value="740"></label><label class="range">LFO DEPTH <input id="siren-depth" type="range" min="0" max="100" value="65"></label></div></div>
+            <div class="preset-panel"><p class="label">PRESETS DUB</p><div class="presets" id="preset-grid"><button class="preset active" id="preset-roots">ROOTS<br>BASS</button><button class="preset" id="preset-skank">SKANK<br>CHORD</button><button class="preset" id="preset-siren">DUB<br>SIREN</button><button class="preset" id="preset-steppers">STEPPERS</button><button class="preset" id="preset-tape">TAPE<br>ECHO</button></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="isolator">
+        <div class="isolator">
+          <div class="iso-top"><div><p class="eyebrow">02 — DUB ISOLATOR</p><h2>SUB / BASS / MIDS / TOPS</h2><p class="help" style="color:#b9d9ed;margin-top:10px">Quatre bandes, gains indépendants, mutes et correction paramétrique. Coupures de référence : 90 Hz / 420 Hz / 2.6 kHz.</p></div><button class="toggle" id="iso-toggle" aria-pressed="false">ISOLATOR OFF</button></div>
+          <div class="bands" id="bands">
+            <article class="band-card" id="band-sub"><h3>SUB</h3><p class="hz">20–90 Hz</p><label class="range">GAIN <input id="gain-sub" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-sub">0 dB · EQ 64</span><button class="mute" id="mute-sub" aria-pressed="false">MUTE</button></article>
+            <article class="band-card" id="band-bass"><h3>BASS</h3><p class="hz">90–420 Hz</p><label class="range">GAIN <input id="gain-bass" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-bass">0 dB · EQ 64</span><button class="mute" id="mute-bass" aria-pressed="false">MUTE</button></article>
+            <article class="band-card" id="band-mids"><h3>MIDS</h3><p class="hz">420 Hz–2.6 kHz</p><label class="range">GAIN <input id="gain-mids" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-mids">0 dB · EQ 64</span><button class="mute" id="mute-mids" aria-pressed="false">MUTE</button></article>
+            <article class="band-card" id="band-tops"><h3>TOPS</h3><p class="hz">2.6–18 kHz</p><label class="range">GAIN <input id="gain-tops" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-tops">0 dB · EQ 64</span><button class="mute" id="mute-tops" aria-pressed="false">MUTE</button></article>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head"><div><p class="eyebrow">03 — fondations</p><h2>Construit sur SLOOP, pensé pour le dub.</h2></div><p>Cette livraison ne change pas le format des projets SLOOP. Le firmware et la surface web évoluent de manière contrôlée afin de préserver les sessions existantes.</p></div>
+        <div class="foundation"><article class="card"><p class="label">FIRMWARE</p><h3>Extension indépendante</h3><p>Le module Dub est ajouté après les effets wet dans le mixage global, avec bypass strict au démarrage.</p></article><article class="card"><p class="label">SÉQUENCE</p><h3>16 / 32 / 64 pas</h3><p>Une surcouche légère dédiée aux patterns reggae conserve le séquenceur SLOOP et son horloge commune.</p></article><article class="card"><p class="label">SÉCURITÉ</p><h3>À tester sur matériel</h3><p>La compilation finale et les mesures de charge demandent la toolchain JieLi et un FM-1 de développement.</p></article></div>
+      </section>
+    </div>
+  </main>
+  <footer><div class="shell">SLOOP Dub FM-1 · Prototype GPL-3.0-only · Basé sur <a href="https://github.com/isod89/sloop-fm1" target="_blank" rel="noopener">SLOOP</a> et <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>. M-VAVE et FM-1 sont des marques de leurs propriétaires.</div></footer>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { length:16, playing:false, step:0, tempo:72, steps:new Set([0,3,6,10,12]), muted:{sub:false,bass:false,mids:false,tops:false}, iso:false, siren:false, preset:'ROOTS BASS' };
+    let audio, master, sirenOsc, sirenLfo, sirenGain, timer, nextBeat = 0, sloopPreview;
+    const presets = {
+      roots:{name:'ROOTS BASS',tempo:72,steps:[0,3,6,10,12],root:'C MINOR',iso:[2,0,-2,-5]},
+      skank:{name:'SKANK CHORD',tempo:76,steps:[2,6,10,14],root:'D MINOR',iso:[-12,0,3,1]},
+      siren:{name:'DUB SIREN',tempo:70,steps:[0,8],root:'A MINOR',iso:[0,-2,2,5]},
+      steppers:{name:'STEPPERS',tempo:138,steps:[0,4,8,12],root:'F MINOR',iso:[3,1,-2,0]},
+      tape:{name:'TAPE ECHO',tempo:68,steps:[0,5,10,15],root:'G MINOR',iso:[1,0,2,3]}
+    };
+    function buildGrid(){ const grid=$('seq-grid'); grid.innerHTML=''; for(let i=0;i<64;i++){ const b=document.createElement('button'); b.type='button'; b.dataset.step=i; b.textContent=String(i+1).padStart(2,'0'); b.setAttribute('aria-label','Pas '+(i+1)); b.setAttribute('aria-pressed',state.steps.has(i)?'true':'false'); b.classList.toggle('active',state.steps.has(i)); b.disabled=i>=state.length; b.addEventListener('click',()=>{ if(state.steps.has(i))state.steps.delete(i);else state.steps.add(i); renderGrid(); }); grid.appendChild(b); } }
+    function renderGrid(){ document.querySelectorAll('#seq-grid button').forEach(b=>{ const i=+b.dataset.step; b.disabled=i>=state.length; b.classList.toggle('active',state.steps.has(i)); b.classList.toggle('playhead',state.playing&&i===state.step); b.setAttribute('aria-pressed',String(state.steps.has(i))); }); $('pattern-info').textContent=(state.length===16?'ONE DROP':state.length===32?'DUB RUN':'EXTENDED DUB')+' · '+state.length+' PAS'; $('step-position').textContent='STEP '+String(state.step+1).padStart(2,'0')+' / '+state.length; }
+    async function enableAudio(){ if(!audio){ audio=new AudioContext(); master=audio.createGain(); master.gain.value=.25; master.connect(audio.destination); } await audio.resume(); $('engine-status').textContent='AUDIO NAVIGATEUR ACTIF'; $('audio-enable').textContent='Audio activé'; }
+    function envelope(freq,duration=.18,type='sine',level=.15,when=audio.currentTime){ if(!audio)return; const o=audio.createOscillator(),g=audio.createGain(); o.type=type;o.frequency.setValueAtTime(freq,when);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(level,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(g).connect(master);o.start(when);o.stop(when+duration+.02); }
+    function kick(when){ if(!audio)return; const o=audio.createOscillator(),g=audio.createGain(); o.frequency.setValueAtTime(120,when);o.frequency.exponentialRampToValueAtTime(43,when+.12);g.gain.setValueAtTime(.001,when);g.gain.exponentialRampToValueAtTime(.4,when+.01);g.gain.exponentialRampToValueAtTime(.001,when+.18);o.connect(g).connect(master);o.start(when);o.stop(when+.2); }
+    function bass(when){ const notes=[48,48,51,43,48,55,46,48]; envelope(440*Math.pow(2,(notes[state.step%notes.length]-69)/12),.28,'sawtooth',.08,when); }
+    function tick(){ if(!state.playing)return; const now=audio?audio.currentTime:0; const sec=60/state.tempo/4; while(audio&&nextBeat<now+.12){ if(state.steps.has(state.step)){ kick(nextBeat); bass(nextBeat); } state.step=(state.step+1)%state.length; nextBeat+=sec; } $('meter-bar').style.width=(18+(state.steps.has(state.step)?62:28))+'%'; renderGrid(); timer=requestAnimationFrame(tick); }
+    function setPlaying(on){ state.playing=on; $('play-toggle').setAttribute('aria-pressed',String(on)); $('play-toggle').textContent=on?'■ Stopper':'▶ Jouer la boucle'; if(on){ enableAudio().then(()=>{ nextBeat=audio.currentTime+.05; cancelAnimationFrame(timer); tick(); }); } else { cancelAnimationFrame(timer); state.step=0; renderGrid(); } }
+    function playSkank(){ enableAudio().then(()=>{ const notes=[60,63,67]; notes.forEach((n,i)=>envelope(440*Math.pow(2,(n-69)/12),.17,'triangle',.09,audio.currentTime+i*.018)); }); }
+    function setSiren(on){ state.siren=on; $('siren-trigger').setAttribute('aria-pressed',String(on)); if(on){ enableAudio().then(()=>{ sirenOsc=audio.createOscillator();sirenLfo=audio.createOscillator();sirenGain=audio.createGain();const lfoGain=audio.createGain();sirenOsc.type='square';sirenOsc.frequency.value=+$('siren-freq').value;sirenLfo.frequency.value=2;sirenGain.gain.value=.06;lfoGain.gain.value=+$('siren-depth').value*4;sirenLfo.connect(lfoGain).connect(sirenOsc.frequency);sirenOsc.connect(sirenGain).connect(master);sirenOsc.start();sirenLfo.start(); }); } else { sirenOsc?.stop();sirenLfo?.stop();sirenOsc=sirenLfo=null; } }
+    function setPreset(key){ const p=presets[key]; state.preset=p.name;state.tempo=p.tempo;state.steps=new Set(p.steps);$('tempo').value=p.tempo;$('bpm-readout').textContent=p.tempo+' BPM';$('preset-name').textContent=p.name;$('skank-name').textContent=p.root;['sub','bass','mids','tops'].forEach((band,i)=>{ $('gain-'+band).value=p.iso[i];updateBand(band); });document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.id==='preset-'+key)); renderGrid(); }
+    function updateBand(band){ const v=+$('gain-'+band).value; $('readout-'+band).textContent=(v>0?'+':'')+v+' dB · EQ 64'; }
+    function bind(){ $('play-toggle').addEventListener('click',()=>setPlaying(!state.playing));$('audio-enable').addEventListener('click',enableAudio); $('skank-pad').addEventListener('click',playSkank); $('siren-trigger').addEventListener('click',()=>setSiren(!state.siren)); $('tempo').addEventListener('input',e=>{state.tempo=+e.target.value;$('bpm-readout').textContent=state.tempo+' BPM';}); ['16','32','64'].forEach(n=>$('seq-length-'+n).addEventListener('click',()=>{state.length=+n;state.step=0;document.querySelectorAll('[id^="seq-length-"]').forEach(b=>b.classList.toggle('active',b.id==='seq-length-'+n));renderGrid();})); $('pattern-clear').addEventListener('click',()=>{state.steps.clear();renderGrid();}); Object.keys(presets).forEach(k=>$('preset-'+k).addEventListener('click',()=>setPreset(k))); $('iso-toggle').addEventListener('click',()=>{state.iso=!state.iso;$('iso-toggle').setAttribute('aria-pressed',String(state.iso));$('iso-toggle').textContent=state.iso?'ISOLATOR ON':'ISOLATOR OFF';}); ['sub','bass','mids','tops'].forEach(b=>{ $('gain-'+b).addEventListener('input',()=>updateBand(b));$('mute-'+b).addEventListener('click',()=>{state.muted[b]=!state.muted[b];$('mute-'+b).setAttribute('aria-pressed',String(state.muted[b]));$('band-'+b).classList.toggle('muted',state.muted[b]);});}); $('siren-freq').addEventListener('input',e=>{if(sirenOsc)sirenOsc.frequency.value=+e.target.value;}); }
+    async function prepareSloopEngine(){ try { const m=await import('../webapp/editor/preview.js'); sloopPreview=m.LocalPreview; $('engine-status').textContent='MOTEUR SLOOP/WASM DISPONIBLE'; } catch { $('engine-status').textContent='MOTEUR DUB PRÊT'; } }
+    buildGrid(); bind(); prepareSloopEngine();
+  </script>
+</body>
+</html>

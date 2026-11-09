@@ -221,7 +221,14 @@ UI_SMALL static void draw_menu(void)
     uint32_t sig = ui.menu * 7u + ui.menu_sel * 131u + settings.palette * 1009u + settings.lowcut * 7919u +
                    settings.zoom * 104729u + lights_lvl * 1299709u + lights_keys * 15485863u + ml_count() * 2654435u +
                    lights_notes * 32452843u + usb_full * 49979687u + usb_serial * 86028121u + usb_rate * 15486719u + theme_shown() * 32452867u + theme.crc + cpu1_off * 122949829u +
-                   knob_accel_off * 179424673u + drum_preview * 236887691u + step_adv_off * 373587883u + flt_reso * 512927357u;
+                   knob_accel_off * 179424673u + drum_preview * 236887691u + step_adv_off * 373587883u + flt_reso * 512927357u +
+                   dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
+                   dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_len * 6700471u +
+                   dub_menu_step * 6700477u + dub_menu_note * 6700483u + dub_menu_vel * 6700487u +
+                   dub_isolator.p[DUB_SUB].gain_db * 6700493u + dub_isolator.p[DUB_BASS].gain_db * 6700497u +
+                   dub_isolator.p[DUB_MIDS].gain_db * 6700501u + dub_isolator.p[DUB_TOPS].gain_db * 6700507u +
+                   dub_isolator.p[DUB_SUB].mute * 6700511u + dub_isolator.p[DUB_BASS].mute * 6700517u +
+                   dub_isolator.p[DUB_MIDS].mute * 6700521u + dub_isolator.p[DUB_TOPS].mute * 6700527u;
     if (!ui.force && sig == ui.menu_sig)
         return;
     ui.menu_sig = sig;
@@ -512,8 +519,14 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
 UI_SMALL static void menu_input(uint32_t pressed)
 {
     int32_t s;
-    uint32_t k, ok = (pressed >> panel.btn[B_OCTUP]) & 1u, back = (pressed >> panel.btn[B_OCTDN]) & 1u;
+    uint32_t k, ok = (pressed >> panel.btn[B_OCTUP]) & 1u;
+    uint32_t back = (pressed >> panel.btn[B_OCTDN]) & 1u;
     uint32_t sel = ui.menu_sel % MI_COUNT, sec = mi_sec(sel), n = MS_FIRST[sec + 1u] - MS_FIRST[sec];
+    /* OCT- is the menu's universal escape.  Read the physical debounced
+     * button as well as the edge mask: this keeps the escape reliable when
+     * a host/emulator sends a held button across two scan frames. */
+    if ((fm1_in.buttons >> panel.btn[B_OCTDN]) & 1u)
+        back = 1u;
     if (back) {
         if (ui.menu == 2)
             ui.menu = 1, ui.force = 1;

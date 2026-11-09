@@ -30,4 +30,9 @@ else
 fi
 
 cp index.html emu.js worklet.js manifest.webmanifest dist/
+# Keep the GitHub Pages bundle in sync with the freshly compiled firmware.
+if [ -d "$SLOOP/docs/dub" ]; then
+    cp dist/sloop.wasm "$SLOOP/docs/dub/sloop.wasm"
+    cp index.html emu.js worklet.js manifest.webmanifest "$SLOOP/docs/dub/"
+fi
 ls -la dist/

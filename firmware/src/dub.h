@@ -156,6 +156,11 @@ void dub_seq_advance(dub_seq_t *s);
 void dub_riddim_load(dub_seq_t *s, uint32_t riddim);                       /* the four tracks, 64 steps */
 void dub_riddim_load_track(dub_seq_t *s, uint32_t riddim, uint32_t track); /* one track only */
 const char *dub_riddim_name(uint32_t riddim);                              /* "ONE DROP", clamped */
+/* 2.9.6 (seq.c): the load's commit — the staged sequence's steps written into the SLOOP
+ * sequencer's tracks (the PATTERN / NOTES pages', the SEQ layer's, the transport's).
+ * mask: a bit per track (DUB_TRK_*), len: the steps (64 a riddim). The one sequencer:
+ * what loads is what plays and what the user edits afterwards. */
+void dub_tracks_load(const dub_seq_t *s, uint32_t mask, uint8_t len);
 
 uint8_t dub_skank_build(const dub_skank_t *s, uint8_t key, uint8_t *notes, uint8_t max_notes);
 

@@ -1979,94 +1979,88 @@ static void drum_input(uint32_t lane, uint32_t lvl, uint32_t rat, int rec)
 }
 
 /* ------------------------------------------------------- dub seq --- */
-/* 2.9.2: the dub sequence's playback (the RIDDIM page's ten riddims, the DSEQ page's steps).
- * The transport's sixteenths drive it while DUB ENABLE is on and PLAY runs: the bass line
- * sounds on track 1 (trk[0]), the skanks stab their chord on track 2, the melody plays
- * track 3, the drum notes hit the drum track's lanes. A melodic track holds its note over
- * equal steps (a rest or a different note ends it), a skank stabs one sixteenth and off. */
+/* 2.9.6: the RIDDIM page's loads land in the SLOOP sequencer itself. The dub sequence
+ * (dub.c) is only the load's staging: dub_tracks_load writes its steps into the tracks'
+ * real steps (step[] / dstep[]), the ones the PATTERN page shows, the NOTES page and the
+ * SEQ layer edit and the transport plays with the track's own sound. 2.9.2's parallel
+ * player is gone: what loads is what plays and what edits, one sequencer. */
 static track_t *const DUB_TO[DUB_TRK_N] = {&trk[0], &trk[1], &trk[2], TDRUM};
-static uint8_t dub_hold[DUB_TRK_N];                    /* the note each melodic track holds */
-static uint8_t dub_stab[DUB_SKANK_MAX_NOTES];          /* the skank's chord, sounding now */
-static uint8_t dub_stab_n;
-static uint32_t dub_sixteenth;                         /* the sixteenth last played; ~0 = PLAY just armed */
 
-static void dub_all_off(void)                          /* STOP / DUB off: no dub note stays held */
+/* write the staged dub sequence into the SLOOP sequencer (the RIDDIM page's loads).
+ * mask: a bit per dub track (DUB_TRK_*); len: the steps written (a riddim: 64), the
+ * track's LEN follows it. The bass and the melody hold their note over the rests and
+ * the repeats — the hold becomes TIE steps (2.9.2's legato, now visible and editable).
+ * The skank stabs its chord, built here with the SKANK page's quality (up to the four
+ * notes a step holds), a stab a step. The drum notes go to their lanes (LANE_OF_GM),
+ * each hit's velocity to its level. A load clears the track's nudges, fills and locks
+ * (a fresh pattern), then marks the track's pattern active. */
+void dub_tracks_load(const dub_seq_t *s, uint32_t mask, uint8_t len)
 {
-    uint32_t tr, i;
+    uint32_t tr, st;
+    if (len > NSTEP)
+        len = NSTEP;
+    if (!len)
+        len = 1;
     for (tr = 0; tr < DUB_TRK_N; tr++) {
-        if (dub_hold[tr] != DUB_SEQ_REST) {
-            input_off(DUB_TO[tr], dub_hold[tr]);
-            dub_hold[tr] = DUB_SEQ_REST;
-        }
-    }
-    for (i = 0; i < dub_stab_n; i++)
-        input_off(DUB_TO[DUB_TRK_SKANK], dub_stab[i]);
-    dub_stab_n = 0;
-}
-
-static void dub_step_play(uint32_t st)                 /* one sixteenth of the dub sequence */
-{
-    dub_seq_t *s = &dub_sequence;
-    uint32_t tr, i;
-    for (tr = 0; tr < DUB_TRK_N; tr++) {
-        uint8_t note = s->notes[tr][st], vel = s->velocity[tr][st];
-        if (tr == DUB_TRK_DRUM) {
-            if (note != DUB_SEQ_REST)
-                drum_input(midi_drum_lane(note), vel_lvl(vel), 0, 0);
+        track_t *t = DUB_TO[tr];
+        uint8_t held = DUB_SEQ_REST;                   /* the note a melodic track holds */
+        if (!(mask >> tr & 1u))
             continue;
-        }
-        if (tr == DUB_TRK_SKANK) {
-            for (i = 0; i < dub_stab_n; i++)           /* the last stab ends, one sixteenth long */
-                input_off(DUB_TO[tr], dub_stab[i]);
-            dub_stab_n = 0;
-            if (note != DUB_SEQ_REST) {                /* the chord: the SKANK page's quality */
-                dub_skank_t c;
-                uint8_t notes[DUB_SKANK_MAX_NOTES];
-                c.root = note % 12u;
-                c.quality = dub_skank_conf.quality;
-                c.octave = dub_skank_conf.octave;
-                c.velocity = vel;
-                dub_stab_n = dub_skank_build(&c, 0, notes, DUB_SKANK_MAX_NOTES);
-                for (i = 0; i < dub_stab_n; i++) {
-                    dub_stab[i] = notes[i];
-                    input_on(DUB_TO[tr], notes[i], c.velocity);
+        if (is_drum(t)) {
+            for (st = 0; st < NSTEP; st++) {
+                dstep_t *d = &t->dstep[st];
+                uint8_t note = st < len ? s->notes[tr][st] : DUB_SEQ_REST;
+                uint8_t vel = st < len ? s->velocity[tr][st] : 0u;
+                d->on[0] = d->on[1] = 0;               /* a fresh step, then its lanes */
+                d->lvl[0] = d->lvl[1] = d->lvl[2] = d->lvl[3] = 0;
+                d->rat[0] = d->rat[1] = d->rat[2] = d->rat[3] = 0;
+                if (note != DUB_SEQ_REST)
+                    dstep_set(d, lane_of_note(note), vel_lvl(vel), 0);
+            }
+        } else {
+            for (st = 0; st < NSTEP; st++) {
+                step_t *sp = &t->step[st];
+                uint8_t note = st < len ? s->notes[tr][st] : DUB_SEQ_REST;
+                uint8_t vel = st < len ? s->velocity[tr][st] : 0u;
+                sp->flags = sp->lvl = sp->rat = 0;
+                sp->vel = vel;
+                if (tr == DUB_TRK_SKANK) {             /* the stab: its chord, one step, off */
+                    if (note != DUB_SEQ_REST) {
+                        dub_skank_t c;
+                        uint8_t notes[DUB_SKANK_MAX_NOTES];
+                        c.root = note % 12u;
+                        c.quality = dub_skank_conf.quality;
+                        c.octave = dub_skank_conf.octave;
+                        c.velocity = vel;
+                        sp->n = dub_skank_build(&c, 0, notes, 4u);
+                        for (uint32_t i = 0; i < sp->n; i++)
+                            sp->note[i] = notes[i];
+                        sp->time = ST_NOTE;
+                    } else {
+                        sp->n = 0;
+                        sp->time = ST_REST;
+                    }
+                    continue;
                 }
+                if (note == DUB_SEQ_REST || note == held) {   /* the hold goes on: a TIE */
+                    sp->n = held != DUB_SEQ_REST;
+                    sp->time = held != DUB_SEQ_REST ? ST_TIE : ST_REST;
+                    continue;
+                }
+                sp->note[0] = note;                    /* a new note: it sounds from here */
+                sp->n = 1;
+                sp->time = ST_NOTE;
+                held = note;
             }
-            continue;
         }
-        if (note == DUB_SEQ_REST) {                    /* the bass and the melody, legato */
-            if (dub_hold[tr] != DUB_SEQ_REST) {
-                input_off(DUB_TO[tr], dub_hold[tr]);
-                dub_hold[tr] = DUB_SEQ_REST;
-            }
-        } else if (note != dub_hold[tr]) {
-            if (dub_hold[tr] != DUB_SEQ_REST)
-                input_off(DUB_TO[tr], dub_hold[tr]);
-            input_on(DUB_TO[tr], note, vel);
-            dub_hold[tr] = note;
-        }                                              /* the same note again: held */
-    }
-    s->step = (uint8_t)(st % s->length);               /* the playhead follows the transport */
-}
-
-static void dub_clock(void)                            /* once a block, on the transport's grid */
-{
-    uint32_t q = BEAT_U / 4u, now;
-    if (!dub_enabled) {
-        dub_all_off();
-        return;
-    }
-    now = (uint32_t)(((uint64_t)clk_beat * BEAT_U + clk_pos) / q);
-    if (dub_sixteenth == 0xFFFFFFFFu) {                /* PLAY just started: its step 0 at once */
-        dub_sixteenth = now;
-        if (dub_sequence.length)
-            dub_step_play(now % dub_sequence.length);
-        return;
-    }
-    if (now != dub_sixteenth) {                        /* a sixteenth began inside this block */
-        dub_sixteenth = now;
-        if (dub_sequence.length)
-            dub_step_play(now % dub_sequence.length);
+        for (st = 0; st < NSTEP; st++)
+            t->micro[st] = 0;                          /* the load's pattern, fresh: no nudge */
+        for (st = 0; st < NLOCK; st++)
+            t->lock[st].step = LOCK_FREE;              /* and no parameter lock left over */
+        for (st = 0; st < NSTEP / 4u; st++)
+            t->fill[st] = 0;                           /* every step plays, no fill condition */
+        t->p[P_SLEN] = len;                            /* the PATTERN page's LEN shows it */
+        t->seq_active = 1;
     }
 }
 
@@ -3662,13 +3656,10 @@ static void events_block(uint32_t n)
             clk_pos -= BEAT_U;
             clk_beat++;
         }
-        dub_clock();                                /* 2.9.2: the dub sequence rides the sixteenths */
 #if FELUCCA_ARRANGER
         arr_elapse(&arrangement_clock, adv, 1u);   /* (units: n x BPM, or the MIDI clock) */
 #endif
-    } else {
-        dub_all_off();                             /* STOP: no dub note stays held, the next PLAY
-                                                   * begins the riddim at its step 0 (dub_clock) */
-        dub_sixteenth = 0xFFFFFFFFu;
     }
+    /* (2.9.6: the dub sequence's own player is gone — a riddim's load lands in the
+     * tracks' steps, seq_tick plays them, the transport's clock here drives both) */
 }

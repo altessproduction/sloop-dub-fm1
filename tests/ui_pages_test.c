@@ -1311,16 +1311,17 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K1], -2);
         check(dub_menu_dtrk == 0u, "menu DSEQ: KNOB 1 left two: SEQ TRACK BASS");
         turns(panel.enc[EN_K2], 1);
-        check(dub_sequence.length == 32u, "menu DSEQ: KNOB 2 right: SEQ LENGTH 16 -> 32");
+        check(trk[0].p[P_SLEN] == 32u, "menu DSQ: KNOB 2 right: SEQ LENGTH 16 -> 32, the bass track's own LEN");
         turns(panel.enc[EN_K3], 3);
-        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSEQ: KNOB 3 right: SEQ STEP 4");
+        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSQ: KNOB 3 right: SEQ STEP 4");
         turns(panel.enc[EN_K4], 5);
-        check(dub_sequence.notes[DUB_TRK_BASS][3] == 41u, "menu DSEQ: KNOB 4 right: SEQ NOTE 36 -> 41 written to the bass track");
+        check(trk[0].step[3].time == ST_NOTE && trk[0].step[3].n == 1u && trk[0].step[3].note[0] == 41u,
+              "menu DSQ: KNOB 4 right: SEQ NOTE 36 -> 41 written to the bass track's step");
         ui.menu_sel = MI_DUB_VEL; ui.force = 1; frame();
         tap(B_OCTUP);                                  /* the fifth row: OCT+ only, the knob's rows end at NOTE */
-        check(dub_sequence.velocity[DUB_TRK_BASS][3] == 0u, "menu DSEQ: OCT+ on SEQ VEL: the step's velocity written (toggled off)");
+        check(trk[0].step[3].vel == 0u, "menu DSQ: OCT+ on SEQ VEL: the step's velocity written (toggled off)");
         tap(B_OCTUP);
-        check(dub_menu_step_vel == 100u, "menu DSEQ: OCT+ again: the velocity back at 100");
+        check(dub_menu_step_vel == 100u && trk[0].step[3].vel == 100u, "menu DSQ: OCT+ again: the velocity back at 100");
 
         turns(panel.enc[EN_SELECT], 1);
         check(mi_sec(ui.menu_sel) == MS_RIDDIM && ui.menu_sel == MI_RD_SEL,
@@ -1330,14 +1331,18 @@ int main(int argc, char **argv)
         check(dub_menu_riddim == 2u && !strcmp(mi_value(MI_RD_SEL, &(uint16_t){0}), "ROCKERS"),
               "menu RIDDIM: KNOB 1 right two: ROCKERS selected");
         tap(B_OCTUP);
-        check(dub_sequence.length == 64u && dub_sequence.notes[DUB_TRK_DRUM][8] == DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8] &&
-              dub_enabled == 1u, "menu RIDDIM: OCT+ loads the whole riddim, 64 steps, dub on");
+        check(dub_sequence.length == 64u && trk[0].p[P_SLEN] == 64u && trk[3].p[P_SLEN] == 64u &&
+              trk[0].step[0].time == ST_NOTE && trk[0].step[0].note[0] == DUB_RIDDIMS[2].note[DUB_TRK_BASS][0] &&
+              trk[0].step[1].time == ST_TIE &&
+              dstep_has(&trk[3].dstep[8], lane_of_note(DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8])) && dub_enabled == 1u,
+              "menu RIDDIM: OCT+ loads the whole riddim into the SLOOP tracks (LEN 64, dub on)");
         turns(panel.enc[EN_K2], 1);
         check(dub_menu_rbass == 1u, "menu RIDDIM: KNOB 2 right: STEPPERS's bass selected");
         dub_sequence.notes[DUB_TRK_BASS][5] = 77;      /* a step the load must overwrite */
         tap(B_OCTUP);
         check(dub_sequence.notes[DUB_TRK_BASS][5] == DUB_RIDDIMS[1].note[DUB_TRK_BASS][5] &&
-              dub_sequence.notes[DUB_TRK_DRUM][8] == DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8],
+              trk[0].step[0].note[0] == DUB_RIDDIMS[1].note[DUB_TRK_BASS][0] &&
+              dstep_has(&trk[3].dstep[8], lane_of_note(DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8])),
               "menu RIDDIM: OCT+ on BASS PATTERN loads the bass motif only");
         turns(panel.enc[EN_K3], 1);
         check(dub_menu_rskank == 1u, "menu RIDDIM: KNOB 3 right: the skank motif moves");

@@ -495,15 +495,39 @@ WASM_EXPORT("emu_dub_band") void emu_dub_band(uint32_t band, int32_t gain, uint3
     dub_isolator_set_band(&dub_isolator, band, p);
 }
 
-WASM_EXPORT("emu_dub_seq_length") void emu_dub_seq_length(uint32_t length)
+WASM_EXPORT("emu_dub_seq_length") void emu_dub_seq_length(uint32_t length)   /* 2.9.6: every track's LEN */
 {
-    dub_seq_set_length(&dub_sequence, (uint8_t)length);
+    uint32_t i;
+    if (length < 1u)
+        length = 1u;
+    if (length > NSTEP)
+        length = NSTEP;
+    for (i = 0; i < DUB_TRK_N; i++)
+        trk[i].p[P_SLEN] = (int16_t)length;
 }
 
 WASM_EXPORT("emu_dub_seq_step") void emu_dub_seq_step(uint32_t track, uint32_t step, uint32_t note, uint32_t velocity)
 {
-    dub_seq_set_step(&dub_sequence, (uint8_t)track, (uint8_t)step, (uint8_t)(note > 127u ? 127u : note),
-        (uint8_t)(velocity > 127u ? 127u : velocity));
+    if (track >= DUB_TRK_N || step >= NSTEP)
+        return;
+    if (track == DUB_TRK_DRUM) {                   /* the web DSQ's cell: a lane hit / cleared */
+        if (!velocity || note > 127u)
+            dstep_clr(&trk[track].dstep[step], lane_of_note(note));
+        else
+            dstep_set(&trk[track].dstep[step], lane_of_note(note), vel_lvl(velocity), 0);
+        return;
+    }
+    if (!velocity || note > 127u) {                /* the web DSQ's clear: the step empties */
+        trk[track].step[step].n = 0;
+        trk[track].step[step].time = ST_REST;
+        return;
+    }
+    trk[track].step[step].note[0] = (uint8_t)note;
+    trk[track].step[step].n = 1;
+    trk[track].step[step].time = ST_NOTE;
+    trk[track].step[step].flags = 0;
+    trk[track].step[step].vel = (uint8_t)velocity;
+    trk[track].seq_active = 1;
 }
 
 WASM_EXPORT("emu_dub_riddim_count") uint32_t emu_dub_riddim_count(void)
@@ -511,28 +535,55 @@ WASM_EXPORT("emu_dub_riddim_count") uint32_t emu_dub_riddim_count(void)
     return DUB_RIDDIM_COUNT;
 }
 
-/* 2.9.4: the sequencer's readback, the web console's DSQ view: what a load left in the
- * sequence, its length and the playhead. 255 (DUB_SEQ_REST) is an empty step. */
-WASM_EXPORT("emu_dub_seq_len") uint32_t emu_dub_seq_len(void)
+/* 2.9.6: the sequencer's readback, the web console's DSQ view: what a load left in the
+ * SLOOP sequencer's tracks — the steps themselves, each track's LEN, the playhead.
+ * 255 (DUB_SEQ_REST) an empty step, 254 a TIE (the load's held note going on). */
+WASM_EXPORT("emu_dub_seq_len") uint32_t emu_dub_seq_len(void)     /* the longest track's LEN */
 {
-    return dub_sequence.length;
+    uint32_t i, n = 0;
+    for (i = 0; i < DUB_TRK_N; i++)
+        if (trk[i].p[P_SLEN] > (int16_t)n)
+            n = (uint32_t)trk[i].p[P_SLEN];
+    return n;
+}
+
+WASM_EXPORT("emu_dub_seq_track_len") uint32_t emu_dub_seq_track_len(uint32_t track)
+{
+    return track < DUB_TRK_N ? (uint32_t)trk[track].p[P_SLEN] : 0u;
 }
 
 WASM_EXPORT("emu_dub_seq_note") uint32_t emu_dub_seq_note(uint32_t track, uint32_t step)
 {
-    if (track >= DUB_TRK_N || step >= 64u)
+    const step_t *sp;
+    if (track >= DUB_TRK_N || step >= NSTEP)
         return DUB_SEQ_REST;
-    return dub_sequence.notes[track][step];
+    if (track == DUB_TRK_DRUM) {
+        const dstep_t *d = &trk[track].dstep[step];
+        uint32_t m = dstep_mask(d), l = 0;
+        if (!m)
+            return DUB_SEQ_REST;
+        while (!(m >> l & 1u))
+            l++;                                   /* the step's first lane, its note out */
+        return LANE_NOTE[l & 15u];
+    }
+    sp = &trk[track].step[step];
+    if (sp->time == ST_TIE)
+        return 254u;                               /* the hold the load wrote, going on */
+    if (sp->time == ST_NOTE && sp->n)
+        return sp->note[0];
+    return DUB_SEQ_REST;
 }
 
-WASM_EXPORT("emu_dub_seq_pos") uint32_t emu_dub_seq_pos(void)      /* the playhead's step */
+WASM_EXPORT("emu_dub_seq_pos") uint32_t emu_dub_seq_pos(void)      /* the playhead's sixteenth */
 {
-    return dub_sequence.step;
+    uint32_t q = BEAT_U / 4u, len = emu_dub_seq_len();
+    uint32_t now = (uint32_t)(((uint64_t)clk_beat * BEAT_U + clk_pos) / q);
+    return len ? now % len : 0u;
 }
 
 WASM_EXPORT("emu_dub_seq_playing") uint32_t emu_dub_seq_playing(void)
 {
-    return song.playing && dub_enabled ? 1u : 0u;
+    return song.playing ? 1u : 0u;                 /* the tracks play the steps, DUB or not */
 }
 
 WASM_EXPORT("emu_dub_riddim_name") uint32_t emu_dub_riddim_name(uint32_t riddim)   /* const char *, a wasm offset */
@@ -540,15 +591,18 @@ WASM_EXPORT("emu_dub_riddim_name") uint32_t emu_dub_riddim_name(uint32_t riddim)
     return (uint32_t)(uintptr_t)dub_riddim_name(riddim);
 }
 
-WASM_EXPORT("emu_dub_riddim_load") void emu_dub_riddim_load(uint32_t riddim)       /* the whole riddim, the RIDDIM page's OCT+ */
+WASM_EXPORT("emu_dub_riddim_load") void emu_dub_riddim_load(uint32_t riddim)   /* the whole riddim, the RIDDIM
+                                                            * page's OCT+: the staging, then the tracks */
 {
     dub_riddim_load(&dub_sequence, riddim);
+    dub_tracks_load(&dub_sequence, (1u << DUB_TRK_N) - 1u, DUB_RIDDIM_STEPS);
     emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_riddim_track") void emu_dub_riddim_track(uint32_t riddim, uint32_t track)   /* one track's motif */
 {
     dub_riddim_load_track(&dub_sequence, riddim, track);
+    dub_tracks_load(&dub_sequence, track < DUB_TRK_N ? 1u << track : 0u, DUB_RIDDIM_STEPS);
     emu_dub_enable(1);
 }
 

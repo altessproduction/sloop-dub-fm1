@@ -55,13 +55,18 @@ class SloopProcessor extends AudioWorkletProcessor {
                 else this.e.emu_dub_seq_step(m.step || 0, m.note || 60, m.velocity || 0);   // the older wasm's single track
             }
             else if (m.t === 'dub-riddim') { if (typeof this.e.emu_dub_riddim_load === 'function') this.e.emu_dub_riddim_load(m.riddim || 0); }   // the RIDDIM page's loads
-            else if (m.t === 'dub-seq-dump') {   // (2.9.4) what the sequence holds: len + the 4 tracks' notes
+            else if (m.t === 'dub-seq-dump') {   // (2.9.6) what the SLOOP sequencer's tracks hold:
+                                                 // each track's LEN + the 4 tracks' steps (255 rest, 254 tie)
                 if (typeof this.e.emu_dub_seq_note === 'function') {
                     const notes = new Uint8Array(4 * 64);
-                    for (let tr = 0; tr < 4; tr++)
+                    const lens = new Uint8Array(4);
+                    for (let tr = 0; tr < 4; tr++) {
+                        lens[tr] = typeof this.e.emu_dub_seq_track_len === 'function'
+                            ? this.e.emu_dub_seq_track_len(tr) : 64;
                         for (let st = 0; st < 64; st++)
                             notes[tr * 64 + st] = this.e.emu_dub_seq_note(tr, st);
-                    this.port.postMessage({ t: 'dub-seq-dump', len: this.e.emu_dub_seq_len(), notes });
+                    }
+                    this.port.postMessage({ t: 'dub-seq-dump', len: this.e.emu_dub_seq_len(), lens, notes });
                 } else this.port.postMessage({ t: 'dub-seq-dump', len: 0, notes: null });
             }
             else if (m.t === 'dub-riddim-track') { if (typeof this.e.emu_dub_riddim_track === 'function') this.e.emu_dub_riddim_track(m.riddim || 0, m.track || 0); }

@@ -182,8 +182,10 @@ def main():
         page.evaluate("dubSeqRefresh()")         # the DSQ view reads the sequence back
         time.sleep(0.5)
         n_fw = [active_steps(page, t) for t in range(4)]
+        # (2.9.6) the active cells are the real NOTE / lane steps: the bass's holds are TIE
+        # steps now (the dump's 254, drawn dashed, not .active), so 17 not 24 for the bass
         check("firmware OCT+ loads the whole ROCKERS (all four tracks, exact)",
-              n_fw == [24, 24, 6, 36], f"({n_fw})")
+              n_fw == [17, 24, 6, 36], f"({n_fw})")
         check("firmware OCT+ load kept the sequence at 64",
               page.evaluate("document.getElementById('dub-length').value") == "64")
 

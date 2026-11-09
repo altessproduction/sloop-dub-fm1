@@ -6,10 +6,12 @@
  * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB PRESET, DUB MIX), SIREN (2.9.1, two pages:
  * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN LEVEL — and SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM,
  * SIREN SEND), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
- * DSEQ (SEQ TRACK 2.9.2, SEQ LENGTH, SEQ STEP, SEQ NOTE, SEQ VELOCITY), RIDDIM (2.9.2:
+ * DSQ (2.9.6: the SLOOP sequencer's steps, what RIDDIM loaded — SEQ TRACK, SEQ LENGTH,
+ * SEQ STEP, SEQ NOTE, SEQ VELOCITY read and edit the tracks' real steps), RIDDIM (2.9.2:
  * RIDDIM, BASS PATTERN, SKANK PATTERN, DRUM PATTERN; OCT+ on each loads the selection into
- * the dub sequence: KNOB 1 the whole riddim, KNOB 2 the bass line, KNOB 3 the skanks,
- * KNOB 4 the drums) and PRESET (2.9.3: BASS PRESET, SKANK PRESET, MELODY PRESET, DRUM KIT;
+ * the SLOOP sequencer (dub_tracks_load): KNOB 1 the whole riddim, KNOB 2 the bass line,
+ * KNOB 3 the skanks, KNOB 4 the drums — the PATTERN / NOTES pages show the steps after)
+ * and PRESET (2.9.3: BASS PRESET, SKANK PRESET, MELODY PRESET, DRUM KIT;
  * OCT+ on each loads the selection into the riddim's track: KN1 the bass sound, KN2 the
  * skank's, KN3 the melody's, KN4 a reggae dub drum kit) and ISO (SUB, BASS, MIDS, TOPS;
  * OCT+ mutes the band).
@@ -63,10 +65,10 @@ static uint8_t dub_menu_pskank;
 static uint8_t dub_menu_pmel;
 static uint8_t dub_menu_pkit;
 static uint8_t dub_menu_preset;
-static uint8_t dub_menu_len = 16;
-static uint8_t dub_menu_step;
-static uint8_t dub_menu_note = 36;
-static uint8_t dub_menu_step_vel = 100;          /* the dub sequence's step velocity */
+static uint8_t dub_menu_step;                    /* the DSQ page's cursor (2.9.6: a step of the SLOOP track) */
+static uint8_t dub_menu_lane;                    /* the DSQ page's drum lane (its NOTE row) */
+static uint8_t dub_menu_note = 36;               /* the note an empty step gets planted with */
+static uint8_t dub_menu_step_vel = 100;          /* the DSQ page's write velocity / level */
 static uint8_t dub_menu_skank_notes[DUB_SKANK_MAX_NOTES];
 static uint8_t dub_menu_skank_count;
 static const char *const DUB_NOTE[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
@@ -88,19 +90,23 @@ UI_SMALL static void dub_menu_skank(void)        /* play the chord the SKANK pag
     dub_isolator.enabled = 1;
 }
 
-UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDIM page: what KNOB 1..4 hold */
+UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDIM page: what KNOB 1..4 hold.
+                                                            * The load lands in the SLOOP sequencer (2.9.6):
+                                                            * the tracks' steps, LEN 64, editable after */
 {
     uint32_t r = (uint32_t)dub_menu_riddim;
     if (track >= DUB_TRK_N) {
         dub_riddim_load(&dub_sequence, r);
-        dub_menu_len = 64;
+        dub_tracks_load(&dub_sequence, (1u << DUB_TRK_N) - 1u, DUB_RIDDIM_STEPS);
         ui_message("RIDDIM LOADED");
     } else {
         dub_riddim_load_track(&dub_sequence, track == DUB_TRK_BASS ? (uint32_t)dub_menu_rbass :
                                              track == DUB_TRK_SKANK ? (uint32_t)dub_menu_rskank :
                                                                       (uint32_t)dub_menu_rdrum, track);
+        dub_tracks_load(&dub_sequence, 1u << track, DUB_RIDDIM_STEPS);
         ui_message(track == DUB_TRK_BASS ? "BASS LOADED" : track == DUB_TRK_SKANK ? "SKANK LOADED" : "DRUM LOADED");
     }
+    dub_menu_step = 0;
     dub_enabled = 1;
     dub_isolator.enabled = 1;
 }
@@ -320,9 +326,9 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         return b;
     }
     case MI_DUB_TRACK: return DUB_TRK_NAMES[dub_menu_dtrk % DUB_TRK_N];
-    case MI_DUB_LEN: {
+    case MI_DUB_LEN: {                                 /* 2.9.6: the track's own LEN (PATTERN page's too) */
         static char b[8];
-        fmt_int(b, dub_sequence.length);
+        fmt_int(b, trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
         return b;
     }
     case MI_DUB_STEP: {
@@ -330,14 +336,29 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         fmt_int(b, dub_menu_step + 1u);
         return b;
     }
-    case MI_DUB_NOTE: {
+    case MI_DUB_NOTE: {                                /* the step's note ("--" an empty one); the drum
+                                                        * track: the lane the page targets (LANE_NOTE) */
         static char b[8];
-        fmt_int(b, dub_menu_note);
+        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM)
+            fmt_int(b, LANE_NOTE[dub_menu_lane & 15u]);
+        else {
+            const step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
+            if (sp->time == ST_NOTE && sp->n)
+                fmt_int(b, sp->note[0]);
+            else
+                str_cpy(b, "--", 8);
+        }
         return b;
     }
-    case MI_DUB_VEL: {
+    case MI_DUB_VEL: {                                 /* the step's velocity; the drum lane's level as one */
         static char b[8];
-        fmt_int(b, dub_menu_step_vel);
+        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM) {
+            const dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
+            fmt_int(b, dstep_has(d, dub_menu_lane & 15u) ? (int32_t)lvl_vel(dstep_lvl(d, dub_menu_lane & 15u), 100) : (int32_t)dub_menu_step_vel);
+        } else {
+            const step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
+            fmt_int(b, sp->time == ST_NOTE && sp->n ? sp->vel : dub_menu_step_vel);
+        }
         return b;
     }
     case MI_RD_SEL: return dub_riddim_name(dub_menu_riddim);
@@ -374,7 +395,7 @@ UI_SMALL static void draw_menu(void)
                    dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
                    dub_siren.freq_hz * 6700477u + dub_siren.depth * 6700479u + dub_siren.rate * 6700481u +
                    dub_siren.type * 6700519u + dub_siren.wave * 6700523u + dub_siren.sym * 6700531u + dub_siren.send * 6700533u +
-                   dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_len * 6700471u +
+                   dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_lane * 6700471u +
                    dub_menu_step * 6700483u + dub_menu_note * 6700487u + dub_menu_step_vel * 6700491u +
                    dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
                    dub_menu_dtrk * 6700539u + dub_menu_riddim * 6700541u + dub_menu_rbass * 6700547u +
@@ -745,41 +766,76 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_menu_skank();
         dub_skank_conf.velocity = dub_menu_vel;
         break;
-    case MI_DUB_TRACK:                                 /* BASS SKNK MEL DRUM: the track DSEQ edits, round */
+    case MI_DUB_TRACK:                                 /* BASS SKNK MEL DRUM: the SLOOP track DSQ edits, round */
         if (s > 0 || !s)
             dub_menu_dtrk = (uint8_t)((dub_menu_dtrk + 1u) % DUB_TRK_N);
         else
             dub_menu_dtrk = (uint8_t)((dub_menu_dtrk + DUB_TRK_N - 1u) % DUB_TRK_N);
         break;
-    case MI_DUB_LEN:
+    case MI_DUB_LEN: {                                 /* 2.9.6: the track's own LEN, 16 / 32 / 64 */
+        uint8_t len = (uint8_t)trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN];
         if (s > 0 || !s)
-            dub_menu_len = dub_menu_len == 16u ? 32u : dub_menu_len == 32u ? 64u : 16u;
-        else if (dub_menu_len == 16u)
-            dub_menu_len = 64u;
-        else if (dub_menu_len == 32u)
-            dub_menu_len = 16u;
+            len = len >= 64u ? 16u : len >= 32u ? 64u : 32u;
         else
-            dub_menu_len = 32u;
-        dub_seq_set_length(&dub_sequence, dub_menu_len);
+            len = len <= 16u ? 64u : len <= 32u ? 16u : 32u;
+        trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN] = len;
+        if (dub_menu_step >= len)
+            dub_menu_step = 0;
         break;
+    }
     case MI_DUB_STEP:
         if (s > 0 || !s)
-            dub_menu_step = (uint8_t)((dub_menu_step + 1u) % dub_sequence.length);
+            dub_menu_step = (uint8_t)((dub_menu_step + 1u) % trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
         else
-            dub_menu_step = (uint8_t)((dub_menu_step + dub_sequence.length - 1u) % dub_sequence.length);
+            dub_menu_step = (uint8_t)((dub_menu_step + trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN] - 1u)
+                                      % trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
         break;
-    case MI_DUB_NOTE:
-        dub_menu_note = (uint8_t)(s > 0 ? dub_menu_note + 1u : s < 0 ? dub_menu_note - 1u : dub_menu_note);
-        if (!s)
+    case MI_DUB_NOTE: {                                /* a synth step's note (an empty step plants the last
+                                                        * one used); the drum track: the lane, OCT+ its hit */
+        uint32_t tr = dub_menu_dtrk % DUB_TRK_N;
+        step_t *sp = &trk[tr].step[dub_menu_step % NSTEP];
+        if (tr == DUB_TRK_DRUM) {
+            if (s > 0)
+                dub_menu_lane = (uint8_t)((dub_menu_lane + 1u) & 15u);
+            else if (s < 0)
+                dub_menu_lane = (uint8_t)((dub_menu_lane + 15u) & 15u);
+            else {                                     /* OCT+: the lane's hit on / off at the cursor */
+                dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
+                if (dstep_has(d, dub_menu_lane & 15u))
+                    dstep_clr(d, dub_menu_lane & 15u);
+                else
+                    dstep_set(d, dub_menu_lane & 15u, vel_lvl(dub_menu_step_vel), 0);
+            }
+            break;
+        }
+        if (s > 0) {
+            dub_menu_note = dub_menu_note < 127u ? (uint8_t)(dub_menu_note + 1u) : 0u;
+            sp->note[0] = dub_menu_note;
+        } else if (s < 0) {
+            dub_menu_note = dub_menu_note ? (uint8_t)(dub_menu_note - 1u) : 127u;
+            sp->note[0] = dub_menu_note;
+        } else                                           /* OCT+: the note an octave up, round */
             dub_menu_note = (uint8_t)(dub_menu_note + 12u > 127u ? 36u : dub_menu_note + 12u);
-        dub_seq_set_step(&dub_sequence, dub_menu_dtrk, dub_menu_step, dub_menu_note, dub_menu_step_vel);
+        sp->note[0] = dub_menu_note;
+        sp->n = 1;
+        sp->time = ST_NOTE;
+        sp->flags = 0;
         break;
-    case MI_DUB_VEL:
+    }
+    case MI_DUB_VEL: {
         if (s > 0 && dub_menu_step_vel < 127u) dub_menu_step_vel++;
         else if (s < 0 && dub_menu_step_vel > 0u) dub_menu_step_vel--;
         else if (!s) dub_menu_step_vel = dub_menu_step_vel ? 0u : 100u;
-        dub_seq_set_step(&dub_sequence, dub_menu_dtrk, dub_menu_step, dub_menu_note, dub_menu_step_vel);
+        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM) { /* the aimed lane's level, when it is on */
+            dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
+            if (dstep_has(d, dub_menu_lane & 15u))
+                dstep_set(d, dub_menu_lane & 15u, vel_lvl(dub_menu_step_vel), 0);
+        } else {
+            step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
+            sp->vel = dub_menu_step_vel;
+        }
         break;
+    }
     case MI_RD_SEL:                                    /* the ten riddims, round; OCT+ loads the whole */
         if (s > 0)
             dub_menu_riddim = (uint8_t)((dub_menu_riddim + 1u) % DUB_RIDDIM_COUNT);

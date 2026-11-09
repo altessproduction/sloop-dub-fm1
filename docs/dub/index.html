@@ -336,6 +336,7 @@ body.compact #manual { display: none; }
 #dub-steps button { padding: 9px 0; font-size: 9px; }
 #dub-steps button.play { box-shadow: 0 0 0 1px var(--accent) inset; }
 #dub-steps button.bar { opacity: 0.55; }
+#dub-steps button.tie { opacity: 0.45; border-style: dashed; }
 #dub-steps .dub-trk-label { grid-column: 1 / -1; font-size: 10px; letter-spacing: 2px; color: var(--dim, #8a919b); margin-top: 6px; }
 .dub-band { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 12px; }
 .dub-band span { min-width: 42px; letter-spacing: 1px; color: var(--dim); }
@@ -433,7 +434,7 @@ body.compact #manual { display: none; }
 
     <div class="dub-page" data-dub-panel="dseq" role="tabpanel" hidden>
         <div class="dub-card">
-            <h3>SÉQUENCEUR DUB · 4 PISTES</h3>
+            <h3>SÉQUENCEUR · 4 PISTES</h3>
             <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
             <div id="dub-trks" role="group" aria-label="Piste éditée">
                 <button type="button" data-dub-trk="0" class="active">BASS</button>
@@ -442,7 +443,7 @@ body.compact #manual { display: none; }
                 <button type="button" data-dub-trk="3">DRUM</button>
             </div>
             <div id="dub-steps" aria-label="Pas du séquenceur"></div>
-            <p class="dub-hint">La vue suit le séquenceur : ce que OCT+ charge (page RIDDIM du firmware ou l'onglet RDM) s'affiche ici, la colonne claire est la tête de lecture. Un clic pose ou efface le pas de la piste choisie.</p>
+            <p class="dub-hint">La vue lit le séquenceur SLOOP : ce que OCT+ charge (page RIDDIM du firmware ou l'onglet RDM) atterrit dans les pistes 1–4 et reste éditable (touches SEQ, pages PATTERN et NOTES, page DSQ du menu). Un pointillé = le pas tenu (TIE) par la ligne chargée. Un clic pose ou efface le pas de la piste choisie.</p>
         </div>
     </div>
 

@@ -28,6 +28,7 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
         'emu_dub_siren_type', 'emu_dub_siren_wave', 'emu_dub_siren_sym', 'emu_dub_siren_send',
         'emu_dub_siren_level', 'emu_dub_siren_freq', 'emu_dub_siren_depth',
         'emu_dub_riddim_count', 'emu_dub_riddim_name', 'emu_dub_riddim_load', 'emu_dub_riddim_track',
+        'emu_dub_seq_track_len',
         'emu_dub_sound_count', 'emu_dub_sound_name', 'emu_dub_sound_load'];
     for (const n of need)
         if (!names.includes(n)) throw new Error('missing export ' + n);
@@ -100,10 +101,25 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
     }
     if (new Set(ridNames).size !== nRid || ridNames[0] !== 'ONE DROP')
         throw new Error('riddim names: ' + ridNames.join(','));
-    e.emu_dub_riddim_load(0);          /* ONE DROP into the dub sequence */
+    e.emu_dub_riddim_load(0);          /* ONE DROP into the SLOOP sequencer's tracks (2.9.6) */
     e.emu_dub_riddim_track(1, 3);      /* STEPPERS's drum motif over it */
     e.emu_frame();
     console.log('riddim bank ....... OK (10: ' + ridNames.join(' ') + ')');
+
+    /* 2.9.6: the load's readback — the steps are in the sequencer's tracks, not a buffer:
+     * ONE DROP's bass st0 = 33 with st1 the TIE holding it, the skank's stab at st2, the
+     * drum motif's kick at st0, every track's LEN 64. The PATTERN page draws these. */
+    const note = (t, s) => e.emu_dub_seq_note(t, s);
+    if (e.emu_dub_seq_len() !== 64) throw new Error('seq len ' + e.emu_dub_seq_len());
+    if (note(0, 0) !== 33) throw new Error('bass st0 ' + note(0, 0));
+    if (note(0, 1) !== 254) throw new Error('bass st1 tie ' + note(0, 1));
+    if (note(1, 2) % 12 !== 66 % 12) throw new Error('skank st2 ' + note(1, 2));   /* the stab is the SKANK
+        * page's chord built from the riddim's note class (F# here): its root lands at the page's
+        * octave (42 with the boot config), the readback's note[0] is that chord root, not 66 */
+    if (note(3, 0) !== 36) throw new Error('drum st0 ' + note(3, 0));
+    for (let t = 0; t < 4; t++)
+        if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));
+    console.log('seq readback ...... OK (steps in the tracks, TIE holds, LEN 64)');
 
     /* 2.9.3: the dub sound banks: eight a role, the names readable, every role loads */
     const roleNames = [];

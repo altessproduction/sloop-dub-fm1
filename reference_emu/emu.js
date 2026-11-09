@@ -293,16 +293,21 @@ function dubSeqToggle(tr, st, b) {
     dubSeqRefresh();
 }
 function dubSeqRefresh() { if (node) node.port.postMessage({ t: 'dub-seq-dump' }); }
+let dubSeqLens = null;
 function dubSeqApply(m) {
     dubSeqLen = m.len || 0;
+    dubSeqLens = m.lens ? Array.from(m.lens) : null;
     dubSeqNotes = m.notes ? Array.from(m.notes) : null;
     const sel = document.getElementById('dub-length');
     if (sel && dubSeqLen && sel.value !== String(dubSeqLen)) sel.value = String(dubSeqLen);
     if (!dubSeqNotes) return;
     document.querySelectorAll('#dub-steps button').forEach(b => {
-        const st = Number(b.dataset.step);
-        b.classList.toggle('active', dubSeqNotes[Number(b.dataset.trk) * 64 + st] !== 255);
-        b.classList.toggle('bar', st >= dubSeqLen);
+        const tr = Number(b.dataset.trk), st = Number(b.dataset.step);
+        const v = dubSeqNotes[tr * 64 + st];
+        const rowLen = dubSeqLens ? (dubSeqLens[tr] || 0) : dubSeqLen;
+        b.classList.toggle('active', v !== 255 && v !== 254);   // a hit; a TIE (254) is the hold, not a hit
+        b.classList.toggle('tie', v === 254);                   // the load's held note going on
+        b.classList.toggle('bar', rowLen && st >= rowLen);      // beyond that track's own LEN
     });
 }
 function dubSeqPlayhead(seq) {           // the frame / leds messages' seq: {len, pos, playing}

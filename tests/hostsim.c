@@ -41,6 +41,7 @@ static void fm1_irq_on(void) {}
 #include "../firmware/src/voice.c"
 #include "../firmware/src/slicer.c"
 #include "../firmware/src/fx.c"
+#include "../firmware/src/dub.c"               /* the Dub extension's DSP (fx.c calls it from mix_block) */
 static void fm1_delay_ms(uint32_t ms) { (void)ms; }
 #include "../firmware/src/usb.c"
 #include "../firmware/src/midi_uart.c"                /* TRS MIDI IN: its parser (um_byte) feeds midi_in_q */
@@ -88,6 +89,10 @@ static void host_tracks_init(void)                /* as felucca_init: defaults, 
         steps_clear(&trk[k]);
     }
     song.master_q12 = 4096;
+    dub_isolator_init(&dub_isolator);            /* the Dub extension: bypassed until a page turns it on,
+                                                  * with the mix at full wet as main.c felucca_init does */
+    dub_siren_init(&dub_siren);
+    dub_seq_init(&dub_sequence);
 }
 
 /* the factory preset as ui.c apply_preset_to sets it (sound, sends, arp; not the pattern, not the mix);

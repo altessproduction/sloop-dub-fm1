@@ -159,7 +159,7 @@ void preview_dub_enable(uint32_t on)
 void preview_dub_siren(uint32_t level, uint32_t frequency, uint32_t depth)
 {
     uint32_t hz = (uint32_t)clamp((int32_t)frequency, 220, 1200);
-    dub_siren.phase_inc = dub_hz_inc(hz);
+    dub_siren_set_freq(&dub_siren, (uint16_t)hz);   /* keeps freq_hz shown by the menu in step */
     dub_siren.depth = (uint8_t)clamp((int32_t)depth, 0, 127);
     dub_siren_trigger(&dub_siren, (uint8_t)clamp((int32_t)level, 0, 127));
     if (level) dub_enabled = 1;

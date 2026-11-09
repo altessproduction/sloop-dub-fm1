@@ -138,6 +138,15 @@ static uint32_t BT(uint32_t b) { return 1u << panel.btn[b]; }
 static void press(uint32_t b) { edges_btn |= BT(b); fm1_in.buttons |= BT(b); frame(); }
 static void release(uint32_t b) { fm1_in.buttons &= ~BT(b); frame(); }
 static void tap(uint32_t b) { press(b); release(b); }
+static void turns(uint32_t e, int32_t n)         /* n detents, one a frame, as the scan feeds the menu */
+{
+    int32_t k;
+    for (k = 0; k < (n > 0 ? n : -n); k++) {
+        encs[e] = n > 0 ? 1 : -1;
+        frame();
+    }
+    encs[e] = 0;
+}
 static void key(uint32_t k) { fm1_in.notes |= 1u << k; frame(); fm1_in.notes &= ~(1u << k); frame(); }
 static int fails;
 static void check(int ok, const char *what) { printf("ui: %-74s %s\n", what, ok ? "ok" : "FAIL"); fails += !ok; }
@@ -1153,10 +1162,9 @@ int main(int argc, char **argv)
         check(mi_sec(ui.menu_sel) == MS_AUDIO, "menu: SELECT right: AUDIO (LOWCUT, USB AUDIO, USB RATE)");
         encs[panel.enc[EN_SELECT]] = 5; frame();
         check(mi_sec(ui.menu_sel) == MS_SEQ, "menu (2.7.1): SELECT right: SEQ (STEP ADVANCE, DRUM PREVIEW)");
-        encs[panel.enc[EN_SELECT]] = 5; frame();
-        encs[panel.enc[EN_SELECT]] = 5; frame();
+        encs[panel.enc[EN_SELECT]] = 1; frame();
         sec = mi_sec(ui.menu_sel);
-        check(sec == MS_SYSTEM, "menu: SELECT stops at the last section, SYSTEM");
+        check(sec == MS_SYSTEM, "menu: SELECT right after SEQ: SYSTEM");
         encs[panel.enc[EN_K1]] = -1; frame();         /* (dualcore) row 1: 2ND CORE; the render split (fx.c cpu1_units) */
         check(ui.menu_sel == MI_CPU1 && cpu1_off == 1u && cpu1_units == 0 && (lights_word() >> 26 & 1u),
               "menu SYSTEM: KNOB 1 left: 2ND CORE OFF (every render unit on core 0), saved with the settings (2.7: bit 26 set = OFF)");
@@ -1180,9 +1188,123 @@ int main(int argc, char **argv)
         check(ui.menu == 2, "menu SYSTEM: OCT+ on ABOUT opens it");
         tap(B_OCTDN);
         check(ui.menu == 1 && ui.menu_sel == MI_ABOUT, "menu: OCT- from ABOUT: back to SYSTEM");
+        {   /* the Dub pages after SYSTEM (2.9): the walk goes on to ISO and stops there */
+            uint32_t k;
+            for (k = 0; k < MS_COUNT - 1u - MS_SYSTEM; k++) {
+                encs[panel.enc[EN_SELECT]] = 1; frame();
+            }
+            check(mi_sec(ui.menu_sel) == MS_ISO && ui.menu_sel == MI_DUB_SUB,
+                  "menu: SELECT walks past the Dub pages, stops at ISO, its first row");
+            encs[panel.enc[EN_SELECT]] = 1; frame();
+            check(mi_sec(ui.menu_sel) == MS_ISO, "menu: SELECT right stays on the last page");
+            for (k = 0; k < MS_COUNT - 1u; k++) {
+                encs[panel.enc[EN_SELECT]] = -1; frame();
+            }
+            check(mi_sec(ui.menu_sel) == MS_SCREEN, "menu: SELECT left walks back to SCREEN");
+        }
         tap(B_OCTDN);
         check(ui.menu == 0, "menu: OCT- closes");
         lights_keys = KEYS_OFF; lights_notes = 0; lights_lvl = LIGHTS_OFF;
+        go_home(); ui.force = 1; frame();
+    }
+
+    {   /* the Dub pages (2.9): one page per function after a long HOME press:
+         * DUB (enable, preset, mix), SIREN (level, freq, depth, rate),
+         * SKANK (chord, root, octave, velocity; OCT+ plays the chord),
+         * DSEQ (length, step, note, velocity) and ISO (the four bands) */
+        ui.menu = 1; ui.menu_sel = MI_DUB_ON; ui.force = 1; frame(); ppm("menu-dub");
+        check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB: the module's page (ENABLE, PRESET, MIX)");
+        turns(panel.enc[EN_K1], 1);
+        check(dub_enabled == 1u && dub_isolator.enabled == 1u, "menu DUB: KNOB 1 right: DUB ENABLE ON");
+        turns(panel.enc[EN_K2], 1);
+        check(ui.menu_sel == MI_DUB_PRESET, "menu DUB: KNOB 2 moves the cursor to DUB PRESET");
+        tap(B_OCTUP);
+        check(dub_enabled == 1u && (dub_menu_chord & 7u) == 1u, "menu DUB: OCT+ applies the preset (SKANK CHORD: MIN)");
+        turns(panel.enc[EN_K3], -1);
+        check(ui.menu_sel == MI_DUB_MIX && dub_isolator.mix == 126u, "menu DUB: KNOB 3 left: DUB MIX down from full");
+        tap(B_OCTUP);
+        check(dub_isolator.mix == 0u, "menu DUB: OCT+ on DUB MIX: the isolator dry");
+        tap(B_OCTUP);
+        check(dub_isolator.mix == 127u, "menu DUB: OCT+ again: DUB MIX back to full");
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIREN_LVL,
+              "menu: SELECT right: SIREN, the cursor on its first row");
+        ui.force = 1; frame(); ppm("menu-siren");
+        turns(panel.enc[EN_K1], 3);
+        check(dub_siren.active == 1u && dub_siren.level == 3u, "menu SIREN: KNOB 1 right: the siren sounds, level up");
+        turns(panel.enc[EN_K2], 6);
+        check(ui.menu_sel == MI_SIREN_FRQ && dub_siren.freq_hz == 752u,
+              "menu SIREN: KNOB 2 right: SIREN FREQ 740 -> 752 (2 Hz a detent)");
+        tap(B_OCTUP);
+        check(dub_siren.freq_hz == 740u, "menu SIREN: OCT+ on FREQ: back to 740 Hz");
+        turns(panel.enc[EN_K3], -96);
+        check(ui.menu_sel == MI_SIREN_DPT && dub_siren.depth == 0u, "menu SIREN: KNOB 3 left: SIREN DEPTH to 0");
+        tap(B_OCTUP);
+        check(dub_siren.depth == 96u, "menu SIREN: OCT+ on DEPTH: back to 96");
+        turns(panel.enc[EN_K4], 119);
+        check(ui.menu_sel == MI_SIREN_RAT && dub_siren_rate_hz(dub_siren.rate) == 16u,
+              "menu SIREN: KNOB 4 right: SIREN RATE to 16 Hz");
+        tap(B_OCTUP);
+        check(dub_siren_rate_hz(dub_siren.rate) == 2u, "menu SIREN: OCT+ on RATE: back to 2 Hz");
+        turns(panel.enc[EN_K1], -3);
+        check(dub_siren.active == 0u, "menu SIREN: KNOB 1 left: the siren off");
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_SKANK && ui.menu_sel == MI_SKANK_CHD,
+              "menu: SELECT right: SKANK, the cursor on its first row");
+        ui.force = 1; frame(); ppm("menu-skank");
+        turns(panel.enc[EN_K1], 3);                    /* the preset applied left MIN: three on to 7TH */
+        check(ui.menu_sel == MI_SKANK_CHD && (dub_menu_chord & 7u) == 4u, "menu SKANK: KNOB 1 right: SKANK CHORD 7TH");
+        tap(B_OCTUP);
+        check(dub_menu_skank_count == 4u, "menu SKANK: OCT+ plays the 7TH chord, four notes");
+        turns(panel.enc[EN_K2], 2);
+        check(ui.menu_sel == MI_SKANK_ROOT && dub_menu_root == 2u, "menu SKANK: KNOB 2 right: SKANK ROOT D");
+        tap(B_OCTUP);
+        check(dub_menu_skank_count == 4u && dub_menu_skank_notes[0] == 2u + 12u * dub_menu_oct,
+              "menu SKANK: OCT+ replays the chord from its root");
+        turns(panel.enc[EN_K3], 2);
+        check(ui.menu_sel == MI_SKANK_OCT && dub_menu_oct == 5u, "menu SKANK: KNOB 3 right: SKANK OCT 5");
+        tap(B_OCTUP);
+        check(dub_menu_skank_notes[0] == 2u + 60u, "menu SKANK: OCT+ replays the chord an octave up");
+        turns(panel.enc[EN_K4], -108);
+        check(ui.menu_sel == MI_SKANK_VEL && dub_menu_vel == 0u, "menu SKANK: KNOB 4 left: SKANK VEL to 0");
+        turns(panel.enc[EN_K1], -2);
+        check((dub_menu_chord & 7u) == 2u, "menu SKANK: KNOB 1 left two: SKANK CHORD DIM");
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_DSEQ && ui.menu_sel == MI_DUB_LEN,
+              "menu: SELECT right: DSEQ, SEQ LENGTH its first row");
+        ui.force = 1; frame(); ppm("menu-dseq");
+        turns(panel.enc[EN_K1], 1);
+        check(dub_sequence.length == 32u, "menu DSEQ: KNOB 1 right: SEQ LENGTH 16 -> 32");
+        turns(panel.enc[EN_K2], 3);
+        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSEQ: KNOB 2 right: SEQ STEP 4");
+        turns(panel.enc[EN_K3], 5);
+        check(dub_sequence.notes[3] == 41u, "menu DSEQ: KNOB 3 right: SEQ NOTE 36 -> 41 written to the step");
+        turns(panel.enc[EN_K4], 27);
+        check(dub_sequence.velocity[3] == 127u, "menu DSEQ: KNOB 4 right: SEQ VELOCITY written to the step");
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_ISO && ui.menu_sel == MI_DUB_SUB,
+              "menu: SELECT right: ISO, SUB its first row");
+        ui.force = 1; frame(); ppm("menu-iso");
+        turns(panel.enc[EN_K1], -3);                   /* the preset's band gains are -2 dB: three left is -5 */
+        check(dub_isolator.p[DUB_SUB].gain_db == -5, "menu ISO: KNOB 1 left: SUB down (the preset left -2, now -5 dB)");
+        tap(B_OCTUP);
+        check(dub_isolator.p[DUB_SUB].mute == 1u, "menu ISO: OCT+ on SUB mutes the band");
+        tap(B_OCTUP);
+        check(dub_isolator.p[DUB_SUB].mute == 0u && dub_isolator.p[DUB_SUB].gain_db == -5,
+              "menu ISO: OCT+ again: the band back, the gain kept");
+        tap(B_OCTDN);
+        check(ui.menu == 0, "menu: OCT- closes from the ISO page");
+        dub_enabled = 0; dub_isolator.enabled = 0; dub_isolator.mix = 127;
+        dub_siren_trigger(&dub_siren, 0);
+        dub_siren_set_freq(&dub_siren, 740);
+        dub_siren_set_rate(&dub_siren, 8);
+        dub_siren.depth = 96;
+        dub_seq_set_length(&dub_sequence, 16);
+        dub_seq_set_step(&dub_sequence, 3, 0, 0);
         go_home(); ui.force = 1; frame();
     }
 
@@ -1722,7 +1844,7 @@ int main(int argc, char **argv)
         check(trk[0].p[P_DIST] == TP[P_DIST].max, "CC 74 (any channel): track 1's DIST to its top");
         trk[0].p[P_DIST] = 0;
         ui.menu = 1; ui.menu_sel = 0; ui.force = 1; frame();
-        for (j = 0; j < 6u; j++) { encs[panel.enc[EN_SELECT]] = 1; frame(); }
+        for (j = 0; j < 4u; j++) { encs[panel.enc[EN_SELECT]] = 1; frame(); }   /* SCREEN -> SYSTEM (the Dub pages follow it) */
         encs[panel.enc[EN_K3]] = 1; frame();          /* (dualcore: row 3, after 2ND CORE) */
         tap(B_OCTUP);
         check(ui.menu_sel == MI_LCLEAR && ml_count() == 0u, "menu SYSTEM > MIDI LEARN CLEAR, OCT+: nothing learned any more");

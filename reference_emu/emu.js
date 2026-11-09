@@ -226,7 +226,8 @@ function dubEnable(on) { dubMessage({ t: 'dub-enable', on: !!on }); }
 function dubSiren(level) {
     const frequency = Number(document.getElementById('dub-siren-freq')?.value || 740);
     const depth = Number(document.getElementById('dub-siren-depth')?.value || 96);
-    dubMessage({ t: 'dub-siren', level: level ? 104 : 0, frequency, depth });
+    const rate = Number(document.getElementById('dub-siren-rate')?.value || 8);
+    dubMessage({ t: 'dub-siren', level: level ? 104 : 0, frequency, depth, rate });
 }
 function dubBand(band) {
     const row = document.querySelector('[data-dub-band="' + band + '"]');
@@ -234,10 +235,16 @@ function dubBand(band) {
     dubMessage({ t: 'dub-band', band, gain: Number(row.querySelector('input[type=range]').value),
         mute: row.querySelector('input[type=checkbox]').checked });
 }
+function dubMix(mix) {
+    const out = document.querySelector('#dub-mix + output');
+    if (out) out.textContent = String(mix);
+    dubMessage({ t: 'dub-mix', mix: Number(mix) });
+}
 function dubSkank() {
     dubMessage({ t: 'dub-skank', root: Number(document.getElementById('dub-root').value),
         quality: Number(document.getElementById('dub-quality').value),
-        octave: Number(document.getElementById('dub-octave').value), velocity: 108 });
+        octave: Number(document.getElementById('dub-octave').value),
+        velocity: Number(document.getElementById('dub-skank-vel')?.value || 108) });
 }
 function dubPreset(index) {
     dubMessage({ t: 'dub-preset', index });
@@ -250,7 +257,22 @@ function dubSeqStep(step, button) {
     button.classList.toggle('active');
     dubMessage({ t: 'dub-seq-step', step, note: 36 + (step % 12), velocity: button.classList.contains('active') ? 104 : 0 });
 }
+/* the tab strip mirrors the firmware's Dub pages: one tab, one LCD page */
+function dubPage(name) {
+    document.querySelectorAll('.dub-tab').forEach(tab => {
+        const on = tab.dataset.dubPage === name;
+        tab.classList.toggle('on', on);
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.dub-page').forEach(panel => {
+        const on = panel.dataset.dubPanel === name;
+        panel.classList.toggle('on', on);
+        panel.hidden = !on;
+    });
+}
 function setupDubPanel() {
+    document.querySelectorAll('.dub-tab').forEach(tab =>
+        tab.addEventListener('click', () => dubPage(tab.dataset.dubPage)));
     const enabled = document.getElementById('dub-enabled');
     enabled?.addEventListener('change', () => dubEnable(enabled.checked));
     document.getElementById('dub-siren')?.addEventListener('pointerdown', () => dubSiren(true));
@@ -258,6 +280,13 @@ function setupDubPanel() {
     document.getElementById('dub-siren')?.addEventListener('pointercancel', () => dubSiren(false));
     document.getElementById('dub-siren-freq')?.addEventListener('input', () => dubSiren(false));
     document.getElementById('dub-siren-depth')?.addEventListener('input', () => dubSiren(false));
+    document.getElementById('dub-siren-rate')?.addEventListener('input', () => {
+        const rate = Number(document.getElementById('dub-siren-rate').value);
+        const out = document.querySelector('#dub-siren-rate + output');
+        if (out) out.textContent = (1 + Math.round(rate * 15 / 127)) + ' Hz';   // dub.c dub_siren_rate_hz
+        dubSiren(false);
+    });
+    document.getElementById('dub-mix')?.addEventListener('input', ev => dubMix(ev.target.value));
     document.querySelectorAll('[data-dub-band]').forEach(row => {
         row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));
     });

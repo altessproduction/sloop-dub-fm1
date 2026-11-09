@@ -313,6 +313,10 @@ static void emu_felucca_init(void)
     TDRUM->p[P_E0] = DRUM_DEFAULT_KIT;
     song.sel = 0;
     song.master_q12 = 2048;
+    dub_isolator_init(&dub_isolator);            /* the Dub extension: bypassed until a page turns it on,
+                                                  * with the mix at full wet as main.c felucca_init does */
+    dub_siren_init(&dub_siren);
+    dub_seq_init(&dub_sequence);
     autosave_resume();
     song.g[G_SYNC] = (int16_t)lights_sync;
     layers_init();
@@ -424,11 +428,22 @@ WASM_EXPORT("emu_dub_enable") void emu_dub_enable(uint32_t on)
 
 WASM_EXPORT("emu_dub_siren") void emu_dub_siren(uint32_t level, uint32_t frequency, uint32_t depth)
 {
-    uint32_t hz = frequency < 220u ? 220u : frequency > 1200u ? 1200u : frequency;
-    dub_siren.phase_inc = dub_hz_inc(hz);
+    dub_siren_set_freq(&dub_siren, (uint16_t)(frequency < 220u ? 220u : frequency > 1200u ? 1200u : frequency));
     dub_siren.depth = (uint8_t)(depth > 127u ? 127u : depth);
     dub_siren_trigger(&dub_siren, (uint8_t)(level > 127u ? 127u : level));
     if (level)
+        emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_siren_rate") void emu_dub_siren_rate(uint32_t rate)   /* 0..127 = 1..16 Hz; older wasm builds have none */
+{
+    dub_siren_set_rate(&dub_siren, (uint8_t)(rate > 127u ? 127u : rate));
+}
+
+WASM_EXPORT("emu_dub_mix") void emu_dub_mix(uint32_t mix)                  /* the isolator's wet blend, 0 dry .. 127 wet */
+{
+    dub_isolator.mix = (uint8_t)(mix > 127u ? 127u : mix);
+    if (dub_isolator.mix)
         emu_dub_enable(1);
 }
 
@@ -454,20 +469,20 @@ WASM_EXPORT("emu_dub_seq_step") void emu_dub_seq_step(uint32_t step, uint32_t no
         (uint8_t)(velocity > 127u ? 127u : velocity));
 }
 
-static uint8_t emu_dub_skank_notes[3];
+static uint8_t emu_dub_skank_notes[DUB_SKANK_MAX_NOTES];
 static uint8_t emu_dub_skank_count;
 WASM_EXPORT("emu_dub_skank") void emu_dub_skank(uint32_t root, uint32_t quality, uint32_t octave, uint32_t velocity)
 {
     dub_skank_t s;
-    uint8_t notes[3];
+    uint8_t notes[DUB_SKANK_MAX_NOTES];
     uint8_t i;
     for (i = 0; i < emu_dub_skank_count; i++)
         input_off(&trk[0], emu_dub_skank_notes[i]);
     s.root = (uint8_t)(root > 11u ? 11u : root);
-    s.quality = (uint8_t)(quality & 3u);
+    s.quality = (uint8_t)(quality & (DUB_SKANK_QUALITIES - 1u));
     s.octave = (uint8_t)(octave > 7u ? 7u : octave);
     s.velocity = (uint8_t)(velocity > 127u ? 127u : velocity);
-    emu_dub_skank_count = dub_skank_build(&s, 0, notes, 3);
+    emu_dub_skank_count = dub_skank_build(&s, 0, notes, DUB_SKANK_MAX_NOTES);
     for (i = 0; i < emu_dub_skank_count; i++) {
         emu_dub_skank_notes[i] = notes[i];
         input_on(&trk[0], notes[i], s.velocity);

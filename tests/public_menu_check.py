@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# Public-site check: the deployed emulator's HOME menu walks the ten pages and
+# the five Dub pages show their rows. Run after deploying docs/ to GitHub Pages
+# with the rebuilt sloop.wasm (reference_emu/build.sh).
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-OUT = Path('/workspace/sloop-dub-fm1/build/dub-emulator-test')
+OUT = Path(__file__).resolve().parents[1] / 'build' / 'dub-emulator-test'
 OUT.mkdir(parents=True, exist_ok=True)
 URL = 'https://altessproduction.github.io/sloop-dub-fm1/dub/'
 
@@ -15,24 +18,27 @@ with sync_playwright() as p:
     page.goto(URL, wait_until='networkidle', timeout=60000)
     page.click('#power')
     page.wait_for_timeout(2600)
+    # HOME held opens the menu; SELECT is ArrowUp (next page) / ArrowDown.
     page.keyboard.down('7')
     page.wait_for_timeout(1200)
     page.keyboard.up('7')
     page.wait_for_timeout(700)
-    screen = page.locator('#screen').inner_text()
     page.screenshot(path=str(OUT / 'public_menu_home.png'))
-    for _ in range(5):
-        page.keyboard.press('ArrowUp')
-        page.wait_for_timeout(220)
-    dub_screen = page.locator('#screen').inner_text()
-    page.screenshot(path=str(OUT / 'public_menu_dub.png'))
-    for _ in range(1):
-        page.keyboard.press('ArrowUp')
-        page.wait_for_timeout(220)
-    dseq_screen = page.locator('#screen').inner_text()
-    page.screenshot(path=str(OUT / 'public_menu_dseq.png'))
-    print('home_has_menu=', 'MENU' in screen)
-    print('dub_has_dub=', 'DUB' in dub_screen and 'DUB ENABLE' in dub_screen)
-    print('dseq_has_dseq=', 'DSEQ' in dseq_screen and 'SEQ LENGTH' in dseq_screen)
+    # The Dub pages are five SELECT steps after SYSTEM: DUB SIREN SKANK DSEQ ISO.
+    # The LCD is a canvas (no text nodes), so each page is judged by its lit-pixel
+    # share and kept as a screenshot for the eye.
+    lit = """() => {
+      const c = document.getElementById('screen');
+      const d = c.getContext('2d').getImageData(0, 0, 240, 240).data;
+      let n = 0;
+      for (let k = 0; k < d.length; k += 4) if (d[k] + d[k+1] + d[k+2] > 60) n++;
+      return n / (240 * 240);
+    }"""
+    for name, steps in [('dub', 5), ('siren', 1), ('skank', 1), ('dseq', 1), ('iso', 1)]:
+        for _ in range(steps):
+            page.keyboard.press('ArrowUp')
+            page.wait_for_timeout(220)
+        page.screenshot(path=str(OUT / ('public_menu_' + name + '.png')))
+        print(name + '_lit=', round(page.evaluate(lit), 3))
     print('errors=', errors)
     browser.close()

@@ -30,8 +30,13 @@ class SloopProcessor extends AudioWorkletProcessor {
             else if (m.t === 'adc') this.e.emu_adc_set(m.ch, m.v);
             else if (m.t === 'midi') this.e.emu_midi(m.p);
             else if (m.t === 'dub-enable') this.e.emu_dub_enable(m.on ? 1 : 0);
-            else if (m.t === 'dub-siren') this.e.emu_dub_siren(m.level || 0, m.frequency || 740, m.depth || 96);
+            else if (m.t === 'dub-siren') {
+                this.e.emu_dub_siren(m.level || 0, m.frequency || 740, m.depth || 96);
+                if (m.rate != null && typeof this.e.emu_dub_siren_rate === 'function')
+                    this.e.emu_dub_siren_rate(m.rate);   // wasm rebuilt from the Dub pages firmware and later
+            }
             else if (m.t === 'dub-band') this.e.emu_dub_band(m.band || 0, m.gain || 0, m.mute ? 1 : 0);
+            else if (m.t === 'dub-mix') { if (typeof this.e.emu_dub_mix === 'function') this.e.emu_dub_mix(m.mix || 0); }
             else if (m.t === 'dub-seq-length') this.e.emu_dub_seq_length(m.length || 16);
             else if (m.t === 'dub-seq-step') this.e.emu_dub_seq_step(m.step || 0, m.note || 60, m.velocity || 0);
             else if (m.t === 'dub-skank') this.e.emu_dub_skank(m.root || 0, m.quality || 0, m.octave || 3, m.velocity || 100);

@@ -1,10 +1,15 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* SLOOP menu (HOME held), in sections as the pages are (2.4): SCREEN (COLOR, ZOOM, KNOB ACCEL (2.7)), LIGHTS (LIGHTS, KEYS, NOTES),
- * AUDIO (LOWCUT, USB AUDIO, USB SERIAL (FELUCCA_CDC builds only), USB RATE (2.7 beta)), SEQ (2.7.1: STEP ADVANCE, DRUM PREVIEW), SYSTEM (2ND CORE (dualcore), HARDWARE CALIBRATION, LEARN CLEAR (2.6), ABOUT).
- * SELECT goes to the section before / after (stopping at the ends), KNOB 1..4 set the section's settings in order (the knob's colour marks
- * its row), PRESETS moves the cursor; OCT+ steps the cursor's setting round or opens it (CALIBRATION, ABOUT),
- * OCT- closes (from ABOUT: back to the section). */
+ * AUDIO (LOWCUT, USB AUDIO, USB SERIAL (FELUCCA_CDC builds only), USB RATE (2.7 beta), FILTER RESO (2.7.2)), SEQ (2.7.1: STEP ADVANCE, DRUM PREVIEW),
+ * SYSTEM (2ND CORE (dualcore), HARDWARE CALIBRATION, LEARN CLEAR (2.6), ABOUT),
+ * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB PRESET, DUB MIX), SIREN (SIREN LEVEL, SIREN FREQ,
+ * SIREN DEPTH, SIREN RATE), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
+ * DSEQ (SEQ LENGTH, SEQ STEP, SEQ NOTE, SEQ VELOCITY) and ISO (SUB, BASS, MIDS, TOPS; OCT+ mutes the band).
+ * SELECT goes to the page before / after (stopping at the ends), KNOB 1..4 set the page's settings in order (the knob's colour marks
+ * its row), PRESETS moves the cursor; OCT+ steps the cursor's setting round or opens it (CALIBRATION, ABOUT, a skank chord),
+ * OCT- closes (from ABOUT: back to the page). The tab strip shows five pages around the cursor: the screen
+ * holds ten 3-letter tabs only with a window (a full row of ten would end at 298). */
 /* ------------------------------------------------------------ menu --- */
 /* (2.7: USB SERIAL only in a build with the serial console, FELUCCA_CDC=1: the FM-1's build has none) */
 enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_USB,
@@ -12,7 +17,9 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
        MI_SERIAL,
 #endif
        MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT,
-       MI_DUB_ON, MI_DUB_SIREN, MI_DUB_SKANK, MI_DUB_PRESET,
+       MI_DUB_ON, MI_DUB_PRESET, MI_DUB_MIX,
+       MI_SIREN_LVL, MI_SIREN_FRQ, MI_SIREN_DPT, MI_SIREN_RAT,
+       MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
        MI_DUB_LEN, MI_DUB_STEP, MI_DUB_NOTE, MI_DUB_VEL,
        MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
 static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LIGHTS", "KEYS", "NOTES", "SPEAKER LOWCUT", "USB AUDIO",
@@ -20,33 +27,39 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
                                               "USB SERIAL",
 #endif
                                               "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT",
-                                              "DUB ENABLE", "SIREN LEVEL", "SKANK CHORD", "DUB PRESET",
+                                              "DUB ENABLE", "DUB PRESET", "DUB MIX",
+                                              "SIREN LEVEL", "SIREN FREQ", "SIREN DEPTH", "SIREN RATE",
+                                              "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
                                               "SEQ LENGTH", "SEQ STEP", "SEQ NOTE", "SEQ VELOCITY",
                                               "SUB", "BASS", "MIDS", "TOPS"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_DSEQ, MS_ISO, MS_COUNT };
-static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "DSEQ", "ISO"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SKANK, MS_DSEQ, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SKK", "DSQ", "ISO"};
 
-static uint8_t dub_menu_siren = 88;
-static uint8_t dub_menu_chord;
+static uint8_t dub_menu_siren = 88;              /* the level OCT+ toggles the siren between */
+static uint8_t dub_menu_chord;                   /* the skank's quality, DUB_SKANK_NAMES */
+static uint8_t dub_menu_root;                    /* the skank's root pitch class, 0..11 (C..B) */
+static uint8_t dub_menu_oct = 3;                 /* the skank's octave, 3..5 */
+static uint8_t dub_menu_vel = 108;               /* the skank's velocity */
 static uint8_t dub_menu_preset;
 static uint8_t dub_menu_len = 16;
 static uint8_t dub_menu_step;
 static uint8_t dub_menu_note = 36;
-static uint8_t dub_menu_vel = 100;
-static uint8_t dub_menu_skank_notes[3];
+static uint8_t dub_menu_step_vel = 100;          /* the dub sequence's step velocity */
+static uint8_t dub_menu_skank_notes[DUB_SKANK_MAX_NOTES];
 static uint8_t dub_menu_skank_count;
+static const char *const DUB_NOTE[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-UI_SMALL static void dub_menu_skank(void)
+UI_SMALL static void dub_menu_skank(void)        /* play the chord the SKANK page holds */
 {
     dub_skank_t s;
-    uint8_t notes[3], i;
+    uint8_t notes[DUB_SKANK_MAX_NOTES], i;
     for (i = 0; i < dub_menu_skank_count; i++)
         input_off(&trk[0], dub_menu_skank_notes[i]);
-    s.root = 0;
-    s.quality = (uint8_t)(dub_menu_chord & 3u);
-    s.octave = 3;
-    s.velocity = 112;
-    dub_menu_skank_count = dub_skank_build(&s, 0, notes, 3);
+    s.root = dub_menu_root;
+    s.quality = (uint8_t)(dub_menu_chord & (DUB_SKANK_QUALITIES - 1u));
+    s.octave = dub_menu_oct;
+    s.velocity = dub_menu_vel;
+    dub_menu_skank_count = dub_skank_build(&s, 0, notes, DUB_SKANK_MAX_NOTES);
     for (i = 0; i < dub_menu_skank_count; i++) {
         dub_menu_skank_notes[i] = notes[i];
         input_on(&trk[0], notes[i], s.velocity);
@@ -78,6 +91,7 @@ UI_SMALL static void dub_menu_preset_apply(void)
     uint32_t b;
     dub_enabled = 1;
     dub_isolator.enabled = 1;
+    dub_menu_chord = (uint8_t)(p->chord & (DUB_SKANK_QUALITIES - 1u));
     for (b = 0; b < DUB_BANDS; b++) {
         dub_band_param_t q = dub_isolator.p[b];
         q.gain_db = p->level / 2;
@@ -87,7 +101,8 @@ UI_SMALL static void dub_menu_preset_apply(void)
     dub_menu_siren = dub_menu_preset == 2u ? 88u : 0u;
     dub_siren_trigger(&dub_siren, dub_menu_siren);
 }
-static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1, MI_DUB_ON, MI_DUB_LEN, MI_DUB_SUB, MI_COUNT};
+static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1,
+                                               MI_DUB_ON, MI_SIREN_LVL, MI_SKANK_CHD, MI_DUB_LEN, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -168,17 +183,47 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         return b;
     }
     case MI_DUB_ON: return dub_enabled ? "ON" : "OFF";
-    case MI_DUB_SIREN: {
+    case MI_DUB_PRESET: return DUB_PRESETS[dub_menu_preset % DUB_PRESET_COUNT].name;
+    case MI_DUB_MIX: {
+        static char b[8];
+        fmt_int(b, dub_isolator.mix);
+        return b;
+    }
+    case MI_SIREN_LVL: {
         static char b[8];
         if (!dub_siren.active) return "OFF";
         fmt_int(b, dub_siren.level);
         return b;
     }
-    case MI_DUB_SKANK: {
-        static const char *const q[4] = {"MAJ", "MIN", "DIM", "AUG"};
-        return q[dub_menu_chord & 3u];
+    case MI_SIREN_FRQ: {
+        static char b[8];
+        fmt_int(b, dub_siren.freq_hz);
+        str_cpy(b + str_len(b), " HZ", 4);
+        return b;
     }
-    case MI_DUB_PRESET: return DUB_PRESETS[dub_menu_preset % DUB_PRESET_COUNT].name;
+    case MI_SIREN_DPT: {
+        static char b[8];
+        fmt_int(b, dub_siren.depth);
+        return b;
+    }
+    case MI_SIREN_RAT: {
+        static char b[8];
+        fmt_int(b, (int32_t)dub_siren_rate_hz(dub_siren.rate));
+        str_cpy(b + str_len(b), " HZ", 4);
+        return b;
+    }
+    case MI_SKANK_CHD: return DUB_SKANK_NAMES[dub_menu_chord & (DUB_SKANK_QUALITIES - 1u)];
+    case MI_SKANK_ROOT: return DUB_NOTE[dub_menu_root % 12u];
+    case MI_SKANK_OCT: {
+        static char b[8];
+        fmt_int(b, dub_menu_oct);
+        return b;
+    }
+    case MI_SKANK_VEL: {
+        static char b[8];
+        fmt_int(b, dub_menu_vel);
+        return b;
+    }
     case MI_DUB_LEN: {
         static char b[8];
         fmt_int(b, dub_sequence.length);
@@ -196,7 +241,7 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
     }
     case MI_DUB_VEL: {
         static char b[8];
-        fmt_int(b, dub_menu_vel);
+        fmt_int(b, dub_menu_step_vel);
         return b;
     }
     case MI_DUB_SUB:
@@ -223,8 +268,11 @@ UI_SMALL static void draw_menu(void)
                    lights_notes * 32452843u + usb_full * 49979687u + usb_serial * 86028121u + usb_rate * 15486719u + theme_shown() * 32452867u + theme.crc + cpu1_off * 122949829u +
                    knob_accel_off * 179424673u + drum_preview * 236887691u + step_adv_off * 373587883u + flt_reso * 512927357u +
                    dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
+                   dub_siren.freq_hz * 6700477u + dub_siren.depth * 6700479u + dub_siren.rate * 6700481u +
                    dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_len * 6700471u +
-                   dub_menu_step * 6700477u + dub_menu_note * 6700483u + dub_menu_vel * 6700487u +
+                   dub_menu_step * 6700483u + dub_menu_note * 6700487u + dub_menu_step_vel * 6700491u +
+                   dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
+                   dub_isolator.mix * 6700513u +
                    dub_isolator.p[DUB_SUB].gain_db * 6700493u + dub_isolator.p[DUB_BASS].gain_db * 6700497u +
                    dub_isolator.p[DUB_MIDS].gain_db * 6700501u + dub_isolator.p[DUB_TOPS].gain_db * 6700507u +
                    dub_isolator.p[DUB_SUB].mute * 6700511u + dub_isolator.p[DUB_BASS].mute * 6700517u +
@@ -236,7 +284,7 @@ UI_SMALL static void draw_menu(void)
         lcd_fill(0, H_HEAD + 1 + 124 + 95, 240, 240 - (H_HEAD + 1 + 124 + 95), C_BLACK);
     cv_begin(240, H_HEAD, C_BLACK);
     cv_text(4, 1, &FONT_S, ui.menu == 2 ? "ABOUT" : "MENU", C_HI);
-    if (ui.menu != 2) {                             /* the section and its number, as a page's "ENV DEST 2/2" */
+    if (ui.menu != 2) {                             /* the page and its number, as a page's "ENV DEST 2/2" */
         char t[16];
         str_cpy(t, MS_NAME[sec], sizeof t);
         str_cpy(t + str_len(t), " ", 2);
@@ -279,13 +327,26 @@ UI_SMALL static void draw_menu(void)
             cv_text(4, 198, &FONT_S, "VOICE: REF. KLATTSCH (MIT)", C_DIM);
         } else {
             int32_t x = 4;
-            for (i = 0; i < MS_COUNT; i++) {        /* the sections as tabs: this one lit */
+            uint32_t t0 = sec >= 2u ? sec - 2u : 0u, t1;   /* the tab strip: five pages around this one */
+            uint32_t last = MS_COUNT - 1u;
+            if (t0 > last)
+                t0 = last;
+            t1 = t0 + 4u;
+            if (t1 > last) {
+                t1 = last;
+                t0 = t1 > 4u ? t1 - 4u : 0u;
+            }
+            if (t0)
+                x = cv_text(x, 4, &FONT_S, "<", C_DIM) + 2;
+            for (i = t0; i <= t1; i++) {            /* the pages as tabs: this one lit */
                 int32_t w = text_w(&FONT_S, MS_NAME[i]);
                 if (i == sec)
                     cv_rect(x - 2, 3, w + 4, 18, C_LINE);
                 cv_text(x, 4, &FONT_S, MS_NAME[i], i == sec ? C_WHITE : C_DIM);
-                x += w + 6;                         /* (2.7.1: five sections: 6, the last ends at 236) */
+                x += w + 6;                         /* (a window of five: 4 + 150 + arrows fits 240) */
             }
+            if (t1 < last)
+                cv_text(x, 4, &FONT_S, ">", C_DIM);
             for (i = MS_FIRST[sec]; i < MS_FIRST[sec + 1u]; i++) {
                 uint32_t r = i - MS_FIRST[sec];
                 int32_t y = MI_Y0 + (int32_t)r * MI_DY, xv;
@@ -317,9 +378,8 @@ UI_SMALL static void draw_menu(void)
                 if (i == MI_CPU1 && !mi_cpu1_have())
                     cv_text(xv + 8, y + 30, &FONT_S, "NOT RUNNING", C_AMB);   /* (cpu1.c: ABOUT says 1 CORE) */
             }
-            if (MS_FIRST[sec + 1u] - MS_FIRST[sec] <= 3u) {   /* (SYSTEM has four rows with 2ND CORE: its fourth
-                                                               * row, ABOUT, takes the help's place) */
-                cv_text(4, MI_Y0 + 3 * MI_DY + 6, &FONT_S, "SELECT SECTION  KNOB SETS", C_DIM);
+            if (MS_FIRST[sec + 1u] - MS_FIRST[sec] <= 3u) {   /* (a page of three rows leaves the help's place) */
+                cv_text(4, MI_Y0 + 3 * MI_DY + 6, &FONT_S, "SELECT PAGE  KNOB SETS", C_DIM);
                 cv_text(4, MI_Y0 + 3 * MI_DY + 22, &FONT_S, "OCT+ OK   OCT- CLOSE", C_DIM);   /* (rows .. 218) */
             }
         }
@@ -436,7 +496,25 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         if (!dub_enabled)
             dub_siren_trigger(&dub_siren, 0);
         break;
-    case MI_DUB_SIREN:
+    case MI_DUB_PRESET:
+        if (s > 0)
+            dub_menu_preset = (uint8_t)((dub_menu_preset + 1u) % DUB_PRESET_COUNT);
+        else if (s < 0)
+            dub_menu_preset = (uint8_t)((dub_menu_preset + DUB_PRESET_COUNT - 1u) % DUB_PRESET_COUNT);
+        else
+            dub_menu_preset_apply();
+        break;
+    case MI_DUB_MIX:                                   /* the isolator's wet blend, 0 (dry) .. 127; OCT+ kills it */
+        if (s > 0 && dub_isolator.mix < 127u)
+            dub_isolator.mix++;
+        else if (s < 0 && dub_isolator.mix > 0u)
+            dub_isolator.mix--;
+        else if (!s)
+            dub_isolator.mix = dub_isolator.mix ? 0u : 127u;
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIREN_LVL:                                 /* right up, left down (stops at the ends); OCT+ on / off */
         if (s > 0 && dub_menu_siren < 127u)
             dub_menu_siren++;
         else if (s < 0 && dub_menu_siren > 0u)
@@ -447,21 +525,68 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_enabled = dub_menu_siren ? 1u : dub_enabled;
         dub_isolator.enabled = dub_enabled;
         break;
-    case MI_DUB_SKANK:
+    case MI_SIREN_FRQ:                                 /* 220..1200 Hz, two Hz a detent; OCT+ back to 740 */
         if (s > 0)
-            dub_menu_chord = (uint8_t)((dub_menu_chord + 1u) & 3u);
+            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz + 2u));
         else if (s < 0)
-            dub_menu_chord = (uint8_t)((dub_menu_chord + 3u) & 3u);
+            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz - 2u));
+        else
+            dub_siren_set_freq(&dub_siren, 740u);
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIREN_DPT:                                 /* the LFO's amplitude depth, 0..127; OCT+ back to 96 */
+        if (s > 0 && dub_siren.depth < 127u)
+            dub_siren.depth++;
+        else if (s < 0 && dub_siren.depth > 0u)
+            dub_siren.depth--;
+        else if (!s)
+            dub_siren.depth = 96u;
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIREN_RAT:                                 /* the LFO's speed, 1..16 Hz; OCT+ back to 2 Hz */
+        if (s > 0 && dub_siren.rate < 127u)
+            dub_siren.rate++;
+        else if (s < 0 && dub_siren.rate > 0u)
+            dub_siren.rate--;
+        else if (!s)
+            dub_siren.rate = 8u;
+        dub_siren_set_rate(&dub_siren, dub_siren.rate);
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SKANK_CHD:                                 /* MAJ MIN DIM AUG 7TH MIN7 9TH PWR; OCT+ plays the chord */
+        if (s > 0)
+            dub_menu_chord = (uint8_t)((dub_menu_chord + 1u) & (DUB_SKANK_QUALITIES - 1u));
+        else if (s < 0)
+            dub_menu_chord = (uint8_t)((dub_menu_chord + DUB_SKANK_QUALITIES - 1u) & (DUB_SKANK_QUALITIES - 1u));
         else
             dub_menu_skank();
         break;
-    case MI_DUB_PRESET:
+    case MI_SKANK_ROOT:                                /* C..B, round; OCT+ plays the chord */
         if (s > 0)
-            dub_menu_preset = (uint8_t)((dub_menu_preset + 1u) % DUB_PRESET_COUNT);
+            dub_menu_root = (uint8_t)((dub_menu_root + 1u) % 12u);
         else if (s < 0)
-            dub_menu_preset = (uint8_t)((dub_menu_preset + DUB_PRESET_COUNT - 1u) % DUB_PRESET_COUNT);
+            dub_menu_root = (uint8_t)((dub_menu_root + 11u) % 12u);
         else
-            dub_menu_preset_apply();
+            dub_menu_skank();
+        break;
+    case MI_SKANK_OCT:                                 /* octaves 3..5, stops at the ends; OCT+ plays the chord */
+        if (s > 0 && dub_menu_oct < 5u)
+            dub_menu_oct++;
+        else if (s < 0 && dub_menu_oct > 3u)
+            dub_menu_oct--;
+        else if (!s)
+            dub_menu_skank();
+        break;
+    case MI_SKANK_VEL:                                 /* 0..127; OCT+ plays the chord */
+        if (s > 0 && dub_menu_vel < 127u)
+            dub_menu_vel++;
+        else if (s < 0 && dub_menu_vel > 0u)
+            dub_menu_vel--;
+        else if (!s)
+            dub_menu_skank();
         break;
     case MI_DUB_LEN:
         if (s > 0 || !s)
@@ -484,13 +609,13 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_menu_note = (uint8_t)(s > 0 ? dub_menu_note + 1u : s < 0 ? dub_menu_note - 1u : dub_menu_note);
         if (!s)
             dub_menu_note = (uint8_t)(dub_menu_note + 12u > 127u ? 36u : dub_menu_note + 12u);
-        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_vel);
+        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_step_vel);
         break;
     case MI_DUB_VEL:
-        if (s > 0 && dub_menu_vel < 127u) dub_menu_vel++;
-        else if (s < 0 && dub_menu_vel > 0u) dub_menu_vel--;
-        else if (!s) dub_menu_vel = dub_menu_vel ? 0u : 100u;
-        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_vel);
+        if (s > 0 && dub_menu_step_vel < 127u) dub_menu_step_vel++;
+        else if (s < 0 && dub_menu_step_vel > 0u) dub_menu_step_vel--;
+        else if (!s) dub_menu_step_vel = dub_menu_step_vel ? 0u : 100u;
+        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_step_vel);
         break;
     case MI_DUB_SUB:
     case MI_DUB_BASS:
@@ -515,7 +640,7 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
     }
 }
 
-/* menu: SELECT the section, KNOB 1..3 its settings, PRESETS the cursor, OCT+ ok, OCT- close (ABOUT -> the section) */
+/* menu: SELECT the page, KNOB 1..3 its settings, PRESETS the cursor, OCT+ ok, OCT- close (ABOUT -> the page) */
 UI_SMALL static void menu_input(uint32_t pressed)
 {
     int32_t s;
@@ -538,7 +663,7 @@ UI_SMALL static void menu_input(uint32_t pressed)
         enc_drop();
         return;
     }
-    if ((s = panel_enc(EN_SELECT)) != 0) {             /* the section before / after (stops at the ends) */
+    if ((s = panel_enc(EN_SELECT)) != 0) {             /* the page before / after (stops at the ends) */
         int32_t to = clamp((int32_t)sec + (s > 0 ? 1 : -1), 0, MS_COUNT - 1);
         if ((uint32_t)to != sec) {
             ui.menu_sel = MS_FIRST[to];
@@ -547,7 +672,7 @@ UI_SMALL static void menu_input(uint32_t pressed)
         enc_drop();
         return;
     }
-    if ((s = panel_enc(EN_PRESET)) != 0)               /* the cursor, round the section's rows */
+    if ((s = panel_enc(EN_PRESET)) != 0)               /* the cursor, round the page's rows */
         ui.menu_sel = (uint8_t)(MS_FIRST[sec] + (sel - MS_FIRST[sec] + (s > 0 ? 1u : n - 1u)) % n);
     for (k = 0; k < 4u; k++)
         if ((s = panel_enc(EN_K1 + k)) != 0 && k < n) {

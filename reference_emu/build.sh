@@ -5,7 +5,7 @@
 #   felucca.wasm  from $FELUCCA (hugelton/Felucca), if present
 set -e
 cd "$(dirname "$0")"
-SLOOP=${SLOOP:-$(cd "$(dirname "$0")/.." && pwd)}
+SLOOP=${SLOOP:-$(cd .. && pwd)}
 FELUCCA=${FELUCCA:-$HOME/Projects/Felucca}
 
 CFLAGS="--target=wasm32 -O2 -fno-builtin -ffreestanding -nostdlib \

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Walk the HOME-hold menu's ten pages in the local emulator and screenshot
+each Dub page (DUB, SIREN, SKANK, DSEQ, ISO) after SELECT steps."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
@@ -31,10 +33,13 @@ def main():
             page.screenshot(path=str(OUT / "menu_home_long.png"))
             page.keyboard.up("7")
             page.wait_for_timeout(250)
-            # SELECT encoder is ArrowUp/ArrowDown; advance through sections to DUB, DSEQ, ISO.
-            for name, key in [("dub", "ArrowDown"), ("dseq", "ArrowDown"), ("iso", "ArrowDown")]:
-                page.keyboard.press(key)
-                page.wait_for_timeout(180)
+            # SELECT is ArrowUp (next page) / ArrowDown (previous page): the ten pages
+            # are SCR LGT AUD SEQ SYS DUB SIR SKK DSQ ISO; screenshot the Dub ones.
+            pages = [("dub", 5), ("siren", 1), ("skank", 1), ("dseq", 1), ("iso", 1)]
+            for name, steps in pages:
+                for _ in range(steps):
+                    page.keyboard.press("ArrowUp")
+                    page.wait_for_timeout(180)
                 page.screenshot(path=str(OUT / ("menu_" + name + ".png")))
             # Use K1 (not directly keyboard-mapped) through the browser-side encoder message.
             page.evaluate("""() => { if (window.node) window.node.port.postMessage({t:'enc', e:2, steps:1}); }""")

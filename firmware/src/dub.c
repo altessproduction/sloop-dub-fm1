@@ -129,7 +129,9 @@ void dub_siren_init(dub_siren_t *s)
     s->phase_inc = dub_hz_inc(740);
     s->lfo_inc = dub_hz_inc(2);
     s->level = 0;
+    s->freq_hz = 740;
     s->depth = 96;
+    s->rate = 8;                                   /* rate 8 of 0..127 = 2 Hz, as the first build had */
     s->active = 0;
 }
 
@@ -137,6 +139,27 @@ void dub_siren_trigger(dub_siren_t *s, uint8_t level)
 {
     s->level = level > 127 ? 127 : level;
     s->active = s->level != 0;
+}
+
+uint32_t dub_siren_rate_hz(uint8_t rate)           /* 0..127 -> 1..16 Hz, rounded, the UI shows the same */
+{
+    return 1u + ((uint32_t)(rate > 127u ? 127u : rate) * 15u + 63u) / 127u;
+}
+
+void dub_siren_set_freq(dub_siren_t *s, uint16_t hz)
+{
+    if (hz < 220u)
+        hz = 220u;
+    else if (hz > 1200u)
+        hz = 1200u;
+    s->freq_hz = hz;
+    s->phase_inc = dub_hz_inc(hz);
+}
+
+void dub_siren_set_rate(dub_siren_t *s, uint8_t rate)
+{
+    s->rate = rate > 127u ? 127u : rate;
+    s->lfo_inc = dub_hz_inc(dub_siren_rate_hz(s->rate));
 }
 
 void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, uint32_t n)
@@ -187,14 +210,30 @@ void dub_seq_advance(dub_seq_t *s)
         s->step = 0;
 }
 
+const char *const DUB_SKANK_NAMES[DUB_SKANK_QUALITIES] =
+    {"MAJ", "MIN", "DIM", "AUG", "7TH", "MIN7", "9TH", "PWR"};
+
 uint8_t dub_skank_build(const dub_skank_t *s, uint8_t key, uint8_t *notes, uint8_t max_notes)
 {
-    static const uint8_t triad[4][3] = {{0, 4, 7}, {0, 3, 7}, {0, 3, 6}, {0, 4, 8}};
-    uint8_t q = s->quality & 3u;
+    /* the chord's intervals from the root; 9TH reaches its ninth an octave up */
+    static const uint8_t chord[DUB_SKANK_QUALITIES][5] = {
+        {0, 4, 7, 255, 255},           /* MAJ  */
+        {0, 3, 7, 255, 255},           /* MIN  */
+        {0, 3, 6, 255, 255},           /* DIM  */
+        {0, 4, 8, 255, 255},           /* AUG  */
+        {0, 4, 7, 10, 255},            /* 7TH  */
+        {0, 3, 7, 10, 255},            /* MIN7 */
+        {0, 4, 7, 10, 14},             /* 9TH  */
+        {0, 7, 255, 255, 255}          /* PWR  */
+    };
+    uint8_t q = s->quality & (DUB_SKANK_QUALITIES - 1u);
     uint8_t root = (uint8_t)(s->root + key + 12u * s->octave);
-    uint8_t i, count = max_notes < 3 ? max_notes : 3;
-    for (i = 0; i < count; i++)
-        notes[i] = (uint8_t)(root + triad[q][i]);
+    uint8_t i, count = 0;
+    for (i = 0; i < DUB_SKANK_MAX_NOTES && count < max_notes; i++) {
+        if (chord[q][i] == 255u)
+            break;
+        notes[count++] = (uint8_t)(root + chord[q][i]);
+    }
     return count;
 }
 

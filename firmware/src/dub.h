@@ -40,7 +40,9 @@ typedef struct {
     uint32_t phase_inc;
     uint32_t lfo_inc;
     uint16_t level;
-    uint8_t depth;
+    uint16_t freq_hz;          /* the siren's base pitch, 220..1200 (set_freq keeps it) */
+    uint8_t depth;             /* the LFO's amplitude depth, 0..127 */
+    uint8_t rate;              /* the LFO's speed, 0..127 = 1..16 Hz (dub_siren_rate_hz) */
     uint8_t active;
 } dub_siren_t;
 
@@ -51,12 +53,18 @@ typedef struct {
     uint8_t velocity[64];
 } dub_seq_t;
 
+/* quality: 0 MAJ, 1 MIN, 2 DIM, 3 AUG, 4 7TH, 5 MIN7, 6 9TH, 7 PWR (root + fifth).
+ * The build writes up to five note numbers, the count it wrote is returned. */
 typedef struct {
     uint8_t root;
     uint8_t quality;
     uint8_t octave;
     uint8_t velocity;
 } dub_skank_t;
+
+#define DUB_SKANK_QUALITIES 8u
+#define DUB_SKANK_MAX_NOTES 5u
+extern const char *const DUB_SKANK_NAMES[DUB_SKANK_QUALITIES];   /* "MAJ", "MIN", ... */
 
 typedef struct {
     const char *name;
@@ -76,6 +84,9 @@ void dub_isolator_set_band(dub_isolator_t *d, uint32_t band, dub_band_param_t p)
 
 void dub_siren_init(dub_siren_t *s);
 void dub_siren_trigger(dub_siren_t *s, uint8_t level);
+void dub_siren_set_freq(dub_siren_t *s, uint16_t hz);      /* 220..1200, clamped */
+void dub_siren_set_rate(dub_siren_t *s, uint8_t rate);     /* 0..127 -> 1..16 Hz */
+uint32_t dub_siren_rate_hz(uint8_t rate);                  /* the rate's LFO speed, for the UI */
 void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, uint32_t n);
 
 void dub_seq_init(dub_seq_t *s);

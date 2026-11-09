@@ -273,6 +273,68 @@ body.compact #manual { display: none; }
 #manual td { border-bottom: 1px solid #202329; color: #b7bdc6; }
 #manual tr:last-child td { border-bottom: none; }
 #manual td:first-child { white-space: nowrap; }
+
+/* ---- Dub console: the firmware's Dub pages, mirrored as tabs ---- */
+#dub-console {
+    width: min(880px, 100%);
+    margin: 26px auto 0; padding: 22px 18px 26px;
+    background: #15171b; border: 1px solid #000; border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    -webkit-user-select: text; user-select: text;
+}
+#dub-console h2 { font-size: 13px; letter-spacing: 3px; color: var(--txt); font-weight: normal; }
+#dub-console .dub-lead { font-size: 12px; color: var(--dim); margin: 10px 0 16px; line-height: 1.6; }
+#dub-console .dub-lead b { color: var(--accent); font-weight: normal; }
+
+.dub-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.dub-tab {
+    font-family: inherit; font-size: 11px; letter-spacing: 2px; cursor: pointer;
+    color: var(--dim); background: #1c1f24; border: 1px solid #000; border-radius: 8px;
+    padding: 7px 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.dub-tab.on {
+    color: var(--txt); background: #2b2f36;
+    box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.dub-page { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.dub-page[hidden] { display: none; }
+.dub-card {
+    background: #191c21; border: 1px solid #000; border-radius: 12px; padding: 14px 14px 16px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.dub-card h3 {
+    font-size: 10.5px; letter-spacing: 2px; font-weight: normal; color: var(--accent);
+    margin-bottom: 12px; display: flex; justify-content: space-between; gap: 8px;
+}
+.dub-card h3 small { color: var(--dim); letter-spacing: 1px; }
+#dub-console label { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--txt); margin: 10px 0 0; }
+#dub-console label input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
+#dub-console label output { min-width: 52px; text-align: right; color: var(--accent); font-size: 12px; }
+#dub-console .dub-toggle { justify-content: space-between; cursor: pointer; }
+#dub-console .dub-toggle input { accent-color: var(--accent); width: 18px; height: 18px; }
+#dub-console select {
+    font-family: inherit; font-size: 12px; color: var(--txt); background: #23262c;
+    border: 1px solid #000; border-radius: 7px; padding: 7px 8px;
+}
+#dub-console button {
+    font-family: inherit; font-size: 11px; letter-spacing: 1.5px; cursor: pointer;
+    color: var(--txt); background: #23262c; border: 1px solid #000; border-radius: 8px;
+    padding: 9px 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+#dub-console button:active { background: #2d3138; }
+#dub-console button.active { color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+#dub-console .dub-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#dub-console .dub-row select { flex: 0 1 auto; }
+#dub-console #dub-siren { flex: 1; color: var(--accent); }
+#dub-steps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 12px; }
+#dub-steps button { padding: 10px 0; font-size: 11px; }
+.dub-band { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 12px; }
+.dub-band span { min-width: 42px; letter-spacing: 1px; color: var(--dim); }
+.dub-band input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
+.dub-band label { display: flex; align-items: center; gap: 5px; margin: 0; font-size: 11px; color: var(--dim); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -293,25 +355,58 @@ body.compact #manual { display: none; }
 </div>
 
 <section id="dub-console" aria-label="Commandes SLOOP Dub">
-    <h2>SLOOP DUB · COMMANDES ACTIVES</h2>
-    <p class="dub-lead">Ces commandes pilotent le firmware Dub réel chargé dans le WASM. Active le module, puis teste chaque section.</p>
-    <div class="dub-grid">
+    <h2>SLOOP DUB · PAGES DUB DU MENU</h2>
+    <p class="dub-lead">Le miroir des pages Dub du firmware : sur le FM-1, un appui long sur <b>HOME</b> ouvre le menu, <b>SELECT</b> passe d'une page à l'autre. Chaque onglet pilote la page du même nom, directement dans le firmware réel du WASM.</p>
+    <div class="dub-tabs" role="tablist" aria-label="Pages Dub">
+        <button class="dub-tab on" data-dub-page="dub" role="tab" aria-selected="true" type="button">DUB</button>
+        <button class="dub-tab" data-dub-page="siren" role="tab" aria-selected="false" type="button">SIREN</button>
+        <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
+        <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">DSEQ</button>
+        <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
+    </div>
+
+    <div class="dub-page on" data-dub-panel="dub" role="tabpanel">
         <div class="dub-card">
-            <h3>MODULE & SIREN</h3>
-            <label>Activer le traitement Dub <input id="dub-enabled" type="checkbox"></label>
-            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
-            <label>Fréquence <input id="dub-siren-freq" type="range" min="220" max="1200" value="740"><output>740 Hz</output></label>
-            <label>Profondeur <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
+            <h3>DUB ENABLE</h3>
+            <label class="dub-toggle">Activer le traitement Dub <input id="dub-enabled" type="checkbox"></label>
         </div>
+        <div class="dub-card">
+            <h3>DUB PRESET</h3>
+            <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
+        </div>
+        <div class="dub-card">
+            <h3>DUB MIX · ISOLATOR <small>DRY &rarr; WET</small></h3>
+            <label>Mix <input id="dub-mix" type="range" min="0" max="127" value="127"><output>127</output></label>
+        </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="siren" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>SIREN LEVEL</h3>
+            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
+        </div>
+        <div class="dub-card">
+            <h3>SIREN FREQ · DEPTH · RATE</h3>
+            <label>Fréquence <input id="dub-siren-freq" type="range" min="220" max="1200" step="2" value="740"><output>740 Hz</output></label>
+            <label>Profondeur <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
+            <label>Vitesse LFO <input id="dub-siren-rate" type="range" min="0" max="127" value="8"><output>2 Hz</output></label>
+        </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="skank" role="tabpanel" hidden>
         <div class="dub-card">
             <h3>SKANK · ONE KEY</h3>
             <div class="dub-row">
-                <select id="dub-root"><option value="0">C</option><option value="2">D</option><option value="4">E</option><option value="5">F</option><option value="7">G</option><option value="9">A</option><option value="11">B</option></select>
-                <select id="dub-quality"><option value="0">TRIAD</option><option value="1">7TH</option><option value="2">9TH</option><option value="3">POWER</option></select>
-                <select id="dub-octave"><option value="3">OCT 3</option><option value="4" selected>OCT 4</option><option value="5">OCT 5</option></select>
+                <select id="dub-root" aria-label="Fondamentale"><option value="0" selected>C</option><option value="1">C#</option><option value="2">D</option><option value="3">D#</option><option value="4">E</option><option value="5">F</option><option value="6">F#</option><option value="7">G</option><option value="8">G#</option><option value="9">A</option><option value="10">A#</option><option value="11">B</option></select>
+                <select id="dub-quality" aria-label="Type d'accord"><option value="0" selected>MAJ</option><option value="1">MIN</option><option value="2">DIM</option><option value="3">AUG</option><option value="4">7TH</option><option value="5">MIN7</option><option value="6">9TH</option><option value="7">PWR</option></select>
+                <select id="dub-octave" aria-label="Octave"><option value="3" selected>OCT 3</option><option value="4">OCT 4</option><option value="5">OCT 5</option></select>
                 <button id="dub-skank" type="button">JOUER L’ACCORD</button>
             </div>
+            <label>Vélocité <input id="dub-skank-vel" type="range" min="0" max="127" value="108"><output>108</output></label>
         </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="dseq" role="tabpanel" hidden>
         <div class="dub-card">
             <h3>SÉQUENCEUR DUB</h3>
             <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
@@ -326,16 +421,15 @@ body.compact #manual { display: none; }
                 <button type="button" aria-label="Pas 15">15</button><button type="button" aria-label="Pas 16">16</button>
             </div>
         </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="iso" role="tabpanel" hidden>
         <div class="dub-card">
             <h3>DUB ISOLATOR · 4 BANDES</h3>
             <div class="dub-band" data-dub-band="0"><span>SUB</span><input type="range" min="-24" max="12" value="0" aria-label="Gain SUB"><label><input type="checkbox" aria-label="Mute SUB"> MUTE</label></div>
             <div class="dub-band" data-dub-band="1"><span>BASS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain BASS"><label><input type="checkbox" aria-label="Mute BASS"> MUTE</label></div>
             <div class="dub-band" data-dub-band="2"><span>MIDS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain MIDS"><label><input type="checkbox" aria-label="Mute MIDS"> MUTE</label></div>
             <div class="dub-band" data-dub-band="3"><span>TOPS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain TOPS"><label><input type="checkbox" aria-label="Mute TOPS"> MUTE</label></div>
-        </div>
-        <div class="dub-card" id="dub-presets-card">
-            <h3>PRESETS REGGAE / DUB</h3>
-            <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
         </div>
     </div>
 </section>

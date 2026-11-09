@@ -2504,8 +2504,9 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K2], 2);                    /* SIREN WAVE */
         turns(panel.enc[EN_K3], 2);                    /* SIREN PITCH */
         turns(panel.enc[EN_K4], 2);                    /* SIREN LEVEL */
-        press(B_OCTUP);                                /* the momentary siren: armed, but the
-                                                        * module stays shut (it renders nothing) */
+        press(B_OCTUP);                                /* the momentary siren: it sounds now (2.9.13:
+                                                        * the siren renders whatever DUB does), the
+                                                        * module itself stays shut */
         release(B_OCTUP);
         check(dub_enabled == 0u && dub_isolator.enabled == 0u,
               "menu DUB gate: the siren page (knobs, the momentary OCT+) leaves DUB off");
@@ -2547,6 +2548,16 @@ int main(int argc, char **argv)
         tap(B_OCTDN);
         check(ui.menu == 0, "menu DUB gate: OCT- closes");
         go_home(); ui.force = 1; frame();
+    }
+    {   /* 2.9.13: the siren is independent of the DUB module — the module's switch going
+         * off does not silence it (OCT+ and the LEVEL row own the voice, not DUB's K1) */
+        dub_siren_trigger(&dub_siren, 88u);
+        ui.menu = 1; ui.menu_sel = MI_DUB_ON; ui.force = 1; frame();
+        turns(panel.enc[EN_K1], -1);                   /* K1 left: DUB off, the siren untouched */
+        check(dub_enabled == 0u && dub_isolator.enabled == 0u &&
+              dub_siren.active == 1u && dub_siren.level == 88u,
+              "menu DUB: K1 to off leaves the wailing siren alone (2.9.13: independent)");
+        dub_siren_trigger(&dub_siren, 0);              /* the hold let go */
     }
     {   /* fuzz: 20000 frames of random buttons (held or tapped), knobs and keys, with the audio running
          * between frames; every draw stays on the screen (lcd_blit / lcd_fill assert it) */

@@ -71,6 +71,14 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_dub_siren_level(100);
     const rSiren = rmsN(8);
 
+    /* (2.9.13) the siren independent of the DUB module: the module off, it still wails —
+     * it renders whether DUB runs or not, and no isolator band or DUB filter colours it */
+    e.emu_dub_enable(0);
+    const rSirenFree = rmsN(4);
+    e.emu_dub_enable(1);
+    if (!(rSirenFree > rSiren * 0.5)) throw new Error('siren silent with DUB off: ' + rSirenFree);
+    console.log('siren wails DUB-off . OK (rms ' + rSirenFree.toFixed(6) + ' vs DUB-on ' + rSiren.toFixed(6) + ')');
+
     /* every siren type and wave must render without trapping */
     for (let t = 0; t < 5; t++) {
         e.emu_dub_siren_type(t);

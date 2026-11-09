@@ -673,11 +673,13 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
          break;
     case MI_DUB_ON:                                    /* (2.9.10) the module's one switch: K1 alone
                                                         * engages DUB — no knob turn, no load, no
-                                                        * siren or preset does it behind your back */
+                                                        * siren or preset does it behind your back.
+                                                        * (2.9.13) the siren is independent of the
+                                                        * module: K1 leaving DUB off does not touch
+                                                        * it, it keeps wailing until OCT+ lets go
+                                                        * or the SIREN LEVEL row says 0 */
         dub_enabled = (uint8_t)(s > 0 ? 1u : s < 0 ? 0u : !dub_enabled);
         dub_isolator.enabled = dub_enabled;
-        if (!dub_enabled)
-            dub_siren_trigger(&dub_siren, 0);
         break;
     case MI_DUB_PRESET:                                /* the fifth row, the PRESETS cursor's: no knob
                                                         * maps to it, so OCT+ applies the shown preset

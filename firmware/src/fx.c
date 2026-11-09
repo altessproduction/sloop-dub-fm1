@@ -376,6 +376,10 @@ static int32_t wet_l[CTL], wet_r[CTL];
 static int32_t part_buf[2][CTL] __attribute__((section(".lowram")));   /* a part's scratch, one per core */
 static int32_t drum_buf[4][CTL] __attribute__((section(".lowram")));   /* the drums through the drum track's FILTER: L, R,
                                                                         * reverb, delay */
+static int32_t sir_l[CTL], sir_r[CTL];                 /* (2.9.13) the siren's own row: it renders here, its
+                                                        * dry sound joins the mix after the DUB module, so no
+                                                        * band of the isolator and no DUB filter colours it,
+                                                        * and it wails with the module off as well */
 
 /* ---- mute / solo: a track that goes silent fades out over ~6 ms (and back in) */
 #define MUTE_STEP 4096                                  /* Q15 per block: 8 blocks */
@@ -1276,9 +1280,12 @@ static void mix_block(int32_t *out, uint32_t n)
     texture_mix(mix_l, mix_r, n);                       /* GLO > TEXTURE (2.6): the bed, dry; after both cores' units
                                                          * (what it adds does not depend on them: the same sum) */
     punch_freeze_feed(acc[0].sr, mix_l, mix_r, n);     /* punch-in FREEZE: the whole dry mix into the held reverb */
-    if (dub_enabled)
-        dub_siren_render(&dub_siren, mix_l, mix_r, acc[0].sd, n);   /* (2.9.1) the siren, dry into the mix,
-                                                                     * its SEND into the delay bus below */
+    for (i = 0; i < n; i++)                            /* (2.9.13) the siren renders into its own row — no
+                                                        * dub_enabled gate any more: the siren is a voice of
+                                                        * its own, it sounds with the DUB module off as well;
+                                                        * its SEND still rides the delay bus below as before */
+        sir_l[i] = sir_r[i] = 0;
+    dub_siren_render(&dub_siren, sir_l, sir_r, acc[0].sd, n);
     fx_buses(acc[0].sc, acc[0].sd, acc[0].sr, wet_l, wet_r, n);
     for (i = 0; i < n; i++) {
         mix_l[i] += wet_l[i];
@@ -1286,15 +1293,26 @@ static void mix_block(int32_t *out, uint32_t n)
     }
     dust_process(mix_l, mix_r, n);
     punch_process(mix_l, mix_r, n);
-    djf_process(mix_l, mix_r, n);
     if (dub_enabled) {                                  /* (2.9) the DUB module, in the order of its
                                                          * page: the bands and their mix (KNOB 3),
                                                          * the filter (KNOB 2), the throw into the
-                                                         * delay (KNOB 4); DUB off: none of them */
+                                                         * delay (KNOB 4); DUB off: none of them.
+                                                         * (2.9.13) it sits before the master DJ filter
+                                                         * now: plain filters one after the other, the
+                                                         * mix hears the same cascade either way */
         dub_isolator_process(&dub_isolator, mix_l, mix_r, n);
         dub_filter_process(mix_l, mix_r, n);
         dub_send_feed(mix_l, mix_r, acc[0].sd, n);
     }
+    for (i = 0; i < n; i++) {                           /* (2.9.13) the siren joins here, after the DUB
+                                                         * module: no band of the isolator and no DUB
+                                                         * filter ever colours it, DUB off or on — its
+                                                         * own SEND is its only path into the delay;
+                                                         * the master DJ filter below still sweeps it */
+        mix_l[i] += sir_l[i];
+        mix_r[i] += sir_r[i];
+    }
+    djf_process(mix_l, mix_r, n);
     m1 = (int32_t)song.master_q12;
     m0 = master_cur < 0 ? m1 : master_cur;
     master_cur = m1;

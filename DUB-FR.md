@@ -122,3 +122,60 @@ Cette prévisualisation reste un adaptateur navigateur : elle ne remplace pas en
 - L'isolateur actuel travaille en mono puis recopie le résultat gauche/droite ; il s'agit d'une première tranche robuste, pas encore d'un égaliseur paramétrique complet de qualité studio.
 - Les filtres de séparation et les paramètres de gain doivent être testés avec le limiteur et les effets master de SLOOP avant activation permanente.
 - Toute redistribution doit conserver les notices GPL et les crédits de SLOOP/Felucca.
+
+## Empreinte FM-1 (mesurée, build 2.9.13)
+
+Mesures réelles obtenues avec la chaîne JieLi (clang 4.0.1 pi32v2) sur ce dépôt ; la base SLOOP 2.9.6
+(`bddd08a`) servait de référence. La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
+application fait 0x8DFBC o (581 Ko) — en 2.9.6 il était déjà rempli à 99,9 % (360 o de marge).
+
+| Ressource | 2.9.6 (base) | 2.9.13 (ce build) | Capacité | Marge 2.9.13 |
+|---|---|---|---|---|
+| Image flash (code + rodata) | 580 692 o | **572 784 o** | 581 052 o | **8 268 o** |
+| RAM `.data`+`.bss` | 60 108 o | 60 448 o | 98 304 o | 37 856 o |
+| `.lowram` (reverb, piles cœur 1) | 22 772 o | 22 772 o | 29 392 o | 6 620 o |
+| Pool (canevas, lignes d'effets) | 333 900 o | 333 900 o | 344 064 o | 10 164 o |
+| Pile principale au repos | — | 22 956 o libres (mesure appareil) | 24 320 o | — |
+
+Les ajouts 2.9.7→2.9.13 (filtre bipolaire, remap delay, page SEND, indépendance de la sirène)
+comptaient environ +9,5 Ko de symboles ; le build ne rentrait donc plus. Trois réglages de
+compilation, sans toucher une ligne de code fonctionnelle, ramènent l'image sous le slot **en
+conservant le logo graphique** :
+
+- `-Oz` au lieu de `-Os` (clang pi32v2, densité de code) : environ −14 Ko ;
+- `--gc-sections` sur l'édition de liens de l'application (le loader le faisait déjà) : les
+  sections jamais référencées ne coûtent plus rien ;
+- `-fdata-sections` : la rodata morte est élaguée aussi.
+
+### Le delay en particulier (queues longues)
+
+La ligne de retard `dly_buf` est un tampon circulaire **statique** de 65 536 échantillons ×
+16 bits = **128 Ko** dans le pool — alloué une fois pour toutes à la compilation pour le maximum
+(1,49 s à 44,1 kHz : croche pointée à 31 BPM, noire à 41 BPM). Conséquences :
+
+- **La longueur de la queue ne coûte rien** : temps réglé de 50 ms à 1,4 s, la RAM consommée par
+  le delay est identique (128 Ko), et le coût CPU par échantillon aussi (une écriture, deux
+  lectures interpolées, un passe-bas de coloration, un feedback — une dizaine d'opérations
+  entières Q15, soit ~0,4 Mop/s à 44,1 kHz). Les répétitions longues ne parcourent jamais le
+  tampon entier : seules les têtes de lecture/écriture travaillent.
+- La queue longue tient par le **feedback** (DLY FEEDBK), pas par la mémoire ; les échantillons
+  restent dans les 128 Ko déjà réservés, sans croissance possible.
+- Le delay est le premier consommateur du pool (38 %) ; un délai plus long (2 s et plus) ne
+  rentrerait qu'en empruntant la marge du pool et de `.lowram` (~17 Ko au total, soit +0,7 s)
+  ou en dégradant la résolution de la ligne — non fait, décision produit SLOOP.
+
+### CPU
+
+Mesures appareil (DUALCORE.md, moteur SLOOP sans le module Dub) : 9 % au repos, 23 % avec le
+second cœur et 31 % sans, sur le pire pattern du propriétaire ; interruption audio max mesurée
+1,273 ms pour un bloc de 32 échantillons (0,725 ms). Le module Dub ajoute quelques opérations
+fixe-point par échantillon (sirène, isolateur au repos entièrement court-circuité, têtes tape du
+delay) — de l'ordre de +1 à 2 % de charge, très loin du garde-fou des 8 ms du second cœur.
+
+### Ce qui reste serré
+
+- **La flash** : 8,3 Ko de marge après `-Oz` ; les pages ACC/SLD prévues tiendront, mais toute
+  grosse fonctionnalité future devra se justifier. Le plan B intégré du build (`FELUCCA_LOGO_TEXT=1`,
+  logo en texte, −4,6 Ko) reste disponible si un jour ça déborde.
+- **Le pool** : 10 Ko de marge ; ne pas y ajouter de tampon sans vérification (`ok pool …` du build).
+

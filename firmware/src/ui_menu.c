@@ -11,15 +11,83 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
 #if FELUCCA_CDC
        MI_SERIAL,
 #endif
-       MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT, MI_COUNT };
+       MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT,
+       MI_DUB_ON, MI_DUB_SIREN, MI_DUB_SKANK, MI_DUB_PRESET,
+       MI_DUB_LEN, MI_DUB_STEP, MI_DUB_NOTE, MI_DUB_VEL,
+       MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
 static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LIGHTS", "KEYS", "NOTES", "SPEAKER LOWCUT", "USB AUDIO",
 #if FELUCCA_CDC
                                               "USB SERIAL",
 #endif
-                                              "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_COUNT };   /* (2.7.1: SEQ) */
-static const char *const MS_NAME[MS_COUNT] = {"SCREEN", "LIGHTS", "AUDIO", "SEQ", "SYSTEM"};   /* (AUDIO: and USB) */
-static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1, MI_COUNT};   /* rows of each */
+                                              "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT",
+                                              "DUB ENABLE", "SIREN LEVEL", "SKANK CHORD", "DUB PRESET",
+                                              "SEQ LENGTH", "SEQ STEP", "SEQ NOTE", "SEQ VELOCITY",
+                                              "SUB", "BASS", "MIDS", "TOPS"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_DSEQ, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "DSEQ", "ISO"};
+
+static uint8_t dub_menu_siren = 88;
+static uint8_t dub_menu_chord;
+static uint8_t dub_menu_preset;
+static uint8_t dub_menu_len = 16;
+static uint8_t dub_menu_step;
+static uint8_t dub_menu_note = 36;
+static uint8_t dub_menu_vel = 100;
+static uint8_t dub_menu_skank_notes[3];
+static uint8_t dub_menu_skank_count;
+
+UI_SMALL static void dub_menu_skank(void)
+{
+    dub_skank_t s;
+    uint8_t notes[3], i;
+    for (i = 0; i < dub_menu_skank_count; i++)
+        input_off(&trk[0], dub_menu_skank_notes[i]);
+    s.root = 0;
+    s.quality = (uint8_t)(dub_menu_chord & 3u);
+    s.octave = 3;
+    s.velocity = 112;
+    dub_menu_skank_count = dub_skank_build(&s, 0, notes, 3);
+    for (i = 0; i < dub_menu_skank_count; i++) {
+        dub_menu_skank_notes[i] = notes[i];
+        input_on(&trk[0], notes[i], s.velocity);
+    }
+    dub_enabled = 1;
+    dub_isolator.enabled = 1;
+}
+
+UI_SMALL static void dub_menu_band(uint32_t band, int32_t delta, uint8_t toggle_mute)
+{
+    dub_band_param_t p;
+    if (band >= DUB_BANDS)
+        return;
+    p = dub_isolator.p[band];
+    if (toggle_mute)
+        p.mute = (uint8_t)!p.mute;
+    else {
+        int32_t g = p.gain_db + delta;
+        p.gain_db = (int8_t)(g < -24 ? -24 : g > 12 ? 12 : g);
+    }
+    dub_isolator_set_band(&dub_isolator, band, p);
+    dub_enabled = 1;
+    dub_isolator.enabled = 1;
+}
+
+UI_SMALL static void dub_menu_preset_apply(void)
+{
+    const dub_preset_t *p = &DUB_PRESETS[dub_menu_preset % DUB_PRESET_COUNT];
+    uint32_t b;
+    dub_enabled = 1;
+    dub_isolator.enabled = 1;
+    for (b = 0; b < DUB_BANDS; b++) {
+        dub_band_param_t q = dub_isolator.p[b];
+        q.gain_db = p->level / 2;
+        q.mute = 0;
+        dub_isolator_set_band(&dub_isolator, b, q);
+    }
+    dub_menu_siren = dub_menu_preset == 2u ? 88u : 0u;
+    dub_siren_trigger(&dub_siren, dub_menu_siren);
+}
+static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1, MI_DUB_ON, MI_DUB_LEN, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -97,6 +165,48 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         }
         fmt_int(b, (int32_t)n);
         str_cpy(b + str_len(b), " CC", 4);
+        return b;
+    }
+    case MI_DUB_ON: return dub_enabled ? "ON" : "OFF";
+    case MI_DUB_SIREN: {
+        static char b[8];
+        if (!dub_siren.active) return "OFF";
+        fmt_int(b, dub_siren.level);
+        return b;
+    }
+    case MI_DUB_SKANK: {
+        static const char *const q[4] = {"MAJ", "MIN", "DIM", "AUG"};
+        return q[dub_menu_chord & 3u];
+    }
+    case MI_DUB_PRESET: return DUB_PRESETS[dub_menu_preset % DUB_PRESET_COUNT].name;
+    case MI_DUB_LEN: {
+        static char b[8];
+        fmt_int(b, dub_sequence.length);
+        return b;
+    }
+    case MI_DUB_STEP: {
+        static char b[8];
+        fmt_int(b, dub_menu_step + 1u);
+        return b;
+    }
+    case MI_DUB_NOTE: {
+        static char b[8];
+        fmt_int(b, dub_menu_note);
+        return b;
+    }
+    case MI_DUB_VEL: {
+        static char b[8];
+        fmt_int(b, dub_menu_vel);
+        return b;
+    }
+    case MI_DUB_SUB:
+    case MI_DUB_BASS:
+    case MI_DUB_MIDS:
+    case MI_DUB_TOPS: {
+        static char b[12];
+        uint32_t band = i - MI_DUB_SUB;
+        if (dub_isolator.p[band].mute) return "MUTE";
+        fmt_int(b, dub_isolator.p[band].gain_db);
         return b;
     }
     default:
@@ -310,8 +420,76 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         break;
     }
     case MI_LCLEAR:                                    /* (2.6) every learned CC: OCT+ */
+         if (!s)
+             ui_message(ml_clear_all() ? "LEARN CLEARED" : "NOTHING LEARNED");
+         break;
+    case MI_DUB_ON:
+        dub_enabled = (uint8_t)(s > 0 ? 1u : s < 0 ? 0u : !dub_enabled);
+        dub_isolator.enabled = dub_enabled;
+        if (!dub_enabled)
+            dub_siren_trigger(&dub_siren, 0);
+        break;
+    case MI_DUB_SIREN:
+        if (s > 0 && dub_menu_siren < 127u)
+            dub_menu_siren++;
+        else if (s < 0 && dub_menu_siren > 0u)
+            dub_menu_siren--;
+        else if (!s)
+            dub_menu_siren = dub_menu_siren ? 0u : 88u;
+        dub_siren_trigger(&dub_siren, dub_menu_siren);
+        dub_enabled = dub_menu_siren ? 1u : dub_enabled;
+        dub_isolator.enabled = dub_enabled;
+        break;
+    case MI_DUB_SKANK:
+        if (s > 0)
+            dub_menu_chord = (uint8_t)((dub_menu_chord + 1u) & 3u);
+        else if (s < 0)
+            dub_menu_chord = (uint8_t)((dub_menu_chord + 3u) & 3u);
+        else
+            dub_menu_skank();
+        break;
+    case MI_DUB_PRESET:
+        if (s > 0)
+            dub_menu_preset = (uint8_t)((dub_menu_preset + 1u) % DUB_PRESET_COUNT);
+        else if (s < 0)
+            dub_menu_preset = (uint8_t)((dub_menu_preset + DUB_PRESET_COUNT - 1u) % DUB_PRESET_COUNT);
+        else
+            dub_menu_preset_apply();
+        break;
+    case MI_DUB_LEN:
+        if (s > 0 || !s)
+            dub_menu_len = dub_menu_len == 16u ? 32u : dub_menu_len == 32u ? 64u : 16u;
+        else if (dub_menu_len == 16u)
+            dub_menu_len = 64u;
+        else if (dub_menu_len == 32u)
+            dub_menu_len = 16u;
+        else
+            dub_menu_len = 32u;
+        dub_seq_set_length(&dub_sequence, dub_menu_len);
+        break;
+    case MI_DUB_STEP:
+        if (s > 0 || !s)
+            dub_menu_step = (uint8_t)((dub_menu_step + 1u) % dub_sequence.length);
+        else
+            dub_menu_step = (uint8_t)((dub_menu_step + dub_sequence.length - 1u) % dub_sequence.length);
+        break;
+    case MI_DUB_NOTE:
+        dub_menu_note = (uint8_t)(s > 0 ? dub_menu_note + 1u : s < 0 ? dub_menu_note - 1u : dub_menu_note);
         if (!s)
-            ui_message(ml_clear_all() ? "LEARN CLEARED" : "NOTHING LEARNED");
+            dub_menu_note = (uint8_t)(dub_menu_note + 12u > 127u ? 36u : dub_menu_note + 12u);
+        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_vel);
+        break;
+    case MI_DUB_VEL:
+        if (s > 0 && dub_menu_vel < 127u) dub_menu_vel++;
+        else if (s < 0 && dub_menu_vel > 0u) dub_menu_vel--;
+        else if (!s) dub_menu_vel = dub_menu_vel ? 0u : 100u;
+        dub_seq_set_step(&dub_sequence, dub_menu_step, dub_menu_note, dub_menu_vel);
+        break;
+    case MI_DUB_SUB:
+    case MI_DUB_BASS:
+    case MI_DUB_MIDS:
+    case MI_DUB_TOPS:
+        dub_menu_band(i - MI_DUB_SUB, s, !s);
         break;
     case MI_PANEL:                                     /* actions: OCT+ only */
         if (!s) {

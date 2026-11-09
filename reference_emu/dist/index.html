@@ -328,7 +328,10 @@ body.compact #manual { display: none; }
         </div>
         <div class="dub-card">
             <h3>DUB ISOLATOR · 4 BANDES</h3>
-            ${[['SUB',0],['BASS',1],['MIDS',2],['TOPS',3]].map(([name, i]) => `<div class="dub-band" data-dub-band="${i}"><span>${name}</span><input type="range" min="-24" max="12" value="0" aria-label="Gain ${name}"><label><input type="checkbox" aria-label="Mute ${name}"> MUTE</label></div>`).join('')}
+            <div class="dub-band" data-dub-band="0"><span>SUB</span><input type="range" min="-24" max="12" value="0" aria-label="Gain SUB"><label><input type="checkbox" aria-label="Mute SUB"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="1"><span>BASS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain BASS"><label><input type="checkbox" aria-label="Mute BASS"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="2"><span>MIDS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain MIDS"><label><input type="checkbox" aria-label="Mute MIDS"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="3"><span>TOPS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain TOPS"><label><input type="checkbox" aria-label="Mute TOPS"> MUTE</label></div>
         </div>
         <div class="dub-card" id="dub-presets-card">
             <h3>PRESETS REGGAE / DUB</h3>

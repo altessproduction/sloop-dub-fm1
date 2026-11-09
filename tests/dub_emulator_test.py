@@ -75,7 +75,10 @@ def main():
             assert page.locator("#dub-root option").count() == 12
             assert page.locator("#dub-quality option").count() == 8
             assert page.locator("#dub-octave option").count() == 3
-            assert page.locator("#dub-steps button").count() == 16
+            # 2.9.4: the DSQ view is built from JS: four tracks x 64 steps plus their labels
+            assert page.locator("#dub-steps button").count() == 256
+            assert page.locator(".dub-trk-label").count() == 4
+            assert page.locator("#dub-trks button").count() == 4
             assert page.locator("#dub-console [data-dub-band]").count() == 4
             assert page.locator("#dub-presets button").count() == 5
             # The tabs mirror the LCD: one tab shows its page, the others wait.

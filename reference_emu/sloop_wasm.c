@@ -511,6 +511,30 @@ WASM_EXPORT("emu_dub_riddim_count") uint32_t emu_dub_riddim_count(void)
     return DUB_RIDDIM_COUNT;
 }
 
+/* 2.9.4: the sequencer's readback, the web console's DSQ view: what a load left in the
+ * sequence, its length and the playhead. 255 (DUB_SEQ_REST) is an empty step. */
+WASM_EXPORT("emu_dub_seq_len") uint32_t emu_dub_seq_len(void)
+{
+    return dub_sequence.length;
+}
+
+WASM_EXPORT("emu_dub_seq_note") uint32_t emu_dub_seq_note(uint32_t track, uint32_t step)
+{
+    if (track >= DUB_TRK_N || step >= 64u)
+        return DUB_SEQ_REST;
+    return dub_sequence.notes[track][step];
+}
+
+WASM_EXPORT("emu_dub_seq_pos") uint32_t emu_dub_seq_pos(void)      /* the playhead's step */
+{
+    return dub_sequence.step;
+}
+
+WASM_EXPORT("emu_dub_seq_playing") uint32_t emu_dub_seq_playing(void)
+{
+    return song.playing && dub_enabled ? 1u : 0u;
+}
+
 WASM_EXPORT("emu_dub_riddim_name") uint32_t emu_dub_riddim_name(uint32_t riddim)   /* const char *, a wasm offset */
 {
     return (uint32_t)(uintptr_t)dub_riddim_name(riddim);

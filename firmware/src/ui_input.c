@@ -1135,6 +1135,8 @@ UI_SMALL static void ui_input(void)
         thr_req = 0;
         if (!ui.home_t0)
             menu_input(pressed);
+        if (pressed & (1u << panel.btn[B_PLAY]))        /* (2.9.4) PLAY still plays with the menu up: */
+            transport_req = song.playing ? 2 : 1;       /* a riddim loads on its page, PLAY runs it */
         return;
     }
     if (!on_notes_page() && !on_drum_page())

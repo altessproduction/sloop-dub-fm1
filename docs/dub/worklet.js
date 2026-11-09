@@ -55,6 +55,15 @@ class SloopProcessor extends AudioWorkletProcessor {
                 else this.e.emu_dub_seq_step(m.step || 0, m.note || 60, m.velocity || 0);   // the older wasm's single track
             }
             else if (m.t === 'dub-riddim') { if (typeof this.e.emu_dub_riddim_load === 'function') this.e.emu_dub_riddim_load(m.riddim || 0); }   // the RIDDIM page's loads
+            else if (m.t === 'dub-seq-dump') {   // (2.9.4) what the sequence holds: len + the 4 tracks' notes
+                if (typeof this.e.emu_dub_seq_note === 'function') {
+                    const notes = new Uint8Array(4 * 64);
+                    for (let tr = 0; tr < 4; tr++)
+                        for (let st = 0; st < 64; st++)
+                            notes[tr * 64 + st] = this.e.emu_dub_seq_note(tr, st);
+                    this.port.postMessage({ t: 'dub-seq-dump', len: this.e.emu_dub_seq_len(), notes });
+                } else this.port.postMessage({ t: 'dub-seq-dump', len: 0, notes: null });
+            }
             else if (m.t === 'dub-riddim-track') { if (typeof this.e.emu_dub_riddim_track === 'function') this.e.emu_dub_riddim_track(m.riddim || 0, m.track || 0); }
             else if (m.t === 'dub-sound') { if (typeof this.e.emu_dub_sound_load === 'function') this.e.emu_dub_sound_load(m.role || 0, m.index || 0); }   // the PRESET page's loads
             else if (m.t === 'dub-skank') this.e.emu_dub_skank(m.root || 0, m.quality || 0, m.octave || 3, m.velocity || 100);
@@ -68,13 +77,21 @@ class SloopProcessor extends AudioWorkletProcessor {
         const gen = this.e.emu_fb_gen();
         const leds = new Uint8Array(this.e.memory.buffer, this.ledPtr, 11).slice();
         const dims = new Uint8Array(this.e.memory.buffer, this.ledDimPtr, 11).slice();
+        const seq = this.seqState();        // (2.9.4) the dub sequencer's playhead, for the DSQ view
         if (gen !== this.lastGen) {
             this.lastGen = gen;
             const fb = new Uint16Array(this.e.memory.buffer, this.fbPtr, 240 * 240).slice();
-            this.port.postMessage({ t: 'frame', fb, leds, dims }, [fb.buffer]);
+            this.port.postMessage({ t: 'frame', fb, leds, dims, seq }, [fb.buffer]);
         } else {
-            this.port.postMessage({ t: 'leds', leds, dims });
+            this.port.postMessage({ t: 'leds', leds, dims, seq });
         }
+    }
+
+    seqState() {                        // (2.9.4) len / playhead / running, an older wasm lacks them
+        const e = this.e;
+        return typeof e.emu_dub_seq_len === 'function'
+            ? { len: e.emu_dub_seq_len(), pos: e.emu_dub_seq_pos(), playing: !!e.emu_dub_seq_playing() }
+            : null;
     }
 
     process(inputs, outputs) {

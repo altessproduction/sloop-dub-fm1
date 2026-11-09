@@ -254,10 +254,71 @@ function dubPreset(index) {
     const enabled = document.getElementById('dub-enabled');
     if (enabled) { enabled.checked = true; dubEnable(true); }
 }
-function dubSeqLength(length) { dubMessage({ t: 'dub-seq-length', length: Number(length) }); }
-function dubSeqStep(step, button) {
-    button.classList.toggle('active');
-    dubMessage({ t: 'dub-seq-step', track: 0, step, note: 36 + (step % 12), velocity: button.classList.contains('active') ? 104 : 0 });   // (2.9.2: the bass track)
+function dubSeqLength(length) {
+    dubMessage({ t: 'dub-seq-length', length: Number(length) });
+    dubSeqRefresh();
+}
+/* (2.9.4) the DSQ view: four tracks x 64 steps showing what the sequence really holds
+ * (the RDM tab's loads and the firmware's OCT+ both land here), the playhead column while
+ * PLAY runs, and the chosen track's steps editable. The dump comes from the worklet. */
+const DUB_SEQ_TRACKS = ['BASS', 'SKNK', 'MEL', 'DRUM'];
+const DUB_SEQ_NOTE = [st => 36 + st % 12, () => 45, st => 60 + st % 12,
+                      st => [36, 42, 38, 39][st % 4]];       // kick hat snare clap
+let dubSeqLen = 16, dubSeqNotes = null, dubSeqPos = -1, dubSeqPlaying = false;
+
+function dubSeqBuild() {
+    const grid = document.getElementById('dub-steps');
+    if (!grid || grid.childElementCount) return;
+    DUB_SEQ_TRACKS.forEach((name, tr) => {
+        const label = document.createElement('span');
+        label.className = 'dub-trk-label';
+        label.textContent = name;
+        grid.appendChild(label);
+        for (let st = 0; st < 64; st++) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.trk = String(tr);
+            b.dataset.step = String(st);
+            b.textContent = String(st + 1);
+            b.addEventListener('click', () => dubSeqToggle(tr, st, b));
+            grid.appendChild(b);
+        }
+    });
+}
+function dubSeqToggle(tr, st, b) {
+    const on = !b.classList.contains('active');
+    b.classList.toggle('active', on);
+    dubMessage({ t: 'dub-seq-step', track: tr, step: st,
+                 note: on ? DUB_SEQ_NOTE[tr](st) : 0, velocity: on ? 104 : 0 });
+    dubSeqRefresh();
+}
+function dubSeqRefresh() { if (node) node.port.postMessage({ t: 'dub-seq-dump' }); }
+function dubSeqApply(m) {
+    dubSeqLen = m.len || 0;
+    dubSeqNotes = m.notes ? Array.from(m.notes) : null;
+    const sel = document.getElementById('dub-length');
+    if (sel && dubSeqLen && sel.value !== String(dubSeqLen)) sel.value = String(dubSeqLen);
+    if (!dubSeqNotes) return;
+    document.querySelectorAll('#dub-steps button').forEach(b => {
+        const st = Number(b.dataset.step);
+        b.classList.toggle('active', dubSeqNotes[Number(b.dataset.trk) * 64 + st] !== 255);
+        b.classList.toggle('bar', st >= dubSeqLen);
+    });
+}
+function dubSeqPlayhead(seq) {           // the frame / leds messages' seq: {len, pos, playing}
+    if (!seq) return;
+    const moved = seq.pos !== dubSeqPos || !!seq.playing !== dubSeqPlaying;
+    dubSeqPos = seq.playing ? seq.pos : -1;
+    dubSeqPlaying = !!seq.playing;
+    if (!moved) return;
+    document.querySelectorAll('#dub-steps button.play').forEach(b => b.classList.remove('play'));
+    if (dubSeqPos >= 0)
+        document.querySelectorAll(`#dub-steps button[data-step="${dubSeqPos}"]`)
+            .forEach(b => b.classList.add('play'));
+}
+function dubStatus(text) {
+    const el = document.getElementById('dub-riddim-status');
+    if (el) el.textContent = text;
 }
 /* the RIDDIM page: the ten riddims tools/gen_riddims.py composed, four tracks each
  * (1 bass, 2 skanks, 3 melody, 4 drums). The load buttons mirror the firmware's OCT+. */
@@ -275,9 +336,13 @@ function dubFillRiddims() {
     }
 }
 function dubRiddim(selId, track) {
+    const name = DUB_RIDDIM_NAMES[Number(document.getElementById(selId).value || 0)] || '?';
     const m = track == null ? { t: 'dub-riddim', riddim: Number(document.getElementById(selId).value || 0) }
                             : { t: 'dub-riddim-track', riddim: Number(document.getElementById(selId).value || 0), track };
     dubMessage(m);
+    dubStatus(track == null ? `CHARGÉ · ${name} · 4 PISTES · 64 PAS`
+                            : `CHARGÉ · PISTE ${track + 1} · ${name}`);   // (2.9.4) the load is told
+    dubSeqRefresh();
     const enabled = document.getElementById('dub-enabled');
     if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
 }
@@ -319,6 +384,7 @@ function dubPage(name) {
         panel.classList.toggle('on', on);
         panel.hidden = !on;
     });
+    if (name === 'dseq') dubSeqRefresh();   // (2.9.4) the view follows the sequence
 }
 function setupDubPanel() {
     document.querySelectorAll('.dub-tab').forEach(tab =>
@@ -367,7 +433,14 @@ function setupDubPanel() {
     });
     document.getElementById('dub-skank')?.addEventListener('click', dubSkank);
     document.getElementById('dub-length')?.addEventListener('change', ev => dubSeqLength(ev.target.value));
-    document.querySelectorAll('#dub-steps button').forEach((button, step) => button.addEventListener('click', () => dubSeqStep(step, button)));
+    dubSeqBuild();
+    document.querySelectorAll('#dub-trks button').forEach(b =>
+        b.addEventListener('click', () =>
+            document.querySelectorAll('#dub-trks button').forEach(x => {
+                const on = x === b;
+                x.classList.toggle('active', on);
+                x.setAttribute('aria-pressed', on ? 'true' : 'false');
+            })));
     dubFillRiddims();
     document.getElementById('dub-riddim-load')?.addEventListener('click', () => dubRiddim('dub-riddim', null));
     document.getElementById('dub-rbass-load')?.addEventListener('click', () => dubRiddim('dub-rbass', 0));
@@ -481,14 +554,16 @@ async function powerOn() {
     });
     node.port.onmessage = ev => {
         const m = ev.data;
-        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); }
-        else if (m.t === 'leds') applyLeds(m.leds, m.dims);
+        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); }
+        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); }
+        else if (m.t === 'dub-seq-dump') dubSeqApply(m);   // (2.9.4) the DSQ view's readback
         else if (m.t === 'flash') saveFlash(m.data);
     };
     node.connect(ctx.destination);
     await ctx.resume();
     sendMaster();
     setTimeout(() => node.port.postMessage({ t: 'start' }), 900);   // splash dwell, as fm1_main
+    setTimeout(dubSeqRefresh, 1400);                                // (2.9.4) the DSQ view's first read
     initMidi();
 }
 document.getElementById('power').addEventListener('click', powerOn, { once: true });

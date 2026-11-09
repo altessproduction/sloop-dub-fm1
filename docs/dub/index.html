@@ -330,8 +330,13 @@ body.compact #manual { display: none; }
 #dub-console .dub-row select { flex: 0 1 auto; }
 #dub-console .dub-hint { margin: 12px 0 0; font-size: 11px; color: var(--muted, #8a919b); }
 #dub-console #dub-siren { flex: 1; color: var(--accent); }
-#dub-steps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 12px; }
-#dub-steps button { padding: 10px 0; font-size: 11px; }
+#dub-trks { display: flex; gap: 6px; margin-top: 12px; }
+#dub-trks button { flex: 1; font-size: 11px; padding: 6px 0; }
+#dub-steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin-top: 10px; }
+#dub-steps button { padding: 9px 0; font-size: 9px; }
+#dub-steps button.play { box-shadow: 0 0 0 1px var(--accent) inset; }
+#dub-steps button.bar { opacity: 0.55; }
+#dub-steps .dub-trk-label { grid-column: 1 / -1; font-size: 10px; letter-spacing: 2px; color: var(--dim, #8a919b); margin-top: 6px; }
 .dub-band { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 12px; }
 .dub-band span { min-width: 42px; letter-spacing: 1px; color: var(--dim); }
 .dub-band input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
@@ -428,18 +433,16 @@ body.compact #manual { display: none; }
 
     <div class="dub-page" data-dub-panel="dseq" role="tabpanel" hidden>
         <div class="dub-card">
-            <h3>SÉQUENCEUR DUB</h3>
+            <h3>SÉQUENCEUR DUB · 4 PISTES</h3>
             <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
-            <div id="dub-steps" aria-label="Pas du séquenceur">
-                <button type="button" aria-label="Pas 1">1</button><button type="button" aria-label="Pas 2">2</button>
-                <button type="button" aria-label="Pas 3">3</button><button type="button" aria-label="Pas 4">4</button>
-                <button type="button" aria-label="Pas 5">5</button><button type="button" aria-label="Pas 6">6</button>
-                <button type="button" aria-label="Pas 7">7</button><button type="button" aria-label="Pas 8">8</button>
-                <button type="button" aria-label="Pas 9">9</button><button type="button" aria-label="Pas 10">10</button>
-                <button type="button" aria-label="Pas 11">11</button><button type="button" aria-label="Pas 12">12</button>
-                <button type="button" aria-label="Pas 13">13</button><button type="button" aria-label="Pas 14">14</button>
-                <button type="button" aria-label="Pas 15">15</button><button type="button" aria-label="Pas 16">16</button>
+            <div id="dub-trks" role="group" aria-label="Piste éditée">
+                <button type="button" data-dub-trk="0" class="active">BASS</button>
+                <button type="button" data-dub-trk="1">SKNK</button>
+                <button type="button" data-dub-trk="2">MEL</button>
+                <button type="button" data-dub-trk="3">DRUM</button>
             </div>
+            <div id="dub-steps" aria-label="Pas du séquenceur"></div>
+            <p class="dub-hint">La vue suit le séquenceur : ce que OCT+ charge (page RIDDIM du firmware ou l'onglet RDM) s'affiche ici, la colonne claire est la tête de lecture. Un clic pose ou efface le pas de la piste choisie.</p>
         </div>
     </div>
 
@@ -463,6 +466,7 @@ body.compact #manual { display: none; }
                 <button id="dub-rdrum-load" type="button">DRUM · PISTE 4</button>
             </div>
             <p class="dub-hint">Piste 1 basse · 2 skanks · 3 mélodie · 4 drums. Après le chargement, lance PLAY : la séquence suit le transport.</p>
+            <p id="dub-riddim-status" class="dub-hint" aria-live="polite"></p>
         </div>
     </div>
 

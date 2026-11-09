@@ -56,8 +56,8 @@ def main():
             # The Dub controls are part of this same firmware emulator page: the tabbed
             # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DSEQ RDM ISO).
             assert page.locator("#dub-console").is_visible()
-            assert page.locator(".dub-tab").count() == 7
-            assert page.locator(".dub-page").count() == 7
+            assert page.locator(".dub-tab").count() == 8
+            assert page.locator(".dub-page").count() == 8
             assert page.locator(".dub-page.on").count() == 1
             assert page.locator("#dub-enabled").count() == 1
             assert page.locator("#dub-mix").count() == 1
@@ -87,6 +87,21 @@ def main():
             page.click('.dub-tab[data-dub-page="sr2"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "sr2"
             assert page.locator('[data-dub-panel="sr2"]').is_visible()
+            page.click('.dub-tab[data-dub-page="dub"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
+            # 2.9.3: the PRESET tab: four selectors of the dub sound banks and their loads
+            page.click('.dub-tab[data-dub-page="prs"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "prs"
+            for sel_id, n in [("dub-sbass", 8), ("dub-sskank", 8), ("dub-smel", 8), ("dub-skit", 8)]:
+                assert page.locator("#" + sel_id + " option").count() == n
+            for b in ["dub-sbass-load", "dub-sskank-load", "dub-smel-load", "dub-skit-load"]:
+                assert page.locator("#" + b).count() == 1
+            page.select_option("#dub-sskank", "3")          # REGGAE ORG
+            page.click("#dub-sskank-load")
+            page.wait_for_timeout(400)
+            page.select_option("#dub-skit", "1")            # DUST
+            page.click("#dub-skit-load")
+            page.wait_for_timeout(300)
             page.click('.dub-tab[data-dub-page="dub"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
             # 2.9.2: the RIDDIM tab: four selectors of the ten riddims, the four load buttons

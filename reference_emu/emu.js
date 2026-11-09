@@ -281,6 +281,32 @@ function dubRiddim(selId, track) {
     const enabled = document.getElementById('dub-enabled');
     if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
 }
+/* the PRESET page: the dub sound banks, a list per riddim track (bass, skank, melody) and
+ * the drum kits. The load buttons mirror the firmware's OCT+ (the same WASM exports). */
+const DUB_SOUND_NAMES = {
+    bass: ['SUB BASS', '808 BOOM', 'FAT BASS', 'REESE', 'WOBBLE', 'ACID 303', 'CZ BASS', 'NES BASS'],
+    skank: ['DUB CHORD', 'MIN STAB', 'MIN7 STAB', 'REGGAE ORG', 'DIRTY B3', 'SOUL ORGAN', 'AFRO KEYS', 'CHIP CHORD'],
+    mel: ['PAN FLUTE', 'STEELPAN', 'STEEL DRUM', 'KALIMBA', 'SQR LEAD', 'SYNC LEAD', 'FAT LEAD', 'CZ LEAD'],
+    kit: ['DEEP', 'DUST', 'VINTAGE', '808', 'DUBSTEP', 'DEMBOW', 'AMAPIANO', 'AFRO'],
+};
+function dubFillSounds() {
+    const lists = { 'dub-sbass': 'bass', 'dub-sskank': 'skank', 'dub-smel': 'mel', 'dub-skit': 'kit' };
+    for (const [id, key] of Object.entries(lists)) {
+        const sel = document.getElementById(id);
+        if (!sel || sel.options.length) continue;
+        DUB_SOUND_NAMES[key].forEach((n, i) => {
+            const o = document.createElement('option');
+            o.value = String(i);
+            o.textContent = n;
+            sel.appendChild(o);
+        });
+    }
+}
+function dubSound(selId, role) {
+    dubMessage({ t: 'dub-sound', role, index: Number(document.getElementById(selId).value || 0) });
+    const enabled = document.getElementById('dub-enabled');
+    if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
+}
 /* the tab strip mirrors the firmware's Dub pages: one tab, one LCD page */
 function dubPage(name) {
     document.querySelectorAll('.dub-tab').forEach(tab => {
@@ -347,6 +373,11 @@ function setupDubPanel() {
     document.getElementById('dub-rbass-load')?.addEventListener('click', () => dubRiddim('dub-rbass', 0));
     document.getElementById('dub-rskank-load')?.addEventListener('click', () => dubRiddim('dub-rskank', 1));
     document.getElementById('dub-rdrum-load')?.addEventListener('click', () => dubRiddim('dub-rdrum', 3));
+    dubFillSounds();
+    document.getElementById('dub-sbass-load')?.addEventListener('click', () => dubSound('dub-sbass', 0));
+    document.getElementById('dub-sskank-load')?.addEventListener('click', () => dubSound('dub-sskank', 1));
+    document.getElementById('dub-smel-load')?.addEventListener('click', () => dubSound('dub-smel', 2));
+    document.getElementById('dub-skit-load')?.addEventListener('click', () => dubSound('dub-skit', 3));
     document.querySelectorAll('#dub-presets button').forEach((button, index) => button.addEventListener('click', () => dubPreset(index)));
 }
 

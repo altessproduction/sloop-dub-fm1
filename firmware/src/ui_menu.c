@@ -9,7 +9,10 @@
  * DSEQ (SEQ TRACK 2.9.2, SEQ LENGTH, SEQ STEP, SEQ NOTE, SEQ VELOCITY), RIDDIM (2.9.2:
  * RIDDIM, BASS PATTERN, SKANK PATTERN, DRUM PATTERN; OCT+ on each loads the selection into
  * the dub sequence: KNOB 1 the whole riddim, KNOB 2 the bass line, KNOB 3 the skanks,
- * KNOB 4 the drums) and ISO (SUB, BASS, MIDS, TOPS; OCT+ mutes the band).
+ * KNOB 4 the drums) and PRESET (2.9.3: BASS PRESET, SKANK PRESET, MELODY PRESET, DRUM KIT;
+ * OCT+ on each loads the selection into the riddim's track: KN1 the bass sound, KN2 the
+ * skank's, KN3 the melody's, KN4 a reggae dub drum kit) and ISO (SUB, BASS, MIDS, TOPS;
+ * OCT+ mutes the band).
  * SELECT goes to the page before / after (stopping at the ends), KNOB 1..4 set the page's settings in order (the knob's colour marks
  * its row), PRESETS moves the cursor; OCT+ steps the cursor's setting round or opens it (CALIBRATION, ABOUT, a skank chord),
  * OCT- closes (from ABOUT: back to the page). The tab strip shows five pages around the cursor: the screen
@@ -27,6 +30,7 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
        MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
        MI_DUB_TRACK, MI_DUB_LEN, MI_DUB_STEP, MI_DUB_NOTE, MI_DUB_VEL,
        MI_RD_SEL, MI_RD_BASS, MI_RD_SKANK, MI_RD_DRUM,
+       MI_PS_BASS, MI_PS_SKANK, MI_PS_MEL, MI_PS_KIT,
        MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
 static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LIGHTS", "KEYS", "NOTES", "SPEAKER LOWCUT", "USB AUDIO",
 #if FELUCCA_CDC
@@ -39,9 +43,10 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
                                               "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
                                               "SEQ TRACK", "SEQ LENGTH", "SEQ STEP", "SEQ NOTE", "SEQ VELOCITY",
                                               "RIDDIM", "BASS PATTERN", "SKANK PATTERN", "DRUM PATTERN",
+                                              "BASS PRESET", "SKANK PRESET", "MELODY PRESET", "DRUM KIT",
                                               "SUB", "BASS", "MIDS", "TOPS"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DSEQ, MS_RIDDIM, MS_ISO, MS_COUNT };
-static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DSQ", "RDM", "ISO"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DSEQ, MS_RIDDIM, MS_PRESET, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DSQ", "RDM", "PRS", "ISO"};
 
 static uint8_t dub_menu_siren = 88;              /* the level OCT+ toggles the siren between */
 static uint8_t dub_menu_chord;                   /* the skank's quality, DUB_SKANK_NAMES (dub_skank_conf) */
@@ -53,6 +58,10 @@ static uint8_t dub_menu_riddim;                  /* the RIDDIM page's four selec
 static uint8_t dub_menu_rbass;
 static uint8_t dub_menu_rskank;
 static uint8_t dub_menu_rdrum;
+static uint8_t dub_menu_pbass;                   /* the PRESET page's four selections */
+static uint8_t dub_menu_pskank;
+static uint8_t dub_menu_pmel;
+static uint8_t dub_menu_pkit;
 static uint8_t dub_menu_preset;
 static uint8_t dub_menu_len = 16;
 static uint8_t dub_menu_step;
@@ -91,6 +100,37 @@ UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDI
                                              track == DUB_TRK_SKANK ? (uint32_t)dub_menu_rskank :
                                                                       (uint32_t)dub_menu_rdrum, track);
         ui_message(track == DUB_TRK_BASS ? "BASS LOADED" : track == DUB_TRK_SKANK ? "SKANK LOADED" : "DRUM LOADED");
+    }
+    dub_enabled = 1;
+    dub_isolator.enabled = 1;
+}
+
+UI_SMALL static void dub_menu_sound_load(uint32_t role)    /* OCT+ on the PRESET page: what KNOB 1..4 hold */
+{
+    const dub_sound_t *s;
+    switch (role) {
+    case 0:                                            /* the bass line's sound, track 1 */
+        s = &DUB_BASS_SOUNDS[dub_menu_pbass % DUB_BASS_N];
+        set_engine_of(&trk[0], s->engine);
+        apply_preset_to(&trk[0], s->preset);
+        ui_message("BASS LOADED");
+        break;
+    case 1:                                            /* the skank's sound, track 2 */
+        s = &DUB_SKANK_SOUNDS[dub_menu_pskank % DUB_SKANK_N];
+        set_engine_of(&trk[1], s->engine);
+        apply_preset_to(&trk[1], s->preset);
+        ui_message("SKANK LOADED");
+        break;
+    case 2:                                            /* the melody's sound, track 3 */
+        s = &DUB_MEL_SOUNDS[dub_menu_pmel % DUB_MEL_N];
+        set_engine_of(&trk[2], s->engine);
+        apply_preset_to(&trk[2], s->preset);
+        ui_message("MELODY LOADED");
+        break;
+    default:                                           /* the drum kit, the drum track's P_E0 */
+        TDRUM->p[P_E0] = (int16_t)DUB_DK_KITS[dub_menu_pkit % DUB_DK_N];
+        ui_message("KIT LOADED");
+        break;
     }
     dub_enabled = 1;
     dub_isolator.enabled = 1;
@@ -144,7 +184,7 @@ UI_SMALL static void dub_menu_preset_apply(void)
     dub_siren_set_send(&dub_siren, (uint8_t)(p->delay < 0 ? 0 : p->delay > 127 ? 127 : p->delay));
 }
 static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1,
-                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DUB_TRACK, MI_RD_SEL, MI_DUB_SUB, MI_COUNT};
+                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DUB_TRACK, MI_RD_SEL, MI_PS_BASS, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -304,6 +344,10 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
     case MI_RD_BASS: return dub_riddim_name(dub_menu_rbass);
     case MI_RD_SKANK: return dub_riddim_name(dub_menu_rskank);
     case MI_RD_DRUM: return dub_riddim_name(dub_menu_rdrum);
+    case MI_PS_BASS: return DUB_BASS_SOUNDS[dub_menu_pbass % DUB_BASS_N].name;
+    case MI_PS_SKANK: return DUB_SKANK_SOUNDS[dub_menu_pskank % DUB_SKANK_N].name;
+    case MI_PS_MEL: return DUB_MEL_SOUNDS[dub_menu_pmel % DUB_MEL_N].name;
+    case MI_PS_KIT: return DUB_DK_NAMES[dub_menu_pkit % DUB_DK_N];
     case MI_DUB_SUB:
     case MI_DUB_BASS:
     case MI_DUB_MIDS:
@@ -335,6 +379,8 @@ UI_SMALL static void draw_menu(void)
                    dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
                    dub_menu_dtrk * 6700539u + dub_menu_riddim * 6700541u + dub_menu_rbass * 6700547u +
                    dub_menu_rskank * 6700551u + dub_menu_rdrum * 6700557u + dub_sequence.length * 6700563u +
+                   dub_menu_pbass * 6700569u + dub_menu_pskank * 6700571u + dub_menu_pmel * 6700577u +
+                   dub_menu_pkit * 6700581u +
                    dub_isolator.mix * 6700513u +
                    dub_isolator.p[DUB_SUB].gain_db * 6700493u + dub_isolator.p[DUB_BASS].gain_db * 6700497u +
                    dub_isolator.p[DUB_MIDS].gain_db * 6700501u + dub_isolator.p[DUB_TOPS].gain_db * 6700507u +
@@ -761,6 +807,38 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_menu_rdrum = (uint8_t)((dub_menu_rdrum + DUB_RIDDIM_COUNT - 1u) % DUB_RIDDIM_COUNT);
         else
             dub_menu_riddim_load(DUB_TRK_DRUM);
+        break;
+    case MI_PS_BASS:                                   /* the bass sounds, round; OCT+ loads into track 1 */
+        if (s > 0)
+            dub_menu_pbass = (uint8_t)((dub_menu_pbass + 1u) % DUB_BASS_N);
+        else if (s < 0)
+            dub_menu_pbass = (uint8_t)((dub_menu_pbass + DUB_BASS_N - 1u) % DUB_BASS_N);
+        else
+            dub_menu_sound_load(0);
+        break;
+    case MI_PS_SKANK:                                  /* the skank's sounds, round; OCT+ into track 2 */
+        if (s > 0)
+            dub_menu_pskank = (uint8_t)((dub_menu_pskank + 1u) % DUB_SKANK_N);
+        else if (s < 0)
+            dub_menu_pskank = (uint8_t)((dub_menu_pskank + DUB_SKANK_N - 1u) % DUB_SKANK_N);
+        else
+            dub_menu_sound_load(1);
+        break;
+    case MI_PS_MEL:                                    /* the melody's sounds, round; OCT+ into track 3 */
+        if (s > 0)
+            dub_menu_pmel = (uint8_t)((dub_menu_pmel + 1u) % DUB_MEL_N);
+        else if (s < 0)
+            dub_menu_pmel = (uint8_t)((dub_menu_pmel + DUB_MEL_N - 1u) % DUB_MEL_N);
+        else
+            dub_menu_sound_load(2);
+        break;
+    case MI_PS_KIT:                                    /* the reggae dub kits, round; OCT+ swaps the kit */
+        if (s > 0)
+            dub_menu_pkit = (uint8_t)((dub_menu_pkit + 1u) % DUB_DK_N);
+        else if (s < 0)
+            dub_menu_pkit = (uint8_t)((dub_menu_pkit + DUB_DK_N - 1u) % DUB_DK_N);
+        else
+            dub_menu_sound_load(3);
         break;
     case MI_DUB_SUB:
     case MI_DUB_BASS:

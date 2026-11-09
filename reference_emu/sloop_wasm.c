@@ -528,6 +528,36 @@ WASM_EXPORT("emu_dub_riddim_track") void emu_dub_riddim_track(uint32_t riddim, u
     emu_dub_enable(1);
 }
 
+WASM_EXPORT("emu_dub_sound_count") uint32_t emu_dub_sound_count(uint32_t role)   /* 0 bass, 1 skank, 2 melody, 3 kits */
+{
+    return role == 0u ? DUB_BASS_N : role == 1u ? DUB_SKANK_N : role == 2u ? DUB_MEL_N : DUB_DK_N;
+}
+
+WASM_EXPORT("emu_dub_sound_name") uint32_t emu_dub_sound_name(uint32_t role, uint32_t index)   /* const char *, a wasm offset */
+{
+    const char *n = role == 0u ? DUB_BASS_SOUNDS[index % DUB_BASS_N].name
+                  : role == 1u ? DUB_SKANK_SOUNDS[index % DUB_SKANK_N].name
+                  : role == 2u ? DUB_MEL_SOUNDS[index % DUB_MEL_N].name
+                               : DUB_DK_NAMES[index % DUB_DK_N];
+    return (uint32_t)(uintptr_t)n;
+}
+
+WASM_EXPORT("emu_dub_sound_load") void emu_dub_sound_load(uint32_t role, uint32_t index)
+{                                   /* the PRESET page's OCT+: the engine switch, then the preset */
+    const dub_sound_t *s;
+    if (role == 3u) {
+        TDRUM->p[P_E0] = (int16_t)DUB_DK_KITS[index % DUB_DK_N];
+        emu_dub_enable(1);
+        return;
+    }
+    s = role == 0u ? &DUB_BASS_SOUNDS[index % DUB_BASS_N]
+      : role == 1u ? &DUB_SKANK_SOUNDS[index % DUB_SKANK_N]
+                   : &DUB_MEL_SOUNDS[index % DUB_MEL_N];
+    set_engine_of(&trk[role % 3u], s->engine);
+    apply_preset_to(&trk[role % 3u], s->preset);
+    emu_dub_enable(1);
+}
+
 static uint8_t emu_dub_skank_notes[DUB_SKANK_MAX_NOTES];
 static uint8_t emu_dub_skank_count;
 WASM_EXPORT("emu_dub_skank") void emu_dub_skank(uint32_t root, uint32_t quality, uint32_t octave, uint32_t velocity)

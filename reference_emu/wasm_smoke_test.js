@@ -27,7 +27,8 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
         'emu_dub_siren', 'emu_dub_band', 'emu_dub_seq_length', 'emu_dub_seq_step',
         'emu_dub_siren_type', 'emu_dub_siren_wave', 'emu_dub_siren_sym', 'emu_dub_siren_send',
         'emu_dub_siren_level', 'emu_dub_siren_freq', 'emu_dub_siren_depth',
-        'emu_dub_riddim_count', 'emu_dub_riddim_name', 'emu_dub_riddim_load', 'emu_dub_riddim_track'];
+        'emu_dub_riddim_count', 'emu_dub_riddim_name', 'emu_dub_riddim_load', 'emu_dub_riddim_track',
+        'emu_dub_sound_count', 'emu_dub_sound_name', 'emu_dub_sound_load'];
     for (const n of need)
         if (!names.includes(n)) throw new Error('missing export ' + n);
     console.log('exports .......... OK (' + names.length + ' total, all dub exports present)');
@@ -103,6 +104,22 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
     e.emu_dub_riddim_track(1, 3);      /* STEPPERS's drum motif over it */
     e.emu_frame();
     console.log('riddim bank ....... OK (10: ' + ridNames.join(' ') + ')');
+
+    /* 2.9.3: the dub sound banks: eight a role, the names readable, every role loads */
+    const roleNames = [];
+    for (let role = 0; role < 4; role++) {
+        const n = e.emu_dub_sound_count(role);
+        if (n !== 8) throw new Error('sound bank ' + role + ' count ' + n);
+        const p = e.emu_dub_sound_name(role, role === 3 ? 4 : 0);
+        const u8 = new Uint8Array(e.memory.buffer);
+        let s = '';
+        for (let k = p; u8[k]; k++) s += String.fromCharCode(u8[k]);
+        if (!s) throw new Error('sound bank ' + role + ': empty name');
+        roleNames.push(s);
+        e.emu_dub_sound_load(role, role);   /* a load a role, no trap */
+    }
+    e.emu_frame();
+    console.log('sound banks ....... OK (' + roleNames.join(' / ') + ')');
 
     /* 2.9.2: the riddim plays on the transport: PLAY, the dub sequence sounds */
     for (const n of [36, 40, 43, 46, 67, 74])   /* the skank chords above let go: silence first */

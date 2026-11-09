@@ -201,6 +201,22 @@ int main(void)
         dub_seq_set_step(&seq, DUB_TRK_DRUM, 0, 200, 100);
         check(seq.notes[DUB_TRK_DRUM][0] == DUB_SEQ_REST, "seq_set_step: note > 127 becomes a rest");
     }
+    {   /* 2.9.3: the dub sound banks: eight a role, named, distinct, the kits plausible */
+        uint32_t i, j;
+        check(DUB_BASS_N == 8 && DUB_SKANK_N == 8 && DUB_MEL_N == 8 && DUB_DK_N == 8,
+              "sound banks: eight a role");
+        for (i = 0; i < DUB_BASS_N; i++)
+            check(DUB_BASS_SOUNDS[i].name && DUB_BASS_SOUNDS[i].name[0], "bass bank: a name per sound");
+        for (i = 0; i < DUB_SKANK_N; i++)
+            check(DUB_SKANK_SOUNDS[i].name && DUB_SKANK_SOUNDS[i].name[0], "skank bank: a name per sound");
+        for (i = 0; i < DUB_MEL_N; i++)
+            check(DUB_MEL_SOUNDS[i].name && DUB_MEL_SOUNDS[i].name[0], "melody bank: a name per sound");
+        for (i = 0; i < DUB_BASS_N; i++)
+            for (j = 0; j < i; j++)
+                check(strcmp(DUB_BASS_SOUNDS[i].name, DUB_BASS_SOUNDS[j].name), "bass bank: names distinct");
+        for (i = 0; i < DUB_DK_N; i++)
+            check(DUB_DK_NAMES[i] && DUB_DK_NAMES[i][0] && DUB_DK_KITS[i] < 37u, "kit bank: named, a real kit index");
+    }
 
     skank.quality = 0;                                       /* MAJ */
     check(dub_skank_build(&skank, 2, notes, DUB_SKANK_MAX_NOTES) == 3 &&

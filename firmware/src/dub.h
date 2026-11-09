@@ -99,6 +99,24 @@ typedef struct {
 extern dub_skank_t dub_skank_conf;
 extern const uint32_t DUB_RIDDIM_COUNT;                /* the bank's size, dub.c computes it */
 
+/* 2.9.3: the dub sound banks, the PRESET page's lists. Each entry is a real engine preset
+ * (its name), by ENGINES[] index and preset number: loading it is an engine switch then an
+ * apply_preset_to, so the level trims and the rest of the patch come along as ever. */
+typedef struct {
+    const char *name;                              /* the engine preset's name, the LCD value */
+    uint8_t engine;                                /* the ENGINES[] index (0 ANALOG, 6 TRIO...) */
+    uint8_t preset;                                /* the preset's number in that engine */
+} dub_sound_t;
+extern const dub_sound_t DUB_BASS_SOUNDS[];            /* the bass line's sounds, track 1 */
+extern const uint32_t DUB_BASS_N;
+extern const dub_sound_t DUB_SKANK_SOUNDS[];           /* the skank's sounds, track 2 */
+extern const uint32_t DUB_SKANK_N;
+extern const dub_sound_t DUB_MEL_SOUNDS[];             /* the melody's sounds, track 3 */
+extern const uint32_t DUB_MEL_N;
+extern const uint8_t DUB_DK_KITS[];                    /* the drum kits (the drum track's P_E0) */
+extern const char *const DUB_DK_NAMES[];               /* the kits' names, in DUB_DK_KITS's order */
+extern const uint32_t DUB_DK_N;
+
 #define DUB_SKANK_QUALITIES 8u
 #define DUB_SKANK_MAX_NOTES 5u
 extern const char *const DUB_SKANK_NAMES[DUB_SKANK_QUALITIES];   /* "MAJ", "MIN", ... */

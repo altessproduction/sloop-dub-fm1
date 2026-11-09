@@ -56,6 +56,7 @@ class SloopProcessor extends AudioWorkletProcessor {
             }
             else if (m.t === 'dub-riddim') { if (typeof this.e.emu_dub_riddim_load === 'function') this.e.emu_dub_riddim_load(m.riddim || 0); }   // the RIDDIM page's loads
             else if (m.t === 'dub-riddim-track') { if (typeof this.e.emu_dub_riddim_track === 'function') this.e.emu_dub_riddim_track(m.riddim || 0, m.track || 0); }
+            else if (m.t === 'dub-sound') { if (typeof this.e.emu_dub_sound_load === 'function') this.e.emu_dub_sound_load(m.role || 0, m.index || 0); }   // the PRESET page's loads
             else if (m.t === 'dub-skank') this.e.emu_dub_skank(m.root || 0, m.quality || 0, m.octave || 3, m.velocity || 100);
             else if (m.t === 'dub-preset') this.e.emu_dub_preset(m.index || 0);
             else if (m.t === 'stop') this.running = false;

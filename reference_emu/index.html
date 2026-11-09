@@ -365,6 +365,7 @@ body.compact #manual { display: none; }
         <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
         <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">DSEQ</button>
         <button class="dub-tab" data-dub-page="rdm" role="tab" aria-selected="false" type="button">RDM</button>
+        <button class="dub-tab" data-dub-page="prs" role="tab" aria-selected="false" type="button">PRS</button>
         <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
     </div>
 
@@ -462,6 +463,29 @@ body.compact #manual { display: none; }
                 <button id="dub-rdrum-load" type="button">DRUM · PISTE 4</button>
             </div>
             <p class="dub-hint">Piste 1 basse · 2 skanks · 3 mélodie · 4 drums. Après le chargement, lance PLAY : la séquence suit le transport.</p>
+        </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="prs" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>PRESETS REGGAE DUB · PAR PISTE</h3>
+            <div class="dub-row">
+                <select id="dub-sbass" aria-label="Preset de basse"></select>
+                <button id="dub-sbass-load" type="button">BASS · PISTE 1</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-sskank" aria-label="Son de skank"></select>
+                <button id="dub-sskank-load" type="button">SKANK · PISTE 2</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-smel" aria-label="Son de mélodie"></select>
+                <button id="dub-smel-load" type="button">MEL · PISTE 3</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-skit" aria-label="Kit drum reggae dub"></select>
+                <button id="dub-skit-load" type="button">KIT DRUM</button>
+            </div>
+            <p class="dub-hint">Chaque OCT+ charge le son dans la piste du riddim : basse (SUB BASS, REESE, WOBBLE…), skank (DUB CHORD, REGGAE ORG…), mélodie (PAN FLUTE, STEELPAN…) et kit (DEEP, DUST, DUBSTEP…).</p>
         </div>
     </div>
 

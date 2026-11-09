@@ -1352,6 +1352,50 @@ int main(int argc, char **argv)
               "menu RIDDIM: OCT+ on DRUM PATTERN loads the drum track");
 
         turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_PRESET && ui.menu_sel == MI_PS_BASS,
+              "menu: SELECT right: PRESET, BASS PRESET its first row");
+        ui.force = 1; frame(); ppm("menu-prs");
+        {   /* 2.9.3: every dub sound is a real engine preset, the kit a real kit */
+            uint32_t k;
+            for (k = 0; k < DUB_BASS_N; k++)
+                check(ENGINES[DUB_BASS_SOUNDS[k].engine]->npresets > DUB_BASS_SOUNDS[k].preset,
+                      "dub bass sound: a real engine preset");
+            for (k = 0; k < DUB_SKANK_N; k++)
+                check(ENGINES[DUB_SKANK_SOUNDS[k].engine]->npresets > DUB_SKANK_SOUNDS[k].preset,
+                      "dub skank sound: a real engine preset");
+            for (k = 0; k < DUB_MEL_N; k++)
+                check(ENGINES[DUB_MEL_SOUNDS[k].engine]->npresets > DUB_MEL_SOUNDS[k].preset,
+                      "dub melody sound: a real engine preset");
+            for (k = 0; k < DUB_DK_N; k++)
+                check(DUB_DK_KITS[k] < DRUM_KITS, "dub kit: a real kit index");
+        }
+        {
+            int16_t kit_was = TDRUM->p[P_E0];
+            turns(panel.enc[EN_K1], 1);
+            check(dub_menu_pbass == 1u && !strcmp(mi_value(MI_PS_BASS, &(uint16_t){0}), "808 BOOM"),
+                  "menu PRESET: KNOB 1 right: 808 BOOM selected");
+            tap(B_OCTUP);
+            check(trk[0].eng_req == DUB_BASS_SOUNDS[1].engine && trk[0].preset == DUB_BASS_SOUNDS[1].preset,
+                  "menu PRESET: OCT+ loads the bass sound into track 1");
+            turns(panel.enc[EN_K2], 3);
+            check(dub_menu_pskank == 3u, "menu PRESET: KNOB 2 right three: REGGAE ORG selected");
+            tap(B_OCTUP);
+            check(trk[1].eng_req == DUB_SKANK_SOUNDS[3].engine && trk[1].preset == DUB_SKANK_SOUNDS[3].preset,
+                  "menu PRESET: OCT+ loads REGGAE ORG into track 2");
+            turns(panel.enc[EN_K3], 1);
+            check(dub_menu_pmel == 1u, "menu PRESET: KNOB 3 right: STEELPAN selected");
+            tap(B_OCTUP);
+            check(trk[2].eng_req == DUB_MEL_SOUNDS[1].engine && trk[2].preset == DUB_MEL_SOUNDS[1].preset,
+                  "menu PRESET: OCT+ loads STEELPAN into track 3");
+            turns(panel.enc[EN_K4], 2);
+            check(dub_menu_pkit == 2u && !strcmp(mi_value(MI_PS_KIT, &(uint16_t){0}), "VINTAGE"),
+                  "menu PRESET: KNOB 4 right two: VINTAGE selected");
+            tap(B_OCTUP);
+            check(TDRUM->p[P_E0] == 9, "menu PRESET: OCT+ swaps the drum kit (VINTAGE)");
+            TDRUM->p[P_E0] = kit_was;                  /* the walk leaves the kit the project had */
+        }
+
+        turns(panel.enc[EN_SELECT], 1);
         check(mi_sec(ui.menu_sel) == MS_ISO && ui.menu_sel == MI_DUB_SUB,
               "menu: SELECT right: ISO, SUB its first row");
         ui.force = 1; frame(); ppm("menu-iso");
@@ -1377,6 +1421,7 @@ int main(int argc, char **argv)
         dub_seq_set_length(&dub_sequence, 16);
         dub_seq_set_step(&dub_sequence, DUB_TRK_BASS, 3, 0, 0);
         dub_menu_dtrk = 0; dub_menu_riddim = 0; dub_menu_rbass = 0; dub_menu_rskank = 0; dub_menu_rdrum = 0;
+        dub_menu_pbass = 0; dub_menu_pskank = 0; dub_menu_pmel = 0; dub_menu_pkit = 0;
         go_home(); ui.force = 1; frame();
     }
 

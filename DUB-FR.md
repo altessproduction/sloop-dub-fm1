@@ -17,6 +17,7 @@ Le fork ajoute une extension DSP indépendante dans `firmware/src/dub.c` et `dub
 - **Le son intact au repos, le niveau qui commande, le delay remappé** (2.9.11) : **DUB n'ajoute plus aucun filtre invisible** — DUB FILTER sur FLAT et l'ISO au neutre, le son est **bit à bit celui de l'original**, stéréo comprise (le lisseur interne de l'isolateur, qui assombrissait le mix et le repliait en mono dès DUB allumé, ne touche plus jamais le signal : il ne sert qu'à façonner la courbe d'égaliseur quand on s'en sert). Les seuls colorants du son en DUB restent **l'ISO et le DUB FILTER**. Sur SIR/SR2, **SIREN LEVEL affiche toujours sa valeur** et **commande le volume** : 0 reste silencieux même OCT+ tenu, et le knob retient la sirène pendant qu'elle sonne. La page **DLY** se remappe : K2 `DLY LEVEL` (le niveau de l'écho dans le mix), K3 `DLY FEEDBK` (les répétitions), K4 `DLY MODE` (FREE et toutes les divisions sur un seul parcours).
 - **L'envoi de chaque piste dans le delay** (2.9.12) : une page **SND** de plus après DLY — **un potentiomètre par piste du séquenceur** : K1 `BASS SEND` (piste 1), K2 `SKANK SEND` (piste 2), K3 `MELODY SEND` (piste 3), K4 `DRUM SEND` (la piste de drums, le réglage DLY de GLO > DRUMS). Tout le parcours en ~300°, la ligne affiche un pourcentage (0–100 %) et **DRY** à zéro ; **OCT+ bascule sec ↔ demi-envoi**. Le niveau d'envoi nourrit le même bus delay que le tape delay (et l'écho tempo quand DUB est off), il se sauvegarde avec le projet et joue aussitôt — le delay dubbed piste par piste, sans quitter le menu.
 - **La sirène indépendante du module DUB** (2.9.13) : la sirène est **une voix à part entière** — elle sonne **même quand DUB est éteint** (OCT+ tenu sur SIR/SR2, la ligne SIREN LEVEL commande comme toujours), et **aucune bande de l'ISO ni le DUB FILTER ne la colore jamais**, DUB allumé ou non : dans la chaîne du master elle rend dans sa propre rangée et rejoint le mix **juste après le module DUB**, avant le filtre DJ du master (FILT) qui, lui, continue de la balayer. Son seul chemin vers le delay reste son propre **SIREN SEND** ; le throw de la page DUB (K4) n'envoie plus la sirène. Désactiver DUB (K1 sur la page DUB) ne coupe plus la sirène.
+- **Le visualiseur réduit à WIRES** (2.9.15) : l'appui bref sur HOME ouvre toujours l'écran plein du visualiseur, mais il ne garde plus que **WIRES** — les quatre cordes qui vibrent avec les pistes. Les onze autres styles (OSCILLOSCOPE, SPECTRUM, SPECTROGRAMME, LISSAJOUS, VU, CIRCLE, TAPE, LCD, BOUNCE, ORBIT, SLOOP), la FFT 512 points et leurs tampons sont retirés du firmware : **7,6 Ko de flash et ~7 Ko de RAM rendus** (marge flash de 8,3 à 15,9 Ko, pool de 10,2 à 15,7 Ko — voir l'empreinte plus bas). SELECT sur l'écran ne fait plus tourner de style : l'événement est avalé et le tempo ne bouge pas ; le créneau du style dans le mot de settings reste réservé, un projet plus ancien se charge à l'identique.
 - **Skank à une touche** : huit accords (`MAJ`, `MIN`, `DIM`, `AUG`, `7TH`, `MIN7`, `9TH`, `PWR`), fondamentale chromatique, octave 3 à 5, vélocité réglable ; jusqu'à cinq notes (la 9TH).
 - **Presets** : cinq points de départ (`ROOTS BASS`, `SKANK CHORD`, `DUB SIREN`, `STEPPERS`, `TAPE ECHO`).
 - **DUB ISOLATOR** : quatre bandes `SUB`, `BASS`, `MIDS`, `TOPS`, croisements de séparation, gain, mute, correction paramétrique légère par bande et mix dry/wet. (2.9.11 : **au repos le module se retire** — tous les knobs au neutre, le signal d'origine passe bit à bit, stéréo comprise ; et l'égaliseur d'une bande ne filtre plus le son par-dessous, il pose sa courbe une seule fois.)
@@ -123,18 +124,18 @@ Cette prévisualisation reste un adaptateur navigateur : elle ne remplace pas en
 - Les filtres de séparation et les paramètres de gain doivent être testés avec le limiteur et les effets master de SLOOP avant activation permanente.
 - Toute redistribution doit conserver les notices GPL et les crédits de SLOOP/Felucca.
 
-## Empreinte FM-1 (mesurée, build 2.9.13)
+## Empreinte FM-1 (mesurée, build 2.9.15)
 
 Mesures réelles obtenues avec la chaîne JieLi (clang 4.0.1 pi32v2) sur ce dépôt ; la base SLOOP 2.9.6
 (`bddd08a`) servait de référence. La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
 application fait 0x8DFBC o (581 Ko) — en 2.9.6 il était déjà rempli à 99,9 % (360 o de marge).
 
-| Ressource | 2.9.6 (base) | 2.9.13 (ce build) | Capacité | Marge 2.9.13 |
-|---|---|---|---|---|
-| Image flash (code + rodata) | 580 692 o | **572 784 o** | 581 052 o | **8 268 o** |
-| RAM `.data`+`.bss` | 60 108 o | 60 448 o | 98 304 o | 37 856 o |
-| `.lowram` (reverb, piles cœur 1) | 22 772 o | 22 772 o | 29 392 o | 6 620 o |
-| Pool (canevas, lignes d'effets) | 333 900 o | 333 900 o | 344 064 o | 10 164 o |
+| Ressource | 2.9.6 (base) | 2.9.13 | 2.9.15 (ce build) | Capacité | Marge 2.9.15 |
+|---|---|---|---|---|---|
+| Image flash (code + rodata) | 580 692 o | 572 784 o | **565 168 o** | 581 052 o | **15 884 o** |
+| RAM `.data`+`.bss` | 60 108 o | 60 448 o | **57 600 o** | 98 304 o | 40 704 o |
+| `.lowram` (reverb, piles cœur 1) | 22 772 o | 22 772 o | 22 772 o | 29 392 o | 6 620 o |
+| Pool (canevas, lignes d'effets) | 333 900 o | 333 900 o | **328 396 o** | 344 064 o | **15 668 o** |
 | Pile principale au repos | — | 22 956 o libres (mesure appareil) | 24 320 o | — |
 
 Les ajouts 2.9.7→2.9.13 (filtre bipolaire, remap delay, page SEND, indépendance de la sirène)
@@ -146,6 +147,11 @@ conservant le logo graphique** :
 - `--gc-sections` sur l'édition de liens de l'application (le loader le faisait déjà) : les
   sections jamais référencées ne coûtent plus rien ;
 - `-fdata-sections` : la rodata morte est élaguée aussi.
+
+Le 2.9.15 rend en plus **7 616 o de flash** (les onze styles du visualiseur, la FFT 512 points et
+leurs routines de dessin) et **≈7 Ko de RAM** (les tampons FFT et spectrogramme du pool −5,5 Ko, la
+trajectoire Lissajous du `.bss` −1,5 Ko, l'état de dessin réduit) : la marge flash double, le pool
+aussi.
 
 ### Le delay en particulier (queues longues)
 
@@ -174,8 +180,8 @@ delay) — de l'ordre de +1 à 2 % de charge, très loin du garde-fou des 8 ms d
 
 ### Ce qui reste serré
 
-- **La flash** : 8,3 Ko de marge après `-Oz` ; les pages ACC/SLD prévues tiendront, mais toute
-  grosse fonctionnalité future devra se justifier. Le plan B intégré du build (`FELUCCA_LOGO_TEXT=1`,
+- **La flash** : 15,9 Ko de marge après `-Oz` et le visualiseur réduit de 2.9.15 ; toute grosse
+  fonctionnalité future devra se justifier. Le plan B intégré du build (`FELUCCA_LOGO_TEXT=1`,
   logo en texte, −4,6 Ko) reste disponible si un jour ça déborde.
-- **Le pool** : 10 Ko de marge ; ne pas y ajouter de tampon sans vérification (`ok pool …` du build).
+- **Le pool** : 15,7 Ko de marge (2.9.15) ; ne pas y ajouter de tampon sans vérification (`ok pool …` du build).
 

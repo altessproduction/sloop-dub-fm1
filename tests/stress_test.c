@@ -233,7 +233,7 @@ static void t_fuzz(uint32_t nframes)
         sframe();
         vis_seen |= vis_shown() ? 1u << vis_style : 0u;
         if (ui.menu && ++menu_frames % 300u == 0u) { ui.menu = 0; ui.force = 1; }
-        scheck(ui.page < NPAGES && vis_style < VIS_N && song.sel < NTRK, "fuzz: UI state in range");
+        scheck(ui.page < NPAGES && song.sel < NTRK, "fuzz: UI state in range");   /* (2.9.15: the visualiser is WIRES only, vis_style keeps the settings' slot but is not a state of the draw) */
         if (sfails > 20) break;
     }
     nf = f;

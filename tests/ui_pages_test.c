@@ -1764,9 +1764,9 @@ int main(int argc, char **argv)
         check(t->step[2].n == 1u && t->step[2].note[0] % 12u == 0u, "STEP page, no chord mode: one note");
         steps_clear(t); song.sel = 0; go_home(); frames(4);
     }
-    {   /* the visualiser (2.4): HOME on HOME opens it, SELECT its 12 styles, HOME / a page closes it; a layer
-         * shows its screen over it; the style is kept with the settings */
-        uint32_t st, j, x, lit, k;
+    {   /* the visualiser (2.4): HOME on HOME opens it, HOME / a page closes it; a layer shows its screen
+         * over it. 2.9.15: WIRES only — SELECT has no style left to step and must not reach the tempo */
+        uint32_t j, x, lit, k;
         static const uint8_t BASS[2] = {38, 34};
         song.playing = 0; song.sel = 0;
         for (j = 0; j < NTRK; j++) { steps_clear(&trk[j]); trk[j].p[P_SLEN] = 16; }
@@ -1787,18 +1787,18 @@ int main(int argc, char **argv)
         tap(B_HOME); frames(2);
         check(vis_shown() && vis_on, "visualiser: HOME on HOME opens it");
         vis_style = 0; ui.force = 1;
-        for (st = 0; st < 12u; st++) {
-            char nm[80];
-            frames(st == 0u ? 40u : 70u);           /* (past the name's second) */
-            ui.force = 1; frames(2);
-            for (lit = 0, x = 0; x < 240u * 240u; x++)
-                lit += screen[x] != 0;
-            snprintf(nm, sizeof nm, "vis-%02u-%s", st + 1u, VIS_NAME[st]);
-            for (x = 0; nm[x]; x++) if (nm[x] == ' ') nm[x] = '-';
-            ppm(nm);
-            snprintf(nm, sizeof nm, "visualiser %2u %-12s draws (%u px lit)", st + 1u, VIS_NAME[st], lit);
-            check(lit > (st == 3u ? 400u : 1500u) && vis_style == st, nm);   /* (Lissajous: points) */
+        frames(40);                                 /* (past the name's second) */
+        ui.force = 1; frames(2);
+        for (lit = 0, x = 0; x < 240u * 240u; x++)
+            lit += screen[x] != 0;
+        ppm("vis-01-WIRES");
+        {   char nm[80];
+            snprintf(nm, sizeof nm, "visualiser  1 %-12s draws (%u px lit)", VIS_NAME[0], lit);
+            check(lit > 1500u, nm);                 /* (WIRES: the four strings on the groove) */
+        }
+        {   int16_t bpm = song.g[G_BPM];
             encs[panel.enc[EN_SELECT]] = 1; frame();
+            check(vis_style == 0u && song.g[G_BPM] == bpm, "visualiser: SELECT sits (WIRES only), never the tempo");
         }
         {   /* MASTER at 0: silence out, the picture as if MASTER were all the way up */
             uint32_t m0 = song.master_q12, pk = 0, op = 0, b;
@@ -1811,11 +1811,10 @@ int main(int argc, char **argv)
             check(op < 64u && pk > 2000u && lit > 1500u, "visualiser: MASTER at 0: no sound, the picture as at full volume");
             song.master_q12 = m0; frames(4);
         }
-        check(vis_style == 0u, "visualiser: SELECT goes round (12 -> 1)");
         encs[panel.enc[EN_SELECT]] = -1; frames(2);
-        check(vis_style == 11u && (lights_word() >> 17 & 15u) == 11u, "visualiser: SELECT left: SLOOP (12), kept in the settings word");
+        check(vis_style == 0u && (lights_word() >> 17 & 15u) == 0u, "visualiser: SELECT left: still WIRES, the settings word keeps the slot");
         lights_from_word(lights_word());
-        check(vis_style == 11u, "visualiser: the style read back");
+        check(vis_style == 0u, "visualiser: the style slot read back");
         { int16_t bpm = song.g[G_BPM], lv = trk[0].p[P_LEVEL];
           encs[panel.enc[EN_K2]] = 5; frame();
           check(trk[0].p[P_LEVEL] == lv && song.g[G_BPM] == bpm, "visualiser: KNOB 2 (the hidden TRACKS screen) edits nothing, SELECT is not the tempo"); }

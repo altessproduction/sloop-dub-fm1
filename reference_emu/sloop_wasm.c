@@ -440,6 +440,43 @@ WASM_EXPORT("emu_dub_siren_rate") void emu_dub_siren_rate(uint32_t rate)   /* 0.
     dub_siren_set_rate(&dub_siren, (uint8_t)(rate > 127u ? 127u : rate));
 }
 
+WASM_EXPORT("emu_dub_siren_type") void emu_dub_siren_type(uint32_t type)   /* the LFO's curve, DUB_SIR_* */
+{
+    dub_siren_set_type(&dub_siren, (uint8_t)type);
+}
+
+WASM_EXPORT("emu_dub_siren_wave") void emu_dub_siren_wave(uint32_t wave)   /* the oscillator's curve, DUB_SIW_* */
+{
+    dub_siren_set_wave(&dub_siren, (uint8_t)wave);
+}
+
+WASM_EXPORT("emu_dub_siren_sym") void emu_dub_siren_sym(uint32_t sym)      /* the LFO's symmetry / duty / glide */
+{
+    dub_siren_set_sym(&dub_siren, (uint8_t)(sym > 127u ? 127u : sym));
+}
+
+WASM_EXPORT("emu_dub_siren_send") void emu_dub_siren_send(uint32_t send)   /* the delay send, 0 dry .. 127 full */
+{
+    dub_siren_set_send(&dub_siren, (uint8_t)(send > 127u ? 127u : send));
+}
+
+WASM_EXPORT("emu_dub_siren_level") void emu_dub_siren_level(uint32_t level)   /* the siren's level, 0 off */
+{
+    dub_siren_trigger(&dub_siren, (uint8_t)(level > 127u ? 127u : level));
+    if (level)
+        emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_siren_freq") void emu_dub_siren_freq(uint32_t frequency)   /* the base pitch, 220..1200 Hz */
+{
+    dub_siren_set_freq(&dub_siren, (uint16_t)(frequency < 220u ? 220u : frequency > 1200u ? 1200u : frequency));
+}
+
+WASM_EXPORT("emu_dub_siren_depth") void emu_dub_siren_depth(uint32_t depth)   /* the pitch sweep, 0..2 octaves */
+{
+    dub_siren.depth = (uint8_t)(depth > 127u ? 127u : depth);
+}
+
 WASM_EXPORT("emu_dub_mix") void emu_dub_mix(uint32_t mix)                  /* the isolator's wet blend, 0 dry .. 127 wet */
 {
     dub_isolator.mix = (uint8_t)(mix > 127u ? 127u : mix);

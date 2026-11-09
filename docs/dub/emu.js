@@ -223,11 +223,13 @@ KEYENC['\\'] = [6, 1];
  * FM-1 faceplate. They never synthesize audio in JavaScript. */
 function dubMessage(message) { if (node) node.port.postMessage(message); }
 function dubEnable(on) { dubMessage({ t: 'dub-enable', on: !!on }); }
-function dubSiren(level) {
-    const frequency = Number(document.getElementById('dub-siren-freq')?.value || 740);
-    const depth = Number(document.getElementById('dub-siren-depth')?.value || 96);
-    const rate = Number(document.getElementById('dub-siren-rate')?.value || 8);
-    dubMessage({ t: 'dub-siren', level: level ? 104 : 0, frequency, depth, rate });
+function dubSirenLevel(level) {
+    const out = document.querySelector('#dub-siren-level + output');
+    if (out) out.textContent = level ? String(level) : 'OFF';
+    dubMessage({ t: 'dub-siren-level', level });
+}
+function dubSiren(level) {                     // the hold button: 104 while held, the slider's level on release
+    dubSirenLevel(level ? 104 : Number(document.getElementById('dub-siren-level')?.value || 0));
 }
 function dubBand(band) {
     const row = document.querySelector('[data-dub-band="' + band + '"]');
@@ -278,14 +280,39 @@ function setupDubPanel() {
     document.getElementById('dub-siren')?.addEventListener('pointerdown', () => dubSiren(true));
     document.getElementById('dub-siren')?.addEventListener('pointerup', () => dubSiren(false));
     document.getElementById('dub-siren')?.addEventListener('pointercancel', () => dubSiren(false));
-    document.getElementById('dub-siren-freq')?.addEventListener('input', () => dubSiren(false));
-    document.getElementById('dub-siren-depth')?.addEventListener('input', () => dubSiren(false));
+    document.getElementById('dub-siren-freq')?.addEventListener('input', () => {
+        const v = Number(document.getElementById('dub-siren-freq').value);
+        const out = document.querySelector('#dub-siren-freq + output');
+        if (out) out.textContent = v + ' Hz';
+        dubMessage({ t: 'dub-siren-freq', frequency: v });
+    });
+    document.getElementById('dub-siren-depth')?.addEventListener('input', ev => {
+        const out = document.querySelector('#dub-siren-depth + output');
+        if (out) out.textContent = String(ev.target.value);
+        dubMessage({ t: 'dub-siren-depth', depth: Number(ev.target.value) });
+    });
     document.getElementById('dub-siren-rate')?.addEventListener('input', () => {
         const rate = Number(document.getElementById('dub-siren-rate').value);
         const out = document.querySelector('#dub-siren-rate + output');
         if (out) out.textContent = (1 + Math.round(rate * 15 / 127)) + ' Hz';   // dub.c dub_siren_rate_hz
-        dubSiren(false);
+        dubMessage({ t: 'dub-siren-rate', rate });
     });
+    document.getElementById('dub-siren-type')?.addEventListener('change', ev =>
+        dubMessage({ t: 'dub-siren-type', type: Number(ev.target.value) }));
+    document.getElementById('dub-siren-wave')?.addEventListener('change', ev =>
+        dubMessage({ t: 'dub-siren-wave', wave: Number(ev.target.value) }));
+    document.getElementById('dub-siren-sym')?.addEventListener('input', ev => {
+        const out = document.querySelector('#dub-siren-sym + output');
+        if (out) out.textContent = String(ev.target.value);
+        dubMessage({ t: 'dub-siren-sym', sym: Number(ev.target.value) });
+    });
+    document.getElementById('dub-siren-send')?.addEventListener('input', ev => {
+        const out = document.querySelector('#dub-siren-send + output');
+        if (out) out.textContent = Number(ev.target.value) ? String(ev.target.value) : 'DRY';
+        dubMessage({ t: 'dub-siren-send', send: Number(ev.target.value) });
+    });
+    document.getElementById('dub-siren-level')?.addEventListener('input', ev =>
+        dubSirenLevel(Number(ev.target.value)));
     document.getElementById('dub-mix')?.addEventListener('input', ev => dubMix(ev.target.value));
     document.querySelectorAll('[data-dub-band]').forEach(row => {
         row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));

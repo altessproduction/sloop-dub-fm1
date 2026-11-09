@@ -1209,9 +1209,9 @@ int main(int argc, char **argv)
     }
 
     {   /* the Dub pages (2.9): one page per function after a long HOME press:
-         * DUB (enable, preset, mix), SIREN (level, freq, depth, rate),
-         * SKANK (chord, root, octave, velocity; OCT+ plays the chord),
-         * DSEQ (length, step, note, velocity) and ISO (the four bands) */
+         * DUB (enable, preset, mix), SIREN (2.9.1, two pages: SIR — type, wave, pitch, level —
+         * and SR2 — rate, depth, sym, send), SKANK (chord, root, octave, velocity; OCT+ plays
+         * the chord), DSEQ (length, step, note, velocity) and ISO (the four bands) */
         ui.menu = 1; ui.menu_sel = MI_DUB_ON; ui.force = 1; frame(); ppm("menu-dub");
         check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB: the module's page (ENABLE, PRESET, MIX)");
         turns(panel.enc[EN_K1], 1);
@@ -1228,31 +1228,61 @@ int main(int argc, char **argv)
         check(dub_isolator.mix == 127u, "menu DUB: OCT+ again: DUB MIX back to full");
 
         turns(panel.enc[EN_SELECT], 1);
-        check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIREN_LVL,
-              "menu: SELECT right: SIREN, the cursor on its first row");
+        check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIR_TYPE,
+              "menu: SELECT right: SIREN, the cursor on SIREN TYPE");
         ui.force = 1; frame(); ppm("menu-siren");
-        turns(panel.enc[EN_K1], 3);
-        check(dub_siren.active == 1u && dub_siren.level == 3u, "menu SIREN: KNOB 1 right: the siren sounds, level up");
-        turns(panel.enc[EN_K2], 6);
-        check(ui.menu_sel == MI_SIREN_FRQ && dub_siren.freq_hz == 752u,
-              "menu SIREN: KNOB 2 right: SIREN FREQ 740 -> 752 (2 Hz a detent)");
+        turns(panel.enc[EN_K1], 1);
+        check(dub_siren.type == DUB_SIR_HILO, "menu SIR: KNOB 1 right: SIREN TYPE WAIL -> HILO");
+        turns(panel.enc[EN_K2], 1);
+        check(ui.menu_sel == MI_SIR_WAVE && dub_siren.wave == DUB_SIW_PLS,
+              "menu SIR: KNOB 2 right: SIREN WAVE SQR -> PLS");
         tap(B_OCTUP);
-        check(dub_siren.freq_hz == 740u, "menu SIREN: OCT+ on FREQ: back to 740 Hz");
-        turns(panel.enc[EN_K3], -96);
-        check(ui.menu_sel == MI_SIREN_DPT && dub_siren.depth == 0u, "menu SIREN: KNOB 3 left: SIREN DEPTH to 0");
+        check(dub_menu_siren == 88u && dub_siren.active == 1u, "menu SIR: OCT+ on WAVE sounds the siren");
+        turns(panel.enc[EN_K3], 6);
+        check(ui.menu_sel == MI_SIR_FRQ && dub_siren.freq_hz == 752u,
+              "menu SIR: KNOB 3 right: SIREN PITCH 740 -> 752 (2 Hz a detent)");
         tap(B_OCTUP);
-        check(dub_siren.depth == 96u, "menu SIREN: OCT+ on DEPTH: back to 96");
-        turns(panel.enc[EN_K4], 119);
-        check(ui.menu_sel == MI_SIREN_RAT && dub_siren_rate_hz(dub_siren.rate) == 16u,
-              "menu SIREN: KNOB 4 right: SIREN RATE to 16 Hz");
-        tap(B_OCTUP);
-        check(dub_siren_rate_hz(dub_siren.rate) == 2u, "menu SIREN: OCT+ on RATE: back to 2 Hz");
-        turns(panel.enc[EN_K1], -3);
-        check(dub_siren.active == 0u, "menu SIREN: KNOB 1 left: the siren off");
+        check(dub_siren.freq_hz == 740u, "menu SIR: OCT+ on PITCH: back to 740 Hz");
+        turns(panel.enc[EN_K4], 3);
+        check(ui.menu_sel == MI_SIR_LVL && dub_siren.level == 91u,
+              "menu SIR: KNOB 4 right: SIREN LEVEL up from the played 88");
 
         turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_SIREN2 && ui.menu_sel == MI_SIR_RATE,
+              "menu: SELECT right: SR2, SIREN RATE its first row");
+        ui.force = 1; frame(); ppm("menu-siren2");
+        turns(panel.enc[EN_K1], 119);
+        check(ui.menu_sel == MI_SIR_RATE && dub_siren_rate_hz(dub_siren.rate) == 16u,
+              "menu SR2: KNOB 1 right: SIREN RATE to 16 Hz");
+        tap(B_OCTUP);
+        check(dub_siren_rate_hz(dub_siren.rate) == 2u, "menu SR2: OCT+ on RATE: back to 2 Hz");
+        turns(panel.enc[EN_K2], -96);
+        check(ui.menu_sel == MI_SIR_DPT && dub_siren.depth == 0u,
+              "menu SR2: KNOB 2 left: SIREN DEPTH (the sweep) to 0");
+        tap(B_OCTUP);
+        check(dub_siren.depth == 96u, "menu SR2: OCT+ on DEPTH: back to 96");
+        turns(panel.enc[EN_K3], -4);
+        check(ui.menu_sel == MI_SIR_SYM && dub_siren.sym == 60u,
+              "menu SR2: KNOB 3 left: SIREN SYM down");
+        tap(B_OCTUP);
+        check(dub_siren.sym == 64u, "menu SR2: OCT+ on SYM: back to 64");
+        turns(panel.enc[EN_K4], 1);
+        check(ui.menu_sel == MI_SIR_SEND && dub_siren.send == 29u,
+              "menu SR2: KNOB 4 right: SIREN SEND up (the SKANK CHORD preset left 28)");
+        tap(B_OCTUP);
+        check(dub_siren.send == 0u, "menu SR2: OCT+ on SEND: dry");
+        tap(B_OCTUP);
+        check(dub_siren.send == 48u, "menu SR2: OCT+ again: SEND 48, the dubby echo");
+
+        turns(panel.enc[EN_SELECT], -1);
+        check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIR_TYPE,
+              "menu: SELECT left: back to SIR");
+        turns(panel.enc[EN_K4], -91);
+        check(dub_siren.active == 0u && dub_siren.level == 0u, "menu SIR: KNOB 4 left: the siren off");
+
+        turns(panel.enc[EN_SELECT], 2);
         check(mi_sec(ui.menu_sel) == MS_SKANK && ui.menu_sel == MI_SKANK_CHD,
-              "menu: SELECT right: SKANK, the cursor on its first row");
+              "menu: SELECT right: SKANK (through SR2), the cursor on its first row");
         ui.force = 1; frame(); ppm("menu-skank");
         turns(panel.enc[EN_K1], 3);                    /* the preset applied left MIN: three on to 7TH */
         check(ui.menu_sel == MI_SKANK_CHD && (dub_menu_chord & 7u) == 4u, "menu SKANK: KNOB 1 right: SKANK CHORD 7TH");
@@ -1303,6 +1333,11 @@ int main(int argc, char **argv)
         dub_siren_set_freq(&dub_siren, 740);
         dub_siren_set_rate(&dub_siren, 8);
         dub_siren.depth = 96;
+        dub_siren_set_type(&dub_siren, DUB_SIR_WAIL);
+        dub_siren_set_wave(&dub_siren, DUB_SIW_SQR);
+        dub_siren_set_sym(&dub_siren, 64);
+        dub_siren_set_send(&dub_siren, 0);
+        dub_siren.level_cur = 0;
         dub_seq_set_length(&dub_sequence, 16);
         dub_seq_set_step(&dub_sequence, 3, 0, 0);
         go_home(); ui.force = 1; frame();

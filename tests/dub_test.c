@@ -52,6 +52,8 @@ int main(void)
     dub_siren_init(&siren);
     check(siren.freq_hz == 740 && siren.depth == 96 && siren.rate == 8,
           "siren defaults 740 Hz depth 96 rate 2 Hz");
+    check(siren.type == DUB_SIR_WAIL && siren.wave == DUB_SIW_SQR && siren.sym == 64 && siren.send == 0,
+          "siren defaults: WAIL, SQR, sym 64, no send (the NJD's voice)");
     check(dub_siren_rate_hz(0) == 1 && dub_siren_rate_hz(127) == 16 && dub_siren_rate_hz(8) == 2,
           "siren rate maps 0..127 to 1..16 Hz");
     dub_siren_set_freq(&siren, 740);
@@ -64,18 +66,83 @@ int main(void)
     check(siren.freq_hz == 660, "siren freq takes the middle range");
     dub_siren_set_rate(&siren, 200);
     check(siren.rate == 127 && dub_siren_rate_hz(siren.rate) == 16, "siren rate clamps to 127");
-    memset(left, 0, sizeof left);
-    memset(right, 0, sizeof right);
-    dub_siren_trigger(&siren, 96);
-    dub_siren_render(&siren, left, right, 256);
-    for (i = 0; i < 256; i++)
-        energy += llabs((long long)left[i]);
-    check(energy > 0 && left[32] == right[32], "dub siren renders stereo signal");
+    dub_siren_set_type(&siren, 200);
+    check(siren.type == DUB_SIR_SPACE, "siren type clamps to the last curve");
+    dub_siren_set_type(&siren, DUB_SIR_WAIL);
+    dub_siren_set_wave(&siren, 200);
+    check(siren.wave == DUB_SIW_SIN, "siren wave clamps to the last curve");
+    dub_siren_set_wave(&siren, DUB_SIW_SQR);
+    dub_siren_set_sym(&siren, 250);
+    check(siren.sym == 127, "siren sym clamps to 127");
+    dub_siren_set_sym(&siren, 64);
+    dub_siren_set_send(&siren, 200);                   /* (the API takes a byte: 200 arrives, clamps to 127) */
+    check(siren.send == 127, "siren send clamps to 127");
+    {
+        int32_t send_b[256];
+        for (i = 0; i < 256; i++)
+            send_b[i] = 0;
+        memset(left, 0, sizeof left);
+        memset(right, 0, sizeof right);
+        dub_siren_trigger(&siren, 96);
+        dub_siren_render(&siren, left, right, send_b, 256);
+        for (i = 0; i < 256; i++)
+            energy += llabs((long long)left[i]);
+        check(energy > 0 && left[32] == right[32], "dub siren renders stereo signal");
+        for (i = 0; i < 256; i++)
+            if (left[i] <= -70000 || left[i] >= 70000)
+                break;
+        check(i == 256, "dub siren stays in range");
+        check(send_b[200] != 0, "siren send 127 feeds the delay bus");
+    }
+    dub_siren_set_send(&siren, 0);
+    {
+        int32_t send_b[256];
+        for (i = 0; i < 256; i++)
+            send_b[i] = 0;
+        dub_siren_render(&siren, left, right, send_b, 256);
+        check(send_b[200] == 0, "siren send 0 keeps the delay bus dry");
+    }
     memset(left, 0, sizeof left);
     memset(right, 0, sizeof right);
     dub_siren_trigger(&siren, 0);
-    dub_siren_render(&siren, left, right, 256);
-    check(left[128] == 0, "siren level 0 stays silent");
+    dub_siren_render(&siren, left, right, NULL, 256);
+    check(left[128] == 0, "siren level 0 stays silent (the slew's tail over)");
+    {   /* every LFO curve and oscillator curve renders, bounded and non-silent */
+        uint32_t t, w;
+        for (t = 0; t < DUB_SIR_TYPES; t++) {
+            long long e = 0;
+            dub_siren_set_type(&siren, (uint8_t)t);
+            dub_siren_set_wave(&siren, DUB_SIW_SQR);
+            dub_siren_trigger(&siren, 100);
+            for (i = 0; i < 256; i++) {
+                left[i] = right[i] = 0;
+            }
+            dub_siren_render(&siren, left, right, NULL, 256);
+            for (i = 0; i < 256; i++) {
+                e += llabs((long long)left[i]);
+                if (left[i] <= -70000 || left[i] >= 70000)
+                    break;
+            }
+            check(i == 256 && e > 0, DUB_SIR_TYPE_NAMES[t]);
+        }
+        for (w = 0; w < DUB_SIW_N; w++) {
+            long long e = 0;
+            dub_siren_set_type(&siren, DUB_SIR_HILO);
+            dub_siren_set_wave(&siren, (uint8_t)w);
+            dub_siren_trigger(&siren, 100);
+            for (i = 0; i < 256; i++)
+                left[i] = right[i] = 0;
+            dub_siren_render(&siren, left, right, NULL, 256);
+            for (i = 0; i < 256; i++) {
+                e += llabs((long long)left[i]);
+                if (left[i] <= -70000 || left[i] >= 70000)
+                    break;
+            }
+            check(i == 256 && e > 0, DUB_SIW_NAMES[w]);
+        }
+        dub_siren_set_type(&siren, DUB_SIR_WAIL);
+        dub_siren_set_wave(&siren, DUB_SIW_SQR);
+    }
 
     dub_seq_init(&seq);
     dub_seq_set_length(&seq, 64);

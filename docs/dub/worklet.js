@@ -35,6 +35,17 @@ class SloopProcessor extends AudioWorkletProcessor {
                 if (m.rate != null && typeof this.e.emu_dub_siren_rate === 'function')
                     this.e.emu_dub_siren_rate(m.rate);   // wasm rebuilt from the Dub pages firmware and later
             }
+            else if (m.t === 'dub-siren-type') { if (typeof this.e.emu_dub_siren_type === 'function') this.e.emu_dub_siren_type(m.type || 0); }
+            else if (m.t === 'dub-siren-wave') { if (typeof this.e.emu_dub_siren_wave === 'function') this.e.emu_dub_siren_wave(m.wave || 0); }
+            else if (m.t === 'dub-siren-sym') { if (typeof this.e.emu_dub_siren_sym === 'function') this.e.emu_dub_siren_sym(m.sym || 0); }
+            else if (m.t === 'dub-siren-send') { if (typeof this.e.emu_dub_siren_send === 'function') this.e.emu_dub_siren_send(m.send || 0); }
+            else if (m.t === 'dub-siren-freq') { if (typeof this.e.emu_dub_siren_freq === 'function') this.e.emu_dub_siren_freq(m.frequency || 740); }
+            else if (m.t === 'dub-siren-depth') { if (typeof this.e.emu_dub_siren_depth === 'function') this.e.emu_dub_siren_depth(m.depth || 96); }
+            else if (m.t === 'dub-siren-rate') { if (typeof this.e.emu_dub_siren_rate === 'function') this.e.emu_dub_siren_rate(m.rate || 8); }
+            else if (m.t === 'dub-siren-level') {
+                if (typeof this.e.emu_dub_siren_level === 'function') this.e.emu_dub_siren_level(m.level || 0);
+                else this.e.emu_dub_siren(m.level || 0, 740, 96);   // the old shim's way
+            }
             else if (m.t === 'dub-band') this.e.emu_dub_band(m.band || 0, m.gain || 0, m.mute ? 1 : 0);
             else if (m.t === 'dub-mix') { if (typeof this.e.emu_dub_mix === 'function') this.e.emu_dub_mix(m.mix || 0); }
             else if (m.t === 'dub-seq-length') this.e.emu_dub_seq_length(m.length || 16);

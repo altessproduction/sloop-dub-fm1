@@ -34,15 +34,31 @@ typedef struct {
     uint8_t mix;
 } dub_isolator_t;
 
+/* the siren's LFO curves (TYPE), the way the NJD boxes sweep: WAIL the slow up/down,
+ * HI-LO the two tone, RAMP the yelp's charge and snap, SWEEP the fall, SPACE the sample and hold */
+enum { DUB_SIR_WAIL = 0, DUB_SIR_HILO, DUB_SIR_RAMP, DUB_SIR_SWEEP, DUB_SIR_SPACE, DUB_SIR_TYPES };
+extern const char *const DUB_SIR_TYPE_NAMES[DUB_SIR_TYPES];
+/* the oscillator's curves (WAVE): the NJD's harsh square, a 25% pulse, the ramp, the soft ones */
+enum { DUB_SIW_SQR = 0, DUB_SIW_PLS, DUB_SIW_SAW, DUB_SIW_TRI, DUB_SIW_SIN, DUB_SIW_N };
+extern const char *const DUB_SIW_NAMES[DUB_SIW_N];
+
 typedef struct {
     uint32_t phase;
     uint32_t lfo_phase;
     uint32_t phase_inc;
     uint32_t lfo_inc;
-    uint16_t level;
+    int32_t lfo_val;           /* the LFO's last value, Q15 signed */
+    int32_t lfo_target;        /* SPACE's sampled value, the one lfo_val glides toward */
+    uint32_t rnd;              /* SPACE's noise state */
+    uint16_t level;            /* the level the trigger / OCT+ set (the target) */
+    uint16_t level_cur;        /* the rendered level, slewed so triggers and offs don't click */
     uint16_t freq_hz;          /* the siren's base pitch, 220..1200 (set_freq keeps it) */
-    uint8_t depth;             /* the LFO's amplitude depth, 0..127 */
+    uint8_t depth;             /* the pitch sweep, 0..127 = 0..2 octaves each way (exponential) */
     uint8_t rate;              /* the LFO's speed, 0..127 = 1..16 Hz (dub_siren_rate_hz) */
+    uint8_t type;              /* DUB_SIR_*, the LFO's curve */
+    uint8_t wave;              /* DUB_SIW_*, the oscillator's curve */
+    uint8_t sym;               /* the LFO's symmetry / duty / glide, 0..127 */
+    uint8_t send;              /* the delay send, 0..127 */
     uint8_t active;
 } dub_siren_t;
 
@@ -86,8 +102,13 @@ void dub_siren_init(dub_siren_t *s);
 void dub_siren_trigger(dub_siren_t *s, uint8_t level);
 void dub_siren_set_freq(dub_siren_t *s, uint16_t hz);      /* 220..1200, clamped */
 void dub_siren_set_rate(dub_siren_t *s, uint8_t rate);     /* 0..127 -> 1..16 Hz */
+void dub_siren_set_type(dub_siren_t *s, uint8_t type);     /* DUB_SIR_*, clamped */
+void dub_siren_set_wave(dub_siren_t *s, uint8_t wave);     /* DUB_SIW_*, clamped */
+void dub_siren_set_sym(dub_siren_t *s, uint8_t sym);       /* the LFO's symmetry, 0..127 */
+void dub_siren_set_send(dub_siren_t *s, uint8_t send);     /* the delay send, 0..127 */
 uint32_t dub_siren_rate_hz(uint8_t rate);                  /* the rate's LFO speed, for the UI */
-void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, uint32_t n);
+void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, int32_t *send_bus, uint32_t n);
+                                                           /* send_bus may be NULL: no send rendered */
 
 void dub_seq_init(dub_seq_t *s);
 void dub_seq_set_length(dub_seq_t *s, uint8_t length);

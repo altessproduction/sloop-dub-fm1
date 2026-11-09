@@ -24,7 +24,9 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
         await WebAssembly.compile(fs.readFileSync(WASM))).map(x => x.name);
 
     const need = ['emu_dub_siren_rate', 'emu_dub_mix', 'emu_dub_skank',
-        'emu_dub_siren', 'emu_dub_band', 'emu_dub_seq_length', 'emu_dub_seq_step'];
+        'emu_dub_siren', 'emu_dub_band', 'emu_dub_seq_length', 'emu_dub_seq_step',
+        'emu_dub_siren_type', 'emu_dub_siren_wave', 'emu_dub_siren_sym', 'emu_dub_siren_send',
+        'emu_dub_siren_level', 'emu_dub_siren_freq', 'emu_dub_siren_depth'];
     for (const n of need)
         if (!names.includes(n)) throw new Error('missing export ' + n);
     console.log('exports .......... OK (' + names.length + ' total, all dub exports present)');
@@ -53,9 +55,26 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
     for (let i = 0; i < 8; i++) render(256);
     const rWet = rms(render(256));
 
-    /* siren only */
+    /* siren only, as the NJD boxes play it: square wave, exponential wail, into the delay */
     e.emu_midi(NOFF(60));
-    const rSiren = rms(render(512));
+    e.emu_dub_siren_type(0);           /* WAIL */
+    e.emu_dub_siren_wave(0);           /* SQR */
+    e.emu_dub_siren_sym(64);
+    e.emu_dub_siren_send(90);          /* the delay send */
+    e.emu_dub_siren_level(100);
+    const rSiren = rms(render(1024));
+
+    /* every siren type and wave must render without trapping */
+    for (let t = 0; t < 5; t++) {
+        e.emu_dub_siren_type(t);
+        for (let w = 0; w < 5; w++) {
+            e.emu_dub_siren_wave(w);
+            render(256);
+        }
+    }
+    e.emu_dub_siren_type(0);
+    e.emu_dub_siren_wave(0);
+    console.log('siren types/waves . OK (25 combos, no trap)');
 
     /* 5-voice skank chords must not crash */
     e.emu_dub_skank(0, 4, 3, 100);     /* C 7TH oct 3 */

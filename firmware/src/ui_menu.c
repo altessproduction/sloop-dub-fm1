@@ -3,8 +3,9 @@
 /* SLOOP menu (HOME held), in sections as the pages are (2.4): SCREEN (COLOR, ZOOM, KNOB ACCEL (2.7)), LIGHTS (LIGHTS, KEYS, NOTES),
  * AUDIO (LOWCUT, USB AUDIO, USB SERIAL (FELUCCA_CDC builds only), USB RATE (2.7 beta), FILTER RESO (2.7.2)), SEQ (2.7.1: STEP ADVANCE, DRUM PREVIEW),
  * SYSTEM (2ND CORE (dualcore), HARDWARE CALIBRATION, LEARN CLEAR (2.6), ABOUT),
- * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB PRESET, DUB MIX), SIREN (SIREN LEVEL, SIREN FREQ,
- * SIREN DEPTH, SIREN RATE), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
+ * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB PRESET, DUB MIX), SIREN (2.9.1, two pages:
+ * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN LEVEL — and SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM,
+ * SIREN SEND), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
  * DSEQ (SEQ LENGTH, SEQ STEP, SEQ NOTE, SEQ VELOCITY) and ISO (SUB, BASS, MIDS, TOPS; OCT+ mutes the band).
  * SELECT goes to the page before / after (stopping at the ends), KNOB 1..4 set the page's settings in order (the knob's colour marks
  * its row), PRESETS moves the cursor; OCT+ steps the cursor's setting round or opens it (CALIBRATION, ABOUT, a skank chord),
@@ -18,7 +19,8 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
 #endif
        MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT,
        MI_DUB_ON, MI_DUB_PRESET, MI_DUB_MIX,
-       MI_SIREN_LVL, MI_SIREN_FRQ, MI_SIREN_DPT, MI_SIREN_RAT,
+       MI_SIR_TYPE, MI_SIR_WAVE, MI_SIR_FRQ, MI_SIR_LVL,
+       MI_SIR_RATE, MI_SIR_DPT, MI_SIR_SYM, MI_SIR_SEND,
        MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
        MI_DUB_LEN, MI_DUB_STEP, MI_DUB_NOTE, MI_DUB_VEL,
        MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
@@ -28,12 +30,13 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
 #endif
                                               "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT",
                                               "DUB ENABLE", "DUB PRESET", "DUB MIX",
-                                              "SIREN LEVEL", "SIREN FREQ", "SIREN DEPTH", "SIREN RATE",
+                                              "SIREN TYPE", "SIREN WAVE", "SIREN PITCH", "SIREN LEVEL",
+                                              "SIREN RATE", "SIREN DEPTH", "SIREN SYM", "SIREN SEND",
                                               "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
                                               "SEQ LENGTH", "SEQ STEP", "SEQ NOTE", "SEQ VELOCITY",
                                               "SUB", "BASS", "MIDS", "TOPS"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SKANK, MS_DSEQ, MS_ISO, MS_COUNT };
-static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SKK", "DSQ", "ISO"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DSEQ, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DSQ", "ISO"};
 
 static uint8_t dub_menu_siren = 88;              /* the level OCT+ toggles the siren between */
 static uint8_t dub_menu_chord;                   /* the skank's quality, DUB_SKANK_NAMES */
@@ -64,6 +67,15 @@ UI_SMALL static void dub_menu_skank(void)        /* play the chord the SKANK pag
         dub_menu_skank_notes[i] = notes[i];
         input_on(&trk[0], notes[i], s.velocity);
     }
+    dub_enabled = 1;
+    dub_isolator.enabled = 1;
+}
+
+UI_SMALL static void dub_menu_siren_play(void)   /* OCT+ sounds the siren at its level (88 when it was off) */
+{
+    if (!dub_menu_siren)
+        dub_menu_siren = 88u;
+    dub_siren_trigger(&dub_siren, dub_menu_siren);
     dub_enabled = 1;
     dub_isolator.enabled = 1;
 }
@@ -100,9 +112,10 @@ UI_SMALL static void dub_menu_preset_apply(void)
     }
     dub_menu_siren = dub_menu_preset == 2u ? 88u : 0u;
     dub_siren_trigger(&dub_siren, dub_menu_siren);
+    dub_siren_set_send(&dub_siren, (uint8_t)(p->delay < 0 ? 0 : p->delay > 127 ? 127 : p->delay));
 }
 static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1,
-                                               MI_DUB_ON, MI_SIREN_LVL, MI_SKANK_CHD, MI_DUB_LEN, MI_DUB_SUB, MI_COUNT};
+                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DUB_LEN, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -189,27 +202,40 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         fmt_int(b, dub_isolator.mix);
         return b;
     }
-    case MI_SIREN_LVL: {
-        static char b[8];
-        if (!dub_siren.active) return "OFF";
-        fmt_int(b, dub_siren.level);
-        return b;
-    }
-    case MI_SIREN_FRQ: {
+    case MI_SIR_TYPE: return DUB_SIR_TYPE_NAMES[dub_siren.type];
+    case MI_SIR_WAVE: return DUB_SIW_NAMES[dub_siren.wave];
+    case MI_SIR_FRQ: {
         static char b[8];
         fmt_int(b, dub_siren.freq_hz);
         str_cpy(b + str_len(b), " HZ", 4);
         return b;
     }
-    case MI_SIREN_DPT: {
+    case MI_SIR_LVL: {
+        static char b[8];
+        if (!dub_siren.active) return "OFF";
+        fmt_int(b, dub_siren.level);
+        return b;
+    }
+    case MI_SIR_RATE: {
+        static char b[8];
+        fmt_int(b, (int32_t)dub_siren_rate_hz(dub_siren.rate));
+        str_cpy(b + str_len(b), " HZ", 4);
+        return b;
+    }
+    case MI_SIR_DPT: {
         static char b[8];
         fmt_int(b, dub_siren.depth);
         return b;
     }
-    case MI_SIREN_RAT: {
+    case MI_SIR_SYM: {
         static char b[8];
-        fmt_int(b, (int32_t)dub_siren_rate_hz(dub_siren.rate));
-        str_cpy(b + str_len(b), " HZ", 4);
+        fmt_int(b, dub_siren.sym);
+        return b;
+    }
+    case MI_SIR_SEND: {
+        static char b[8];
+        if (!dub_siren.send) return "DRY";
+        fmt_int(b, dub_siren.send);
         return b;
     }
     case MI_SKANK_CHD: return DUB_SKANK_NAMES[dub_menu_chord & (DUB_SKANK_QUALITIES - 1u)];
@@ -269,6 +295,7 @@ UI_SMALL static void draw_menu(void)
                    knob_accel_off * 179424673u + drum_preview * 236887691u + step_adv_off * 373587883u + flt_reso * 512927357u +
                    dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
                    dub_siren.freq_hz * 6700477u + dub_siren.depth * 6700479u + dub_siren.rate * 6700481u +
+                   dub_siren.type * 6700519u + dub_siren.wave * 6700523u + dub_siren.sym * 6700531u + dub_siren.send * 6700533u +
                    dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_len * 6700471u +
                    dub_menu_step * 6700483u + dub_menu_note * 6700487u + dub_menu_step_vel * 6700491u +
                    dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
@@ -514,7 +541,37 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIREN_LVL:                                 /* right up, left down (stops at the ends); OCT+ on / off */
+    case MI_SIR_TYPE:                                  /* WAIL HILO RAMP SWEEP SPACE; OCT+ plays the siren */
+        if (s > 0)
+            dub_siren_set_type(&dub_siren, (uint8_t)((dub_siren.type + 1u) % DUB_SIR_TYPES));
+        else if (s < 0)
+            dub_siren_set_type(&dub_siren, (uint8_t)((dub_siren.type + DUB_SIR_TYPES - 1u) % DUB_SIR_TYPES));
+        else
+            dub_menu_siren_play();
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIR_WAVE:                                  /* SQR PLS SAW TRI SIN; OCT+ plays the siren */
+        if (s > 0)
+            dub_siren_set_wave(&dub_siren, (uint8_t)((dub_siren.wave + 1u) % DUB_SIW_N));
+        else if (s < 0)
+            dub_siren_set_wave(&dub_siren, (uint8_t)((dub_siren.wave + DUB_SIW_N - 1u) % DUB_SIW_N));
+        else
+            dub_menu_siren_play();
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIR_FRQ:                                   /* 220..1200 Hz, two Hz a detent; OCT+ back to 740 */
+        if (s > 0)
+            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz + 2u));
+        else if (s < 0)
+            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz - 2u));
+        else
+            dub_siren_set_freq(&dub_siren, 740u);
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIR_LVL:                                   /* right up, left down (stops at the ends); OCT+ on / off */
         if (s > 0 && dub_menu_siren < 127u)
             dub_menu_siren++;
         else if (s < 0 && dub_menu_siren > 0u)
@@ -525,17 +582,18 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_enabled = dub_menu_siren ? 1u : dub_enabled;
         dub_isolator.enabled = dub_enabled;
         break;
-    case MI_SIREN_FRQ:                                 /* 220..1200 Hz, two Hz a detent; OCT+ back to 740 */
-        if (s > 0)
-            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz + 2u));
-        else if (s < 0)
-            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz - 2u));
-        else
-            dub_siren_set_freq(&dub_siren, 740u);
+    case MI_SIR_RATE:                                  /* the LFO's speed, 1..16 Hz; OCT+ back to 2 Hz */
+        if (s > 0 && dub_siren.rate < 127u)
+            dub_siren.rate++;
+        else if (s < 0 && dub_siren.rate > 0u)
+            dub_siren.rate--;
+        else if (!s)
+            dub_siren.rate = 8u;
+        dub_siren_set_rate(&dub_siren, dub_siren.rate);
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIREN_DPT:                                 /* the LFO's amplitude depth, 0..127; OCT+ back to 96 */
+    case MI_SIR_DPT:                                   /* the pitch sweep, 0..127 = two octaves; OCT+ back to 96 */
         if (s > 0 && dub_siren.depth < 127u)
             dub_siren.depth++;
         else if (s < 0 && dub_siren.depth > 0u)
@@ -545,14 +603,23 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIREN_RAT:                                 /* the LFO's speed, 1..16 Hz; OCT+ back to 2 Hz */
-        if (s > 0 && dub_siren.rate < 127u)
-            dub_siren.rate++;
-        else if (s < 0 && dub_siren.rate > 0u)
-            dub_siren.rate--;
+    case MI_SIR_SYM:                                   /* the LFO's symmetry, 0..127; OCT+ back to 64 */
+        if (s > 0 && dub_siren.sym < 127u)
+            dub_siren.sym++;
+        else if (s < 0 && dub_siren.sym > 0u)
+            dub_siren.sym--;
         else if (!s)
-            dub_siren.rate = 8u;
-        dub_siren_set_rate(&dub_siren, dub_siren.rate);
+            dub_siren.sym = 64u;
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
+        break;
+    case MI_SIR_SEND:                                  /* the delay send, 0..127; OCT+ 48 (a dubby echo) */
+        if (s > 0 && dub_siren.send < 127u)
+            dub_siren.send++;
+        else if (s < 0 && dub_siren.send > 0u)
+            dub_siren.send--;
+        else if (!s)
+            dub_siren_set_send(&dub_siren, dub_siren.send ? 0u : 48u);
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;

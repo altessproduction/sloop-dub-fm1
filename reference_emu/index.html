@@ -359,7 +359,8 @@ body.compact #manual { display: none; }
     <p class="dub-lead">Le miroir des pages Dub du firmware : sur le FM-1, un appui long sur <b>HOME</b> ouvre le menu, <b>SELECT</b> passe d'une page à l'autre. Chaque onglet pilote la page du même nom, directement dans le firmware réel du WASM.</p>
     <div class="dub-tabs" role="tablist" aria-label="Pages Dub">
         <button class="dub-tab on" data-dub-page="dub" role="tab" aria-selected="true" type="button">DUB</button>
-        <button class="dub-tab" data-dub-page="siren" role="tab" aria-selected="false" type="button">SIREN</button>
+        <button class="dub-tab" data-dub-page="sir" role="tab" aria-selected="false" type="button">SIR</button>
+        <button class="dub-tab" data-dub-page="sr2" role="tab" aria-selected="false" type="button">SR2</button>
         <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
         <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">DSEQ</button>
         <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
@@ -380,16 +381,32 @@ body.compact #manual { display: none; }
         </div>
     </div>
 
-    <div class="dub-page" data-dub-panel="siren" role="tabpanel" hidden>
+    <div class="dub-page" data-dub-panel="sir" role="tabpanel" hidden>
         <div class="dub-card">
-            <h3>SIREN LEVEL</h3>
-            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
+            <h3>SIREN TYPE · SIREN WAVE</h3>
+            <div class="dub-row">
+                <select id="dub-siren-type" aria-label="Type de siren (courbe du LFO)"><option value="0" selected>WAIL</option><option value="1">HILO</option><option value="2">RAMP</option><option value="3">SWEEP</option><option value="4">SPACE</option></select>
+                <select id="dub-siren-wave" aria-label="Courbe de l'oscillateur"><option value="0" selected>SQR</option><option value="1">PLS</option><option value="2">SAW</option><option value="3">TRI</option><option value="4">SIN</option></select>
+            </div>
         </div>
         <div class="dub-card">
-            <h3>SIREN FREQ · DEPTH · RATE</h3>
-            <label>Fréquence <input id="dub-siren-freq" type="range" min="220" max="1200" step="2" value="740"><output>740 Hz</output></label>
-            <label>Profondeur <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
-            <label>Vitesse LFO <input id="dub-siren-rate" type="range" min="0" max="127" value="8"><output>2 Hz</output></label>
+            <h3>SIREN PITCH · SIREN LEVEL</h3>
+            <label>Pitch <input id="dub-siren-freq" type="range" min="220" max="1200" step="2" value="740"><output>740 Hz</output></label>
+            <label>Level <input id="dub-siren-level" type="range" min="0" max="127" value="0"><output>OFF</output></label>
+            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
+        </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="sr2" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>SIREN RATE · SIREN DEPTH</h3>
+            <label>Rate <input id="dub-siren-rate" type="range" min="0" max="127" value="8"><output>2 Hz</output></label>
+            <label>Depth <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
+        </div>
+        <div class="dub-card">
+            <h3>SIREN SYM · SIREN SEND</h3>
+            <label>Sym <input id="dub-siren-sym" type="range" min="0" max="127" value="64"><output>64</output></label>
+            <label>Send <input id="dub-siren-send" type="range" min="0" max="127" value="0"><output>DRY</output></label>
         </div>
     </div>
 

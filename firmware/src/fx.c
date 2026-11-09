@@ -1219,6 +1219,9 @@ static void mix_block(int32_t *out, uint32_t n)
     texture_mix(mix_l, mix_r, n);                       /* GLO > TEXTURE (2.6): the bed, dry; after both cores' units
                                                          * (what it adds does not depend on them: the same sum) */
     punch_freeze_feed(acc[0].sr, mix_l, mix_r, n);     /* punch-in FREEZE: the whole dry mix into the held reverb */
+    if (dub_enabled)
+        dub_siren_render(&dub_siren, mix_l, mix_r, acc[0].sd, n);   /* (2.9.1) the siren, dry into the mix,
+                                                                     * its SEND into the delay bus below */
     fx_buses(acc[0].sc, acc[0].sd, acc[0].sr, wet_l, wet_r, n);
     for (i = 0; i < n; i++) {
         mix_l[i] += wet_l[i];
@@ -1227,10 +1230,8 @@ static void mix_block(int32_t *out, uint32_t n)
     dust_process(mix_l, mix_r, n);
     punch_process(mix_l, mix_r, n);
     djf_process(mix_l, mix_r, n);
-    if (dub_enabled) {
-        dub_siren_render(&dub_siren, mix_l, mix_r, n);
+    if (dub_enabled)
         dub_isolator_process(&dub_isolator, mix_l, mix_r, n);
-    }
     m1 = (int32_t)song.master_q12;
     m0 = master_cur < 0 ? m1 : master_cur;
     master_cur = m1;

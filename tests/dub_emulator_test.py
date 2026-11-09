@@ -144,6 +144,31 @@ def main():
             page.wait_for_timeout(120)
             assert page.locator("#device").is_visible()
 
+            # 2.9.10: the module's one switch. With the panel's box off, no load and
+            # no siren flips it on — the box (the menu's K1 on the hardware) alone does.
+            assert not page.locator("#dub-enabled").is_checked()
+            page.click('.dub-tab[data-dub-page="rdm"]')
+            page.click("#dub-riddim-load")
+            page.wait_for_timeout(300)
+            assert not page.locator("#dub-enabled").is_checked(), "the riddim load must not engage DUB"
+            page.click('.dub-tab[data-dub-page="prs"]')
+            page.click("#dub-sbass-load")
+            page.wait_for_timeout(300)
+            assert not page.locator("#dub-enabled").is_checked(), "the sound load must not engage DUB"
+            page.click('.dub-tab[data-dub-page="sir"]')
+            page.hover("#dub-siren")
+            page.mouse.down()
+            page.wait_for_timeout(250)
+            page.mouse.up()
+            assert not page.locator("#dub-enabled").is_checked(), "the siren hold must not engage DUB"
+            page.click('.dub-tab[data-dub-page="dub"]')     # the box lives on the DUB tab
+            page.click(".dub-toggle")                       # the label toggles the hidden box
+            page.wait_for_timeout(200)
+            assert page.locator("#dub-enabled").is_checked(), "the box is the one switch that engages DUB"
+            page.click(".dub-toggle")
+            page.wait_for_timeout(100)
+            assert not page.locator("#dub-enabled").is_checked()
+
             for w, h in [(390, 844), (768, 1024), (1280, 800), (1920, 1080)]:
                 page.set_viewport_size({"width": w, "height": h})
                 page.wait_for_timeout(150)

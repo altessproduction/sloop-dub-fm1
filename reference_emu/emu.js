@@ -223,6 +223,11 @@ KEYENC['\\'] = [6, 1];
  * FM-1 faceplate. They never synthesize audio in JavaScript. */
 function dubMessage(message) { if (node) node.port.postMessage(message); }
 function dubEnable(on) { dubMessage({ t: 'dub-enable', on: !!on }); }
+function dubSync(on) {                 // (2.9.10) the checkbox mirrors the firmware: the menu's
+    if (on == null) return;            // K1 is the one switch, the panel's case shows its state
+    const cb = document.getElementById('dub-enabled');
+    if (cb) cb.checked = !!on;
+}
 function dubSirenLevel(level) {
     const out = document.querySelector('#dub-siren-level + output');
     if (out) out.textContent = level ? String(level) : 'OFF';
@@ -277,8 +282,6 @@ function dubSkank() {
 function dubPreset(index) {
     dubMessage({ t: 'dub-preset', index });
     document.querySelectorAll('#dub-presets button').forEach((b, i) => b.classList.toggle('active', i === index));
-    const enabled = document.getElementById('dub-enabled');
-    if (enabled) { enabled.checked = true; dubEnable(true); }
 }
 function dubSeqLength(length) {
     dubMessage({ t: 'dub-seq-length', length: Number(length) });
@@ -374,8 +377,6 @@ function dubRiddim(selId, track) {
     dubStatus(track == null ? `CHARGÉ · ${name} · 4 PISTES · 64 PAS`
                             : `CHARGÉ · PISTE ${track + 1} · ${name}`);   // (2.9.4) the load is told
     dubSeqRefresh();
-    const enabled = document.getElementById('dub-enabled');
-    if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
 }
 /* the PRESET page: the dub sound banks, a list per riddim track (bass, skank, melody) and
  * the drum kits. The load buttons mirror the firmware's OCT+ (the same WASM exports). */
@@ -400,8 +401,6 @@ function dubFillSounds() {
 }
 function dubSound(selId, role) {
     dubMessage({ t: 'dub-sound', role, index: Number(document.getElementById(selId).value || 0) });
-    const enabled = document.getElementById('dub-enabled');
-    if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
 }
 /* the tab strip mirrors the firmware's Dub pages: one tab, one LCD page */
 function dubPage(name) {
@@ -591,8 +590,8 @@ async function powerOn() {
     });
     node.port.onmessage = ev => {
         const m = ev.data;
-        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); }
-        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); }
+        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); }
+        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); }
         else if (m.t === 'dub-seq-dump') dubSeqApply(m);   // (2.9.4) the DSQ view's readback
         else if (m.t === 'flash') saveFlash(m.data);
     };

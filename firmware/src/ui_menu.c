@@ -85,8 +85,6 @@ UI_SMALL static void dub_menu_skank(void)        /* play the chord the SKANK pag
         dub_menu_skank_notes[i] = notes[i];
         input_on(&trk[0], notes[i], s.velocity);
     }
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
 }
 
 UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDIM page: what KNOB 1..4 hold.
@@ -105,8 +103,6 @@ UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDI
         dub_tracks_load(&dub_sequence, 1u << track, DUB_RIDDIM_STEPS);
         ui_message(track == DUB_TRK_BASS ? "BASS LOADED" : track == DUB_TRK_SKANK ? "SKANK LOADED" : "DRUM LOADED");
     }
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
 }
 
 UI_SMALL static void dub_menu_sound_load(uint32_t role)    /* OCT+ on the PRESET page: what KNOB 1..4 hold */
@@ -136,8 +132,6 @@ UI_SMALL static void dub_menu_sound_load(uint32_t role)    /* OCT+ on the PRESET
         ui_message("KIT LOADED");
         break;
     }
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
 }
 
 UI_SMALL static void dub_menu_siren_play(void)   /* OCT+ sounds the siren at its level (88 when it was off) */
@@ -145,8 +139,6 @@ UI_SMALL static void dub_menu_siren_play(void)   /* OCT+ sounds the siren at its
     if (!dub_menu_siren)
         dub_menu_siren = 88u;
     dub_siren_trigger(&dub_siren, dub_menu_siren);
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
 }
 
 UI_SMALL static void dub_menu_band(uint32_t band, int32_t delta, uint8_t toggle_mute)
@@ -162,16 +154,12 @@ UI_SMALL static void dub_menu_band(uint32_t band, int32_t delta, uint8_t toggle_
         p.gain_db = (int8_t)(g < -24 ? -24 : g > 12 ? 12 : g);
     }
     dub_isolator_set_band(&dub_isolator, band, p);
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
 }
 
 UI_SMALL static void dub_menu_preset_apply(void)
 {
     const dub_preset_t *p = &DUB_PRESETS[dub_menu_preset % DUB_PRESET_COUNT];
     uint32_t b;
-    dub_enabled = 1;
-    dub_isolator.enabled = 1;
     dub_menu_chord = (uint8_t)(p->chord & (DUB_SKANK_QUALITIES - 1u));
     dub_skank_conf.quality = dub_menu_chord;
     dub_skank_conf.root = dub_menu_root;
@@ -660,7 +648,9 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
          if (!s)
              ui_message(ml_clear_all() ? "LEARN CLEARED" : "NOTHING LEARNED");
          break;
-    case MI_DUB_ON:
+    case MI_DUB_ON:                                    /* (2.9.10) the module's one switch: K1 alone
+                                                        * engages DUB — no knob turn, no load, no
+                                                        * siren or preset does it behind your back */
         dub_enabled = (uint8_t)(s > 0 ? 1u : s < 0 ? 0u : !dub_enabled);
         dub_isolator.enabled = dub_enabled;
         if (!dub_enabled)
@@ -684,8 +674,6 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_isolator.mix = (uint8_t)clamp((int32_t)dub_isolator.mix + pot_s(s, 127), 0, 127);
         else
             dub_isolator.mix = dub_isolator.mix ? 0u : 127u;
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_TYPE:                                  /* WAIL HILO RAMP SWEEP SPACE; OCT+ plays the siren */
         if (s > 0)
@@ -694,8 +682,6 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_siren_set_type(&dub_siren, (uint8_t)((dub_siren.type + DUB_SIR_TYPES - 1u) % DUB_SIR_TYPES));
         else
             dub_menu_siren_play();
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_WAVE:                                  /* SQR PLS SAW TRI SIN; OCT+ plays the siren */
         if (s > 0)
@@ -704,16 +690,12 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_siren_set_wave(&dub_siren, (uint8_t)((dub_siren.wave + DUB_SIW_N - 1u) % DUB_SIW_N));
         else
             dub_menu_siren_play();
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_FRQ:                                   /* 220..1200 Hz, a pot course in some 300 degrees; OCT+ back to 740 */
         if (s)
             dub_siren_set_freq(&dub_siren, (uint16_t)clamp((int32_t)dub_siren.freq_hz + pot_s(s, 980), 220, 1200));
         else
             dub_siren_set_freq(&dub_siren, 740u);
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_LVL:                                   /* the pot's course 0..127; the momentary OCT+ sounds it (2.9.8) */
         if (s)
@@ -722,8 +704,6 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_menu_siren = dub_menu_siren ? 0u : 88u;
         if (dub_menu_siren_held)                       /* the level knob retunes the sounding siren */
             dub_siren_trigger(&dub_siren, dub_menu_siren ? dub_menu_siren : 88u);
-        dub_enabled = dub_menu_siren || dub_menu_siren_held ? 1u : dub_enabled;
-        dub_isolator.enabled = dub_enabled;
         break;
     case MI_SIR_RATE:                                  /* the LFO's speed, a pot 0..127 (1..16 Hz); OCT+ back to 2 Hz */
         if (s)
@@ -731,32 +711,24 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         else if (!s)
             dub_siren.rate = 8u;
         dub_siren_set_rate(&dub_siren, dub_siren.rate);
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_DPT:                                   /* the pitch sweep, a pot 0..127 = two octaves; OCT+ back to 96 */
         if (s)
             dub_siren.depth = (uint8_t)clamp((int32_t)dub_siren.depth + pot_s(s, 127), 0, 127);
         else if (!s)
             dub_siren.depth = 96u;
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_SYM:                                   /* the LFO's symmetry, a pot 0..127; OCT+ back to 64 */
         if (s)
             dub_siren.sym = (uint8_t)clamp((int32_t)dub_siren.sym + pot_s(s, 127), 0, 127);
         else if (!s)
             dub_siren.sym = 64u;
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SIR_SEND:                                  /* the delay send, a pot 0..127; OCT+ 48 (a dubby echo) */
         if (s)
             dub_siren_set_send(&dub_siren, (uint8_t)clamp((int32_t)dub_siren.send + pot_s(s, 127), 0, 127));
         else
             dub_siren_set_send(&dub_siren, dub_siren.send ? 0u : 48u);
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_SKANK_CHD:                                 /* MAJ MIN DIM AUG 7TH MIN7 9TH PWR; OCT+ plays the chord */
         if (s > 0)
@@ -800,16 +772,12 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_filter_set((int16_t)clamp((int32_t)dub_filter_get() + pot_s(s, 127), 0, 127));
         else
             dub_filter_set(64);                        /* OCT+ back to the flat center */
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_DUB_SEND:                                  /* 2.9.7: the throw into the delay, a pot (2.9.8) */
         if (s)
             dub_send_set((uint8_t)clamp((int32_t)dub_send + pot_s(s, 127), 0, 127));
         else
             dub_send_set(dub_send ? 0u : 64u);         /* OCT+ dry or a half throw */
-        dub_enabled = 1;
-        dub_isolator.enabled = 1;
         break;
     case MI_DLY_TIME:                                  /* 2.9.7: the free ms when SYNC is off (the
                                                         * division's ms shows dim when it is on);
@@ -937,8 +905,6 @@ UI_SMALL static void menu_input(uint32_t pressed)
         if (sec == MS_SIREN || sec == MS_SIREN2) {
             if (held && !dub_menu_siren_held) {
                 dub_siren_trigger(&dub_siren, dub_menu_siren ? dub_menu_siren : 88u);
-                dub_enabled = 1;
-                dub_isolator.enabled = 1;
             } else if (!held && dub_menu_siren_held)
                 dub_siren_trigger(&dub_siren, 0);
             dub_menu_siren_held = held;

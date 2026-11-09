@@ -175,6 +175,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_frame();
     console.log('sound banks ....... OK (' + roleNames.join(' / ') + ')');
 
+    /* the steps survive the sound swaps: the riddim's bass st0 is still there (2.9.6's readback) */
+    if (note(0, 0) !== 33) throw new Error('steps wiped after the sound loads: bass st0 ' + note(0, 0));
+    console.log('steps survive ..... OK (the loads leave the sequence alone)');
+
     /* 2.9.2: the riddim plays on the transport: PLAY, the dub sequence sounds */
     for (const n of [36, 40, 43, 46, 67, 74])   /* the skank chords above let go: silence first */
         e.emu_midi(NOFF(n));

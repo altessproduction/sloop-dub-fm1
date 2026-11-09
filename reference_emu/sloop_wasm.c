@@ -440,7 +440,9 @@ WASM_EXPORT("emu_flash_gen") uint32_t emu_flash_gen_get(void) { return emu_flash
 
 /* ----------------------------------------------------------- Dub controls ---
  * These entry points are deliberately small firmware commands.  The page only
- * sends parameters; all sound generation and filtering remains in dub.c/fx.c. */
+ * sends parameters; all sound generation and filtering remains in dub.c/fx.c.
+ * (2.9.10) none of them engages the module: emu_dub_enable alone does — the
+ * K1 rule, the same one switch the menu's DUB page turns. */
 WASM_EXPORT("emu_dub_enable") void emu_dub_enable(uint32_t on)
 {
     dub_enabled = on ? 1 : 0;
@@ -452,8 +454,6 @@ WASM_EXPORT("emu_dub_siren") void emu_dub_siren(uint32_t level, uint32_t frequen
     dub_siren_set_freq(&dub_siren, (uint16_t)(frequency < 220u ? 220u : frequency > 1200u ? 1200u : frequency));
     dub_siren.depth = (uint8_t)(depth > 127u ? 127u : depth);
     dub_siren_trigger(&dub_siren, (uint8_t)(level > 127u ? 127u : level));
-    if (level)
-        emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_siren_rate") void emu_dub_siren_rate(uint32_t rate)   /* 0..127 = 1..16 Hz; older wasm builds have none */
@@ -484,8 +484,6 @@ WASM_EXPORT("emu_dub_siren_send") void emu_dub_siren_send(uint32_t send)   /* th
 WASM_EXPORT("emu_dub_siren_level") void emu_dub_siren_level(uint32_t level)   /* the siren's level, 0 off */
 {
     dub_siren_trigger(&dub_siren, (uint8_t)(level > 127u ? 127u : level));
-    if (level)
-        emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_siren_freq") void emu_dub_siren_freq(uint32_t frequency)   /* the base pitch, 220..1200 Hz */
@@ -501,8 +499,6 @@ WASM_EXPORT("emu_dub_siren_depth") void emu_dub_siren_depth(uint32_t depth)   /*
 WASM_EXPORT("emu_dub_mix") void emu_dub_mix(uint32_t mix)                  /* the isolator's wet blend, 0 dry .. 127 wet */
 {
     dub_isolator.mix = (uint8_t)(mix > 127u ? 127u : mix);
-    if (dub_isolator.mix)
-        emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_band") void emu_dub_band(uint32_t band, int32_t gain, uint32_t mute)
@@ -521,7 +517,6 @@ WASM_EXPORT("emu_dub_band") void emu_dub_band(uint32_t band, int32_t gain, uint3
 WASM_EXPORT("emu_dub_filter") void emu_dub_filter(uint32_t v)
 {
     dub_filter_set((int16_t)(v > 127u ? 127u : v));
-    emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_filter_get") uint32_t emu_dub_filter_get(void)
@@ -532,7 +527,6 @@ WASM_EXPORT("emu_dub_filter_get") uint32_t emu_dub_filter_get(void)
 WASM_EXPORT("emu_dub_send") void emu_dub_send(uint32_t v)
 {
     dub_send_set((uint8_t)(v > 127u ? 127u : v));
-    emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_send_get") uint32_t emu_dub_send_get(void)
@@ -681,14 +675,12 @@ WASM_EXPORT("emu_dub_riddim_load") void emu_dub_riddim_load(uint32_t riddim)   /
 {
     dub_riddim_load(&dub_sequence, riddim);
     dub_tracks_load(&dub_sequence, (1u << DUB_TRK_N) - 1u, DUB_RIDDIM_STEPS);
-    emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_riddim_track") void emu_dub_riddim_track(uint32_t riddim, uint32_t track)   /* one track's motif */
 {
     dub_riddim_load_track(&dub_sequence, riddim, track);
     dub_tracks_load(&dub_sequence, track < DUB_TRK_N ? 1u << track : 0u, DUB_RIDDIM_STEPS);
-    emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_sound_count") uint32_t emu_dub_sound_count(uint32_t role)   /* 0 bass, 1 skank, 2 melody, 3 kits */
@@ -710,7 +702,6 @@ WASM_EXPORT("emu_dub_sound_load") void emu_dub_sound_load(uint32_t role, uint32_
     const dub_sound_t *s;
     if (role == 3u) {
         TDRUM->p[P_E0] = (int16_t)DUB_DK_KITS[index % DUB_DK_N];
-        emu_dub_enable(1);
         return;
     }
     s = role == 0u ? &DUB_BASS_SOUNDS[index % DUB_BASS_N]
@@ -718,7 +709,6 @@ WASM_EXPORT("emu_dub_sound_load") void emu_dub_sound_load(uint32_t role, uint32_
                    : &DUB_MEL_SOUNDS[index % DUB_MEL_N];
     set_engine_of(&trk[role % 3u], s->engine);
     apply_preset_to(&trk[role % 3u], s->preset);
-    emu_dub_enable(1);
 }
 
 static uint8_t emu_dub_skank_notes[DUB_SKANK_MAX_NOTES];
@@ -739,7 +729,6 @@ WASM_EXPORT("emu_dub_skank") void emu_dub_skank(uint32_t root, uint32_t quality,
         emu_dub_skank_notes[i] = notes[i];
         input_on(&trk[0], notes[i], s.velocity);
     }
-    emu_dub_enable(1);
 }
 
 WASM_EXPORT("emu_dub_preset") void emu_dub_preset(uint32_t index)
@@ -749,7 +738,6 @@ WASM_EXPORT("emu_dub_preset") void emu_dub_preset(uint32_t index)
     if (index >= DUB_PRESET_COUNT)
         return;
     p = &DUB_PRESETS[index];
-    emu_dub_enable(1);
     for (b = 0; b < DUB_BANDS; b++) {
         dub_band_param_t q = dub_isolator.p[b];
         q.gain_db = (int8_t)(p->level / 2);

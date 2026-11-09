@@ -2439,6 +2439,60 @@ int main(int argc, char **argv)
         check(ok, "ACCENTS/SLIDES on the drum track: greyed, the knobs rest, ALGORITHM walks out");
         go_home(); song.sel = 0; frame();
     }
+    {   /* 2.9.10: the module's one switch — nothing engages DUB but the DUB page's KNOB 1.
+         * The siren (its knobs, the momentary OCT+), the loads (riddim, sound, preset), the
+         * skank chord, the ISO bands and the DUB rows FILTER/MIX/SEND all leave it off */
+        dub_enabled = 0; dub_isolator.enabled = 0;
+        dub_menu_preset = 0; dub_menu_riddim = 0;
+        ui.menu = 1; ui.menu_sel = MI_SIR_TYPE; ui.force = 1; frame();
+        turns(panel.enc[EN_K1], 2);                    /* SIREN TYPE */
+        turns(panel.enc[EN_K2], 2);                    /* SIREN WAVE */
+        turns(panel.enc[EN_K3], 2);                    /* SIREN PITCH */
+        turns(panel.enc[EN_K4], 2);                    /* SIREN LEVEL */
+        press(B_OCTUP);                                /* the momentary siren: armed, but the
+                                                        * module stays shut (it renders nothing) */
+        release(B_OCTUP);
+        check(dub_enabled == 0u && dub_isolator.enabled == 0u,
+              "menu DUB gate: the siren page (knobs, the momentary OCT+) leaves DUB off");
+        turns(panel.enc[EN_SELECT], -1);               /* back to the DUB page */
+        check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB gate: SELECT left lands on the DUB page");
+        turns(panel.enc[EN_K2], 1);                    /* the filter */
+        turns(panel.enc[EN_K3], 1);                    /* the mix */
+        turns(panel.enc[EN_K4], 1);                    /* the send */
+        check(dub_enabled == 0u, "menu DUB gate: FILTER/MIX/SEND turns leave DUB off");
+        ui.menu_sel = MI_DUB_PRESET; ui.force = 1; frame();
+        tap(B_OCTUP);                                  /* the preset applies, the module not */
+        check(dub_enabled == 0u, "menu DUB gate: OCT+ on DUB PRESET leaves DUB off");
+        turns(panel.enc[EN_SELECT], 5);                /* DUB -> SIREN -> SR2 -> SKANK -> DLY -> RIDDIM */
+        check(mi_sec(ui.menu_sel) == MS_RIDDIM, "menu DUB gate: SELECT right walks to the RIDDIM page");
+        tap(B_OCTUP);                                  /* the load lands, the module not */
+        check(dub_sequence.length == 64u && dub_enabled == 0u,
+              "menu DUB gate: OCT+ loads the riddim (LEN 64) and leaves DUB off");
+        turns(panel.enc[EN_SELECT], -2);               /* back to the SKANK page */
+        ui.menu_sel = MI_SKANK_CHD; ui.force = 1; frame();
+        tap(B_OCTUP);                                  /* the chord plays, the module not */
+        check(dub_menu_skank_count > 0u && dub_enabled == 0u,
+              "menu DUB gate: OCT+ plays the skank chord and leaves DUB off");
+        turns(panel.enc[EN_SELECT], 4);                /* to the ISO page (SKANK -> DLY -> RIDDIM -> PRESET -> ISO) */
+        check(mi_sec(ui.menu_sel) == MS_ISO, "menu DUB gate: SELECT walks to the ISO page");
+        turns(panel.enc[EN_K1], 2);                    /* a band's gain, the module not */
+        check(dub_enabled == 0u, "menu DUB gate: an ISO band turn leaves DUB off");
+        turns(panel.enc[EN_SELECT], -7);               /* back to the DUB page */
+        check(mi_sec(ui.menu_sel) == MS_DUB && ui.menu_sel == MI_DUB_ON,
+              "menu DUB gate: back on the DUB page, the cursor on DUB ON");
+        turns(panel.enc[EN_K1], 1);
+        check(dub_enabled == 1u && dub_isolator.enabled == 1u,
+              "menu DUB gate: KNOB 1 right is the one switch that engages DUB");
+        turns(panel.enc[EN_K1], -1);
+        check(dub_enabled == 0u, "menu DUB gate: KNOB 1 left disengages");
+        tap(B_OCTUP);
+        check(dub_enabled == 1u, "menu DUB gate: OCT+ on the row toggles it on");
+        tap(B_OCTUP);
+        check(dub_enabled == 0u, "menu DUB gate: OCT+ again toggles it off");
+        tap(B_OCTDN);
+        check(ui.menu == 0, "menu DUB gate: OCT- closes");
+        go_home(); ui.force = 1; frame();
+    }
     {   /* fuzz: 20000 frames of random buttons (held or tapped), knobs and keys, with the audio running
          * between frames; every draw stays on the screen (lcd_blit / lcd_fill assert it) */
         uint32_t f, seed = 777, held = 0;
@@ -2461,7 +2515,7 @@ int main(int argc, char **argv)
         fm1_in.buttons = 0; fm1_in.notes = 0; frames(4);
         #undef R
     }
-    printf("ui: %s\n", fails ? "FAILED" : "pages, layers (punch, steps, erase, roll, key, mix), layer lock, song layer, REC hold, drums, REC, 20000-frame fuzz PASS");
+    printf("ui: %s\n", fails ? "FAILED" : "pages, layers (punch, steps, erase, roll, key, mix), layer lock, song layer, REC hold, drums, REC, dub gate (K1 only), 20000-frame fuzz PASS");
     return fails;
 }
 #endif

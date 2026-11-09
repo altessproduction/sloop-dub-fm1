@@ -93,12 +93,13 @@ class SloopProcessor extends AudioWorkletProcessor {
         const leds = new Uint8Array(this.e.memory.buffer, this.ledPtr, 11).slice();
         const dims = new Uint8Array(this.e.memory.buffer, this.ledDimPtr, 11).slice();
         const seq = this.seqState();        // (2.9.4) the dub sequencer's playhead, for the DSQ view
+        const dub = typeof this.e.emu_dbg === 'function' ? this.e.emu_dbg(12) : null;   // (2.9.10) the module on?
         if (gen !== this.lastGen) {
             this.lastGen = gen;
             const fb = new Uint16Array(this.e.memory.buffer, this.fbPtr, 240 * 240).slice();
-            this.port.postMessage({ t: 'frame', fb, leds, dims, seq }, [fb.buffer]);
+            this.port.postMessage({ t: 'frame', fb, leds, dims, seq, dub }, [fb.buffer]);
         } else {
-            this.port.postMessage({ t: 'leds', leds, dims, seq });
+            this.port.postMessage({ t: 'leds', leds, dims, seq, dub });
         }
     }
 

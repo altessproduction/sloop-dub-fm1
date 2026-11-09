@@ -62,8 +62,13 @@ def active_steps(page, trk=None):
 
 
 def main():
-    server = serve()
-    time.sleep(0.2)
+    url = sys.argv[1] if len(sys.argv) > 1 else f"http://127.0.0.1:{PORT}/dub/"
+    live = url.startswith("http")
+    server = serve() if not live else None
+    if live:
+        time.sleep(0.2)
+    else:
+        time.sleep(0.2)
     errs, fails = [], []
     def check(name, ok, detail=""):
         print(f"[{'PASS' if ok else 'FAIL'}] {name} {detail}")
@@ -75,7 +80,7 @@ def main():
         page = browser.new_context(viewport={"width": 1400, "height": 1000}).new_page()
         page.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
         page.on("pageerror", lambda e: errs.append("PAGE: " + str(e)))
-        page.goto(f"http://127.0.0.1:{PORT}/dub/", wait_until="networkidle")
+        page.goto(url, wait_until="networkidle")
         page.locator("#power").click()
         time.sleep(2.6)
         page.evaluate("""() => {
@@ -166,7 +171,8 @@ def main():
               page.evaluate("document.getElementById('dub-length').value") == "64")
 
         browser.close()
-    server.shutdown()
+    if server:
+        server.shutdown()
 
     if errs:
         print("console errors:", errs[:6])

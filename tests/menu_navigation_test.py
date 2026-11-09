@@ -33,9 +33,9 @@ def main():
             page.screenshot(path=str(OUT / "menu_home_long.png"))
             page.keyboard.up("7")
             page.wait_for_timeout(250)
-            # SELECT is ArrowUp (next page) / ArrowDown (previous page): the thirteen pages
-            # are SCR LGT AUD SEQ SYS DUB SIR SR2 SKK DSQ RDM PRS ISO; screenshot the Dub ones.
-            pages = [("dub", 5), ("siren", 1), ("siren2", 1), ("skank", 1), ("dseq", 1), ("riddim", 1), ("preset", 1), ("iso", 1)]
+            # SELECT is ArrowUp (next page) / ArrowDown (previous page): the fourteen pages
+            # are SCR LGT AUD SEQ SYS DUB SIR SR2 SKK DLY SND RDM PRS ISO; screenshot the Dub ones.
+            pages = [("dub", 5), ("siren", 1), ("siren2", 1), ("skank", 1), ("dly", 1), ("snd", 1), ("riddim", 1), ("preset", 1), ("iso", 1)]
             for name, steps in pages:
                 for _ in range(steps):
                     page.keyboard.press("ArrowUp")

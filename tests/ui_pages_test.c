@@ -1221,8 +1221,9 @@ int main(int argc, char **argv)
     {   /* the Dub pages (2.9): one page per function after a long HOME press:
          * DUB (enable, filter (2.9.7), mix, send (2.9.7), preset), SIREN (2.9.1, two pages:
          * SIR — type, wave, pitch, level — and SR2 — rate, depth, sym, send), SKANK (chord,
-         * root, octave, velocity; OCT+ plays the chord), DLY (2.9.7: the tape delay: time,
-         * release, sync, division) and ISO (the four bands) */
+         * root, octave, velocity; OCT+ plays the chord), DLY (2.9.11: the tape delay: level,
+         * feedback, mode, time), SEND (2.9.12: the four tracks' throws into the delay, a
+         * pot a track) and ISO (the four bands) */
         ui.menu = 1; ui.menu_sel = MI_DUB_ON; ui.force = 1; frame(); ppm("menu-dub");
         check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB: the module's page (ENABLE, FILTER, MIX, SEND, PRESET)");
         turns(panel.enc[EN_K1], 1);
@@ -1366,6 +1367,44 @@ int main(int argc, char **argv)
             check(dub_dly_sync == 1u && song.g[G_DTIME] == 8, "menu DLY: OCT+ on DLY MODE: the last division back");
             dub_dly_set_sync(1);                       /* back to the tempo, the state the walk came with */
             song.g[G_DTIME] = dt0;
+        }
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_SDLY && ui.menu_sel == MI_SD_BASS,
+              "menu: SELECT right: SEND, BASS SEND its first row");
+        ui.force = 1; frame(); ppm("menu-snd");
+        {   /* (2.9.12) the four tracks' throws into the delay: a pot a track (the 7 a detent),
+               the drums' row the GLO > DRUMS DLY; OCT+ dry or the half send back. The rows
+               start from zero here, whatever the walk above left behind */
+            int16_t b0 = trk[0].p[P_DLY], sk0 = trk[1].p[P_DLY], m0 = trk[2].p[P_DLY], d0 = song.g[G_DRDLY];
+            trk[0].p[P_DLY] = 0; trk[1].p[P_DLY] = 0; trk[2].p[P_DLY] = 0; song.g[G_DRDLY] = 0;
+            turns(panel.enc[EN_K1], 2);
+            check(ui.menu_sel == MI_SD_BASS && trk[0].p[P_DLY] == 14,
+                  "menu SEND: KNOB 1 right two: BASS SEND up (the pot's 7 a detent)");
+            check(!strcmp(mi_value(MI_SD_BASS, &(uint16_t){0}), "11 %"),
+                  "menu SEND: BASS SEND reads as the editor's percent");
+            tap(B_OCTUP);
+            check(trk[0].p[P_DLY] == 0u && !strcmp(mi_value(MI_SD_BASS, &(uint16_t){0}), "DRY"),
+                  "menu SEND: OCT+ on BASS SEND: dry, the row says DRY");
+            tap(B_OCTUP);
+            check(trk[0].p[P_DLY] == 64u, "menu SEND: OCT+ again: the half send back");
+            turns(panel.enc[EN_K2], -1);
+            check(ui.menu_sel == MI_SD_SKANK && trk[1].p[P_DLY] == 0u,
+                  "menu SEND: KNOB 2 left: SKANK SEND stays dry (clamped at 0)");
+            turns(panel.enc[EN_K3], 1);
+            check(ui.menu_sel == MI_SD_MEL && trk[2].p[P_DLY] == 7,
+                  "menu SEND: KNOB 3 right: MELODY SEND up");
+            turns(panel.enc[EN_K4], 3);
+            check(ui.menu_sel == MI_SD_DRUM && song.g[G_DRDLY] == 21,
+                  "menu SEND: KNOB 4 right three: DRUM SEND up (the drums' GLO > DRUMS DLY)");
+            check(!strcmp(mi_value(MI_SD_DRUM, &(uint16_t){0}), "17 %"),
+                  "menu SEND: DRUM SEND reads as a percent too");
+            tap(B_OCTUP);
+            check(song.g[G_DRDLY] == 0u, "menu SEND: OCT+ on DRUM SEND: dry");
+            tap(B_OCTUP);
+            check(song.g[G_DRDLY] == 64u, "menu SEND: OCT+ again: the half send back");
+            trk[0].p[P_DLY] = b0; trk[1].p[P_DLY] = sk0; trk[2].p[P_DLY] = m0;
+            song.g[G_DRDLY] = d0;
         }
 
         turns(panel.enc[EN_SELECT], 1);
@@ -2479,21 +2518,21 @@ int main(int argc, char **argv)
         ui.menu_sel = MI_DUB_PRESET; ui.force = 1; frame();
         tap(B_OCTUP);                                  /* the preset applies, the module not */
         check(dub_enabled == 0u, "menu DUB gate: OCT+ on DUB PRESET leaves DUB off");
-        turns(panel.enc[EN_SELECT], 5);                /* DUB -> SIREN -> SR2 -> SKANK -> DLY -> RIDDIM */
+        turns(panel.enc[EN_SELECT], 6);                /* DUB -> SIREN -> SR2 -> SKANK -> DLY -> SEND -> RIDDIM */
         check(mi_sec(ui.menu_sel) == MS_RIDDIM, "menu DUB gate: SELECT right walks to the RIDDIM page");
         tap(B_OCTUP);                                  /* the load lands, the module not */
         check(dub_sequence.length == 64u && dub_enabled == 0u,
               "menu DUB gate: OCT+ loads the riddim (LEN 64) and leaves DUB off");
-        turns(panel.enc[EN_SELECT], -2);               /* back to the SKANK page */
+        turns(panel.enc[EN_SELECT], -3);               /* back to the SKANK page (through SEND and DLY) */
         ui.menu_sel = MI_SKANK_CHD; ui.force = 1; frame();
         tap(B_OCTUP);                                  /* the chord plays, the module not */
         check(dub_menu_skank_count > 0u && dub_enabled == 0u,
               "menu DUB gate: OCT+ plays the skank chord and leaves DUB off");
-        turns(panel.enc[EN_SELECT], 4);                /* to the ISO page (SKANK -> DLY -> RIDDIM -> PRESET -> ISO) */
+        turns(panel.enc[EN_SELECT], 5);                /* to the ISO page (SKANK -> DLY -> SEND -> RIDDIM -> PRESET -> ISO) */
         check(mi_sec(ui.menu_sel) == MS_ISO, "menu DUB gate: SELECT walks to the ISO page");
         turns(panel.enc[EN_K1], 2);                    /* a band's gain, the module not */
         check(dub_enabled == 0u, "menu DUB gate: an ISO band turn leaves DUB off");
-        turns(panel.enc[EN_SELECT], -7);               /* back to the DUB page */
+        turns(panel.enc[EN_SELECT], -8);               /* back to the DUB page */
         check(mi_sec(ui.menu_sel) == MS_DUB && ui.menu_sel == MI_DUB_ON,
               "menu DUB gate: back on the DUB page, the cursor on DUB ON");
         turns(panel.enc[EN_K1], 1);

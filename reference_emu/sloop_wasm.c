@@ -401,7 +401,8 @@ WASM_EXPORT("emu_enc") void emu_enc(uint32_t e, int32_t steps)
 WASM_EXPORT("emu_dbg") uint32_t emu_dbg(uint32_t idx)
 {   /* the console's state probe for the tests: 0 playing, 1 tick, 2 bpm, 3 dly div,
      * 4 dly fdbk, 5 dly mix, 6 sir level, 7 sir active, 8 sir send, 9 dub send,
-     * 10 dly ms, 11 dly sync, 12 dub module on */
+     * 10 dly ms, 11 dly sync, 12 dub module on, 13..16 the tracks' sends (2.9.12:
+     * 13 bass, 14 skank, 15 melody, 16 drums) */
     switch (idx) {
     case 0: return song.playing;
     case 1: return song.tick;
@@ -415,6 +416,10 @@ WASM_EXPORT("emu_dbg") uint32_t emu_dbg(uint32_t idx)
     case 9: return dub_send;
     case 10: return dub_dly_ms;
     case 11: return dub_dly_sync;
+    case 13: return (uint32_t)trk[0].p[P_DLY];
+    case 14: return (uint32_t)trk[1].p[P_DLY];
+    case 15: return (uint32_t)trk[2].p[P_DLY];
+    case 16: return (uint32_t)song.g[G_DRDLY];
     default: return (uint32_t)dub_enabled;
     }
 }
@@ -532,6 +537,24 @@ WASM_EXPORT("emu_dub_send") void emu_dub_send(uint32_t v)
 WASM_EXPORT("emu_dub_send_get") uint32_t emu_dub_send_get(void)
 {
     return dub_send;
+}
+
+WASM_EXPORT("emu_track_send") void emu_track_send(uint32_t track, uint32_t v)
+{   /* (2.9.12) the SEND page: a sequencer track's throw into the delay — 0 the bass,
+     * 1 the skank, 2 the melody (their P_DLY), 3 the drums (the GLO > DRUMS DLY) */
+    if (track < 3u)
+        trk[track].p[P_DLY] = (int16_t)(v > 127u ? 127u : v);
+    else if (track == 3u)
+        song.g[G_DRDLY] = (int16_t)(v > 127u ? 127u : v);
+}
+
+WASM_EXPORT("emu_track_send_get") uint32_t emu_track_send_get(uint32_t track)
+{
+    if (track < 3u)
+        return (uint32_t)trk[track].p[P_DLY];
+    if (track == 3u)
+        return (uint32_t)song.g[G_DRDLY];
+    return 0;
 }
 
 WASM_EXPORT("emu_dub_dly_time") void emu_dub_dly_time(uint32_t ms)

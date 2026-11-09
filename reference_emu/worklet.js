@@ -50,6 +50,7 @@ class SloopProcessor extends AudioWorkletProcessor {
             else if (m.t === 'dub-mix') { if (typeof this.e.emu_dub_mix === 'function') this.e.emu_dub_mix(m.mix || 0); }
             else if (m.t === 'dub-filter') { if (typeof this.e.emu_dub_filter === 'function') this.e.emu_dub_filter(m.v || 64); }   // (2.9.7) the DUB page's KNOB 2
             else if (m.t === 'dub-send') { if (typeof this.e.emu_dub_send === 'function') this.e.emu_dub_send(m.v || 0); }           // (2.9.7) the throw, KNOB 4
+            else if (m.t === 'dub-track-send') { if (typeof this.e.emu_track_send === 'function') this.e.emu_track_send(m.track || 0, m.v || 0); }   // (2.9.12) the SEND page, a pot a track
             else if (m.t === 'dub-dly') {                        // (2.9.7) the DLY page's tape delay
                 if (typeof this.e.emu_dub_dly_time === 'function') {
                     if (m.time != null) this.e.emu_dub_dly_time(m.time);
@@ -95,12 +96,14 @@ class SloopProcessor extends AudioWorkletProcessor {
         const dims = new Uint8Array(this.e.memory.buffer, this.ledDimPtr, 11).slice();
         const seq = this.seqState();        // (2.9.4) the dub sequencer's playhead, for the DSQ view
         const dub = typeof this.e.emu_dbg === 'function' ? this.e.emu_dbg(12) : null;   // (2.9.10) the module on?
+        const snd = typeof this.e.emu_track_send_get === 'function'
+            ? [0, 1, 2, 3].map(t => this.e.emu_track_send_get(t)) : null;   // (2.9.12) the SEND page's four throws
         if (gen !== this.lastGen) {
             this.lastGen = gen;
             const fb = new Uint16Array(this.e.memory.buffer, this.fbPtr, 240 * 240).slice();
-            this.port.postMessage({ t: 'frame', fb, leds, dims, seq, dub }, [fb.buffer]);
+            this.port.postMessage({ t: 'frame', fb, leds, dims, seq, dub, snd }, [fb.buffer]);
         } else {
-            this.port.postMessage({ t: 'leds', leds, dims, seq, dub });
+            this.port.postMessage({ t: 'leds', leds, dims, seq, dub, snd });
         }
     }
 

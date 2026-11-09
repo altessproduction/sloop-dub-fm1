@@ -370,6 +370,7 @@ body.compact #manual { display: none; }
         <button class="dub-tab" data-dub-page="sr2" role="tab" aria-selected="false" type="button">SR2</button>
         <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
         <button class="dub-tab" data-dub-page="dly" role="tab" aria-selected="false" type="button">DLY</button>
+        <button class="dub-tab" data-dub-page="snd" role="tab" aria-selected="false" type="button">SND</button>
         <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">SEQ</button>
         <button class="dub-tab" data-dub-page="rdm" role="tab" aria-selected="false" type="button">RDM</button>
         <button class="dub-tab" data-dub-page="prs" role="tab" aria-selected="false" type="button">PRS</button>
@@ -408,6 +409,20 @@ body.compact #manual { display: none; }
             <label>Mode <select id="dub-dly-mode" aria-label="Mode du delay : libre ou division"><option value="free" selected>FREE</option><option value="0">1/4</option><option value="1">1/8</option><option value="2">1/16</option><option value="3">1/32</option><option value="4">8T</option><option value="5">16T</option><option value="6">1/8D</option><option value="7">1/16D</option><option value="8">1/4D</option></select></label>
         </div>
         <p class="dub-hint">Le mode DUB fait tourner le delay en tape : la tête de lecture ondule (wow / flutter), les répétitions se saturent et le temps glisse vers le réglage. Mode FREE, la durée libre (ms) règle le temps ; une division, le temps suit le tempo du projet. Le feedback (K3) règle les répétitions, le niveau (K2) l'écho dans le mix. L'envoi du module DUB (onglet DUB, « Envoi delay ») nourrit ce bus.</p>
+    </div>
+
+    <div class="dub-page" data-dub-panel="snd" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>BASS SEND · SKANK SEND <small>K1 · K2</small></h3>
+            <label>Basse <input id="dub-send-bass" data-dub-track="0" type="range" min="0" max="127" value="0"><output>DRY</output></label>
+            <label>Skank <input id="dub-send-skank" data-dub-track="1" type="range" min="0" max="127" value="0"><output>DRY</output></label>
+        </div>
+        <div class="dub-card">
+            <h3>MELODY SEND · DRUM SEND <small>K3 · K4</small></h3>
+            <label>Mélodie <input id="dub-send-mel" data-dub-track="2" type="range" min="0" max="127" value="0"><output>DRY</output></label>
+            <label>Batterie <input id="dub-send-drum" data-dub-track="3" type="range" min="0" max="127" value="0"><output>DRY</output></label>
+        </div>
+        <p class="dub-hint">La page SEND (2.9.12) règle l'envoi de chaque piste du séquenceur dans le delay : un potentiomètre par piste, K1 la basse, K2 le skank, K3 la mélodie, K4 la batterie (son DLY de GLO &gt; DRUMS). 0 % = sec (DRY), 100 % = la piste entière dans l'écho. Les envois suivent le projet.</p>
     </div>
 
     <div class="dub-page" data-dub-panel="sir" role="tabpanel" hidden>

@@ -54,11 +54,12 @@ def main():
             assert "SLOOP DUB" in page.locator("#title").inner_text()
             assert "FELUCCA" not in page.locator("body").inner_text()
             # The Dub controls are part of this same firmware emulator page: the tabbed
-            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DLY RDM PRS
-            # ISO), plus the sequencer view (SEQ) — 2.9.7 replaced the DSQ page with DLY.
+            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DLY SND RDM
+            # PRS ISO), plus the sequencer view (SEQ) — 2.9.7 replaced the DSQ page with DLY,
+            # 2.9.12 added the SEND page (the four tracks' throws into the delay).
             assert page.locator("#dub-console").is_visible()
-            assert page.locator(".dub-tab").count() == 9
-            assert page.locator(".dub-page").count() == 9
+            assert page.locator(".dub-tab").count() == 10
+            assert page.locator(".dub-page").count() == 10
             assert page.locator(".dub-page.on").count() == 1
             assert page.locator("#dub-enabled").count() == 1
             assert page.locator("#dub-mix").count() == 1
@@ -73,6 +74,12 @@ def main():
             assert page.locator("#dub-siren-level").count() == 1
             assert page.locator("#dub-skank").count() == 1
             assert page.locator("#dub-skank-vel").count() == 1
+            # 2.9.12: the SEND tab — a slider a sequencer track (bass, skank, melody, drums)
+            assert page.locator("input[data-dub-track]").count() == 4
+            assert page.locator("#dub-send-bass").count() == 1
+            assert page.locator("#dub-send-skank").count() == 1
+            assert page.locator("#dub-send-mel").count() == 1
+            assert page.locator("#dub-send-drum").count() == 1
             assert page.locator("#dub-root option").count() == 12
             assert page.locator("#dub-quality option").count() == 8
             assert page.locator("#dub-octave option").count() == 3
@@ -91,6 +98,19 @@ def main():
             page.click('.dub-tab[data-dub-page="sr2"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "sr2"
             assert page.locator('[data-dub-panel="sr2"]').is_visible()
+            page.click('.dub-tab[data-dub-page="dub"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
+            # 2.9.12: the SEND tab: the four tracks' throws into the delay, a slider a track
+            page.click('.dub-tab[data-dub-page="snd"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "snd"
+            assert page.locator('[data-dub-panel="snd"]').is_visible()
+            page.locator("#dub-send-bass").fill("64")
+            page.locator("#dub-send-bass").dispatch_event("input")
+            page.locator("#dub-send-drum").fill("48")
+            page.locator("#dub-send-drum").dispatch_event("input")
+            page.wait_for_timeout(250)
+            assert page.locator("#dub-send-bass + output").inner_text() == "50 %"
+            assert page.locator("#dub-send-drum + output").inner_text() == "38 %"
             page.click('.dub-tab[data-dub-page="dub"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
             # 2.9.3: the PRESET tab: four selectors of the dub sound banks and their loads
@@ -143,6 +163,27 @@ def main():
             page.keyboard.press(" ")
             page.wait_for_timeout(120)
             assert page.locator("#device").is_visible()
+
+            # 2.9.12: the SEND sliders reach the firmware and the worklet mirrors the four
+            # throws back (emu_track_send_get) — window.dubSndState is the firmware's own
+            # state, so this proves the whole path: slider -> message -> wasm -> tracks.
+            page.click('.dub-tab[data-dub-page="snd"]')
+            page.locator("#dub-send-mel").fill("127")
+            page.locator("#dub-send-mel").dispatch_event("input")
+            page.wait_for_timeout(400)
+            snd = page.evaluate("window.dubSndState")
+            assert snd is not None and snd[2] == 127, f"melody send did not reach the firmware: {snd}"
+            page.locator("#dub-send-bass").fill("32")
+            page.locator("#dub-send-bass").dispatch_event("input")
+            page.wait_for_timeout(400)
+            snd = page.evaluate("window.dubSndState")
+            assert snd is not None and snd[0] == 32 and snd[2] == 127, f"bass send lost, melody drifted: {snd}"
+            assert page.locator("#dub-send-mel + output").inner_text() == "100 %"
+            page.locator("#dub-send-mel").fill("0")
+            page.locator("#dub-send-mel").dispatch_event("input")
+            page.locator("#dub-send-bass").fill("0")
+            page.locator("#dub-send-bass").dispatch_event("input")
+            page.wait_for_timeout(300)
 
             # 2.9.10: the module's one switch. With the panel's box off, no load and
             # no siren flips it on — the box (the menu's K1 on the hardware) alone does.

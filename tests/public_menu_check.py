@@ -24,7 +24,7 @@ with sync_playwright() as p:
     page.keyboard.up('7')
     page.wait_for_timeout(700)
     page.screenshot(path=str(OUT / 'public_menu_home.png'))
-    # The Dub pages are six SELECT steps after SYSTEM: DUB SIR SR2 SKK DSQ ISO.
+    # The Dub pages follow SYSTEM by SELECT: DUB SIR SR2 SKK DLY SND RDM PRS ISO.
     # The LCD is a canvas (no text nodes), so each page is judged by its lit-pixel
     # share and kept as a screenshot for the eye.
     lit = """() => {
@@ -34,7 +34,7 @@ with sync_playwright() as p:
       for (let k = 0; k < d.length; k += 4) if (d[k] + d[k+1] + d[k+2] > 60) n++;
       return n / (240 * 240);
     }"""
-    for name, steps in [('dub', 5), ('siren', 1), ('siren2', 1), ('skank', 1), ('dseq', 1), ('riddim', 1), ('preset', 1), ('iso', 1)]:
+    for name, steps in [('dub', 5), ('siren', 1), ('siren2', 1), ('skank', 1), ('dly', 1), ('snd', 1), ('riddim', 1), ('preset', 1), ('iso', 1)]:
         for _ in range(steps):
             page.keyboard.press('ArrowUp')
             page.wait_for_timeout(220)

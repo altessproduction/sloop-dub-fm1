@@ -261,6 +261,26 @@ function dubSend(v) {
     if (out) out.textContent = Number(v) ? String(v) : 'DRY';
     dubMessage({ t: 'dub-send', v: Number(v) });
 }
+function dubTrackSend(track, v) {      /* (2.9.12) the SEND page: a track's throw into the delay */
+    const input = document.querySelector('input[data-dub-track="' + track + '"]');
+    const out = input ? document.querySelector('#' + input.id + ' + output') : null;
+    const x = Math.max(0, Math.min(127, Number(v) || 0));
+    if (input && Number(input.value) !== x) input.value = String(x);
+    if (out) out.textContent = x ? Math.round(x * 100 / 127) + ' %' : 'DRY';
+    dubMessage({ t: 'dub-track-send', track, v: x });
+}
+function dubSndSync(snd) {             /* (2.9.12) the firmware's four throws, mirrored back:
+                                        * the sliders show the state the firmware holds */
+    if (snd == null) return;
+    window.dubSndState = snd;
+    document.querySelectorAll('input[data-dub-track]').forEach(input => {
+        if (input === document.activeElement) return;   // the user is turning that one
+        const x = snd[Number(input.dataset.dubTrack)] || 0;
+        if (Number(input.value) !== x) input.value = String(x);
+        const out = document.querySelector('#' + input.id + ' + output');
+        if (out) out.textContent = x ? Math.round(x * 100 / 127) + ' %' : 'DRY';
+    });
+}
 function dubDly(part, v) {             /* part: time (ms) / mix / rel / mode ('free' or a division) — one bus, four rows */
     const m = { t: 'dub-dly' };
     if (part === 'mode') {             /* (2.9.11) the firmware's KNOB 4: FREE or a division */
@@ -460,6 +480,8 @@ function setupDubPanel() {
     document.getElementById('dub-mix')?.addEventListener('input', ev => dubMix(ev.target.value));
     document.getElementById('dub-filter')?.addEventListener('input', ev => dubFilter(ev.target.value));
     document.getElementById('dub-send')?.addEventListener('input', ev => dubSend(ev.target.value));
+    document.querySelectorAll('input[data-dub-track]').forEach(input =>
+        input.addEventListener('input', () => dubTrackSend(Number(input.dataset.dubTrack), input.value)));
     document.getElementById('dub-dly-time')?.addEventListener('input', ev => dubDly('time', Number(ev.target.value)));
     document.getElementById('dub-dly-mix')?.addEventListener('input', ev => dubDly('mix', Number(ev.target.value)));
     document.getElementById('dub-dly-rel')?.addEventListener('input', ev => dubDly('rel', Number(ev.target.value)));
@@ -590,8 +612,8 @@ async function powerOn() {
     });
     node.port.onmessage = ev => {
         const m = ev.data;
-        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); }
-        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); }
+        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); dubSndSync(m.snd); }
+        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); dubSndSync(m.snd); }
         else if (m.t === 'dub-seq-dump') dubSeqApply(m);   // (2.9.4) the DSQ view's readback
         else if (m.t === 'flash') saveFlash(m.data);
     };

@@ -9,7 +9,9 @@
  * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN LEVEL — and SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM,
  * SIREN SEND), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
  * DLY (2.9.11: the tape delay — DLY TIME (the free ms when MODE is FREE), DLY LEVEL (the
- * echo's wet level), DLY FEEDBK (the repeats' feedback), DLY MODE (FREE, 1/4, 1/8, ...)),
+ * echo's wet level), DLY FEEDBK (the repeats' feedback), DLY MODE (FREE, 1/4, 1/8, ...))
+ * and SEND (2.9.12: the four tracks' throws into the delay — BASS SEND, SKANK SEND,
+ * MELODY SEND, DRUM SEND; a knob a track, the drums' the GLO > DRUMS one),
  * RIDDIM (2.9.2:
  * RIDDIM, BASS PATTERN, SKANK PATTERN, DRUM PATTERN; OCT+ on each loads the selection into
  * the SLOOP sequencer (dub_tracks_load): KNOB 1 the whole riddim, KNOB 2 the bass line,
@@ -34,6 +36,7 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
        MI_SIR_RATE, MI_SIR_DPT, MI_SIR_SYM, MI_SIR_SEND,
        MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
        MI_DLY_TIME, MI_DLY_LVL, MI_DLY_FDB, MI_DLY_MODE,
+       MI_SD_BASS, MI_SD_SKANK, MI_SD_MEL, MI_SD_DRUM,
        MI_RD_SEL, MI_RD_BASS, MI_RD_SKANK, MI_RD_DRUM,
        MI_PS_BASS, MI_PS_SKANK, MI_PS_MEL, MI_PS_KIT,
        MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
@@ -47,11 +50,12 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
                                               "SIREN RATE", "SIREN DEPTH", "SIREN SYM", "SIREN SEND",
                                               "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
                                               "DLY TIME", "DLY LEVEL", "DLY FEEDBK", "DLY MODE",
+                                              "BASS SEND", "SKANK SEND", "MELODY SEND", "DRUM SEND",
                                               "RIDDIM", "BASS PATTERN", "SKANK PATTERN", "DRUM PATTERN",
                                               "BASS PRESET", "SKANK PRESET", "MELODY PRESET", "DRUM KIT",
                                               "SUB", "BASS", "MIDS", "TOPS"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DLY, MS_RIDDIM, MS_PRESET, MS_ISO, MS_COUNT };
-static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DLY", "RDM", "PRS", "ISO"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DLY, MS_SDLY, MS_RIDDIM, MS_PRESET, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DLY", "SND", "RDM", "PRS", "ISO"};
 
 static uint8_t dub_menu_siren = 88;              /* the siren's level, the SIREN LEVEL row sets it */
 static uint8_t dub_menu_siren_held;              /* (2.9.8) OCT+ is down on a SIREN page: the siren sounds */
@@ -176,7 +180,7 @@ UI_SMALL static void dub_menu_preset_apply(void)
     dub_siren_set_send(&dub_siren, (uint8_t)(p->delay < 0 ? 0 : p->delay > 127 ? 127 : p->delay));
 }
 static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1,
-                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DLY_TIME, MI_RD_SEL, MI_PS_BASS, MI_DUB_SUB, MI_COUNT};
+                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DLY_TIME, MI_SD_BASS, MI_RD_SEL, MI_PS_BASS, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -369,6 +373,20 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
     }
     case MI_DLY_MODE:                                  /* (2.9.11) the mode: FREE or the synced division */
         return dub_dly_sync ? N_DLY[song.g[G_DTIME] < 0 ? 0 : song.g[G_DTIME] > 8 ? 8 : song.g[G_DTIME]] : "FREE";
+    case MI_SD_BASS:                                   /* (2.9.12) the tracks' throws, a knob a track */
+    case MI_SD_SKANK:                                  /* DRY at 0, a percent otherwise */
+    case MI_SD_MEL:                                    /* (the editor's own display) */
+    case MI_SD_DRUM: {
+        static char b[8];
+        int32_t v = i == MI_SD_DRUM ? song.g[G_DRDLY] : trk[i - MI_SD_BASS].p[P_DLY];
+        if (v <= 0) {
+            *c = C_DIM;
+            return "DRY";
+        }
+        fmt_int(b, (v * 100 + 63) / 127);
+        str_cpy(b + str_len(b), " %", 3);
+        return b;
+    }
     case MI_RD_SEL: return dub_riddim_name(dub_menu_riddim);
     case MI_RD_BASS: return dub_riddim_name(dub_menu_rbass);
     case MI_RD_SKANK: return dub_riddim_name(dub_menu_rskank);
@@ -403,6 +421,8 @@ UI_SMALL static void draw_menu(void)
                    dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
                    dub_siren.freq_hz * 6700477u + dub_siren.depth * 6700479u + dub_siren.rate * 6700481u +
                    dub_siren.type * 6700519u + dub_siren.wave * 6700523u + dub_siren.sym * 6700531u + dub_siren.send * 6700533u +
+                   trk[0].p[P_DLY] * 6700613u + trk[1].p[P_DLY] * 6700619u + trk[2].p[P_DLY] * 6700631u +
+                   song.g[G_DRDLY] * 6700637u +
                    dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_filter_get() * 6700471u +
                    dub_send * 6700483u + dub_dly_ms * 6700487u + dub_dly_sync * 6700491u +
                    song.g[G_DFDBK] * 6700529u + song.g[G_DTIME] * 6700537u +
@@ -824,6 +844,17 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             last = (uint8_t)(song.g[G_DTIME] < 0 ? 0 : song.g[G_DTIME] > 8 ? 8 : song.g[G_DTIME]) + 1u;
             dub_dly_set_sync(0);                       /* (leaving a division, any way: it is remembered) */
         }
+        break;
+    }
+    case MI_SD_BASS:                                   /* (2.9.12) the four tracks' sends, one delay */
+    case MI_SD_SKANK:                                  /* a pot a track (2.9.8's feel); OCT+ dry */
+    case MI_SD_MEL:                                    /* or a half send back */
+    case MI_SD_DRUM: {
+        int16_t *v = i == MI_SD_DRUM ? &song.g[G_DRDLY] : &trk[i - MI_SD_BASS].p[P_DLY];
+        if (s)
+            *v = (int16_t)clamp((int32_t)*v + pot_s(s, 127), 0, 127);
+        else
+            *v = (int16_t)(*v ? 0 : 64);
         break;
     }
     case MI_RD_SEL:                                    /* the ten riddims, round; OCT+ loads the whole */

@@ -49,6 +49,18 @@ int main(void)
     iso.p[DUB_BASS].mute = 1;
     check(iso.p[DUB_BASS].mute == 1, "per-band mute state");
 
+    /* (2.9.11) every band at rest: the module stands aside, the original passes
+     * bit for bit — the stereo kept, no smoother's colour (the hidden filter gone) */
+    dub_isolator_init(&iso);
+    iso.enabled = 1;
+    for (i = 0; i < 256; i++) {
+        left[i] = (int32_t)(i * 80);
+        right[i] = 255 * 80 - (int32_t)(i * 80);       /* the two channels differ: the stereo must survive */
+    }
+    dub_isolator_process(&iso, left, right, 256);
+    check(left[255] == 255 * 80 && right[0] == 255 * 80,
+          "isolator at rest: the untouched stereo passes, no hidden filter");
+
     dub_siren_init(&siren);
     check(siren.freq_hz == 740 && siren.depth == 96 && siren.rate == 8,
           "siren defaults 740 Hz depth 96 rate 2 Hz");

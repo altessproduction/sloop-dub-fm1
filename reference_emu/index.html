@@ -398,16 +398,16 @@ body.compact #manual { display: none; }
 
     <div class="dub-page" data-dub-panel="dly" role="tabpanel" hidden>
         <div class="dub-card">
-            <h3>DLY TIME · DLY RELEASE</h3>
+            <h3>DLY TIME · DLY LEVEL</h3>
             <label>Durée <input id="dub-dly-time" type="range" min="40" max="1400" step="8" value="400"><output>400 ms</output></label>
-            <label>Release <input id="dub-dly-rel" type="range" min="0" max="120" value="60"><output>60</output></label>
+            <label>Niveau <input id="dub-dly-mix" type="range" min="0" max="127" value="90"><output>90</output></label>
         </div>
         <div class="dub-card">
-            <h3>DLY SYNC · DLY DIVISION</h3>
-            <label class="dub-toggle">Synchro tempo <input id="dub-dly-sync" type="checkbox" checked></label>
-            <label>Division <select id="dub-dly-div" aria-label="Division de synchro"><option value="0">1/4</option><option value="1" selected>1/8</option><option value="2">1/16</option><option value="3">1/32</option><option value="4">8T</option><option value="5">16T</option><option value="6">1/8D</option><option value="7">1/16D</option><option value="8">1/4D</option></select></label>
+            <h3>DLY FEEDBK · DLY MODE</h3>
+            <label>Feedback <input id="dub-dly-rel" type="range" min="0" max="120" value="60"><output>60</output></label>
+            <label>Mode <select id="dub-dly-mode" aria-label="Mode du delay : libre ou division"><option value="free" selected>FREE</option><option value="0">1/4</option><option value="1">1/8</option><option value="2">1/16</option><option value="3">1/32</option><option value="4">8T</option><option value="5">16T</option><option value="6">1/8D</option><option value="7">1/16D</option><option value="8">1/4D</option></select></label>
         </div>
-        <p class="dub-hint">Le mode DUB fait tourner le delay en tape : la tête de lecture ondule (wow / flutter), les répétitions se saturent et le temps glisse vers le réglage. SYNC coupé, la durée libre (ms) règle le temps ; SYNC actif, la division suit le tempo du projet. L'envoi du module DUB (onglet DUB, « Envoi delay ») nourrit ce bus.</p>
+        <p class="dub-hint">Le mode DUB fait tourner le delay en tape : la tête de lecture ondule (wow / flutter), les répétitions se saturent et le temps glisse vers le réglage. Mode FREE, la durée libre (ms) règle le temps ; une division, le temps suit le tempo du projet. Le feedback (K3) règle les répétitions, le niveau (K2) l'écho dans le mix. L'envoi du module DUB (onglet DUB, « Envoi delay ») nourrit ce bus.</p>
     </div>
 
     <div class="dub-page" data-dub-panel="sir" role="tabpanel" hidden>
@@ -421,7 +421,7 @@ body.compact #manual { display: none; }
         <div class="dub-card">
             <h3>SIREN PITCH · SIREN LEVEL</h3>
             <label>Pitch <input id="dub-siren-freq" type="range" min="220" max="1200" step="2" value="740"><output>740 Hz</output></label>
-            <label>Level <input id="dub-siren-level" type="range" min="0" max="127" value="0"><output>OFF</output></label>
+            <label>Level <input id="dub-siren-level" type="range" min="0" max="127" value="88"><output>88</output></label>
             <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
         </div>
     </div>

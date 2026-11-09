@@ -54,6 +54,7 @@ class SloopProcessor extends AudioWorkletProcessor {
                 if (typeof this.e.emu_dub_dly_time === 'function') {
                     if (m.time != null) this.e.emu_dub_dly_time(m.time);
                     if (m.rel != null) this.e.emu_dub_dly_rel(m.rel);
+                    if (m.mix != null && typeof this.e.emu_dub_dly_mix === 'function') this.e.emu_dub_dly_mix(m.mix);   // (2.9.11) the echo's level
                     if (m.sync != null) this.e.emu_dub_dly_sync(m.sync);
                     if (m.div != null) this.e.emu_dub_dly_div(m.div);
                 }

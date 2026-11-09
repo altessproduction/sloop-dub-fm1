@@ -554,6 +554,16 @@ WASM_EXPORT("emu_dub_dly_rel_get") uint32_t emu_dub_dly_rel_get(void)
     return (uint32_t)song.g[G_DFDBK];
 }
 
+WASM_EXPORT("emu_dub_dly_mix") void emu_dub_dly_mix(uint32_t v)   /* (2.9.11) the echo's wet level, the project's MIX */
+{
+    song.g[G_DMIX] = (int16_t)(v > 127u ? 127u : v);
+}
+
+WASM_EXPORT("emu_dub_dly_mix_get") uint32_t emu_dub_dly_mix_get(void)
+{
+    return (uint32_t)song.g[G_DMIX];
+}
+
 WASM_EXPORT("emu_dub_dly_sync") void emu_dub_dly_sync(uint32_t on)
 {
     dub_dly_set_sync((uint8_t)(on ? 1u : 0u));

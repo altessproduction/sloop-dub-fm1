@@ -31,7 +31,7 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
         'emu_dub_siren_type', 'emu_dub_siren_wave', 'emu_dub_siren_sym', 'emu_dub_siren_send',
         'emu_dub_siren_level', 'emu_dub_siren_freq', 'emu_dub_siren_depth',
         'emu_dub_riddim_count', 'emu_dub_riddim_name', 'emu_dub_riddim_load', 'emu_dub_riddim_track',
-        'emu_dub_seq_track_len',
+        'emu_dub_seq_track_len', 'emu_dub_dly_mix', 'emu_dub_dly_mix_get',
         'emu_dub_sound_count', 'emu_dub_sound_name', 'emu_dub_sound_load'];
     for (const n of need)
         if (!names.includes(n)) throw new Error('missing export ' + n);

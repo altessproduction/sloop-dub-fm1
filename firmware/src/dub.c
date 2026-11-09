@@ -92,8 +92,17 @@ static int32_t dub_lowpass(int32_t x, int32_t *state, int32_t hz)
 
 void dub_isolator_process(dub_isolator_t *d, int32_t *left, int32_t *right, uint32_t n)
 {
-    uint32_t i;
+    uint32_t i, b, live = 0;
     if (!d->enabled || !d->mix)
+        return;
+    for (b = 0; b < DUB_BANDS; b++)                /* (2.9.11) every knob at rest: the module stands
+                                                    * aside and the original passes bit for bit —
+                                                    * the stereo kept, no smoother's colour */
+        if (d->p[b].gain_db || d->p[b].eq_db || d->p[b].mute) {
+            live = 1;
+            break;
+        }
+    if (!live)
         return;
     for (i = 0; i < n; i++) {
         int32_t in_l = left[i], in_r = right[i];
@@ -103,19 +112,21 @@ void dub_isolator_process(dub_isolator_t *d, int32_t *left, int32_t *right, uint
         int32_t mid = dub_lowpass(mono - low - low_mid, &d->lp[DUB_MIDS], d->xover[2]);
         int32_t bands[DUB_BANDS];
         int32_t wet_l = 0, wet_r = 0;
-        uint32_t b;
         bands[DUB_SUB] = low;
         bands[DUB_BASS] = low_mid;
         bands[DUB_MIDS] = mid;
         bands[DUB_TOPS] = mono - low - low_mid - mid;
         for (b = 0; b < DUB_BANDS; b++) {
-            int32_t eq = bands[b];
+            int32_t out = bands[b];                /* (2.9.11) the band out: itself, or its EQ laid on
+                                                    * once — the smoothers shape the EQ's reference
+                                                    * only, they never filter the sound again */
             int32_t q = d->p[b].eq_q + 1;
-            eq += (bands[b] - d->eq_fast[b]) * d->p[b].eq_db / 24;
-            d->eq_fast[b] += (eq - d->eq_fast[b]) / q;
+            d->eq_fast[b] += (bands[b] - d->eq_fast[b]) / q;
             d->eq_slow[b] += (d->eq_fast[b] - d->eq_slow[b]) >> 4;
+            if (d->p[b].eq_db)
+                out += (bands[b] - d->eq_slow[b]) * d->p[b].eq_db / 24;
             if (!d->p[b].mute)
-                wet_l += dub_mul15(d->eq_slow[b], dub_gain(d->p[b].gain_db));
+                wet_l += dub_mul15(out, dub_gain(d->p[b].gain_db));
         }
         wet_r = wet_l;
         left[i] = in_l + ((wet_l - in_l) * d->mix >> 7);

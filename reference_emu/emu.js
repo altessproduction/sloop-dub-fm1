@@ -230,11 +230,11 @@ function dubSync(on) {                 // (2.9.10) the checkbox mirrors the firm
 }
 function dubSirenLevel(level) {
     const out = document.querySelector('#dub-siren-level + output');
-    if (out) out.textContent = level ? String(level) : 'OFF';
+    if (out) out.textContent = String(level);   // (2.9.11) the value, always: 0 silent, like the FM-1's row
     dubMessage({ t: 'dub-siren-level', level });
 }
-function dubSiren(level) {                     // the hold button: 104 while held, the slider's level on release
-    dubSirenLevel(level ? 104 : Number(document.getElementById('dub-siren-level')?.value || 0));
+function dubSiren(held) {          // the hold button: the slider's level while held (0 stays silent), off on release
+    dubSirenLevel(held ? Number(document.getElementById('dub-siren-level')?.value || 0) : 0);
 }
 function dubBand(band) {
     const row = document.querySelector('[data-dub-band="' + band + '"]');
@@ -261,15 +261,15 @@ function dubSend(v) {
     if (out) out.textContent = Number(v) ? String(v) : 'DRY';
     dubMessage({ t: 'dub-send', v: Number(v) });
 }
-function dubDly(part, v) {             /* part: time (ms) / rel / sync / div — one bus, four rows */
+function dubDly(part, v) {             /* part: time (ms) / mix / rel / mode ('free' or a division) — one bus, four rows */
     const m = { t: 'dub-dly' };
-    m[part] = v;
-    if (part === 'time') {
-        const out = document.querySelector('#dub-dly-time + output');
-        if (out) out.textContent = v + ' ms';
-    } else if (part === 'rel') {
-        const out = document.querySelector('#dub-dly-rel + output');
-        if (out) out.textContent = String(v);
+    if (part === 'mode') {             /* (2.9.11) the firmware's KNOB 4: FREE or a division */
+        if (v === 'free') m.sync = 0;
+        else { m.sync = 1; m.div = Number(v); }
+    } else {
+        m[part] = v;
+        const out = document.querySelector('#dub-dly-' + part + ' + output');
+        if (out) out.textContent = part === 'time' ? v + ' ms' : String(v);
     }
     dubMessage(m);
 }
@@ -461,9 +461,9 @@ function setupDubPanel() {
     document.getElementById('dub-filter')?.addEventListener('input', ev => dubFilter(ev.target.value));
     document.getElementById('dub-send')?.addEventListener('input', ev => dubSend(ev.target.value));
     document.getElementById('dub-dly-time')?.addEventListener('input', ev => dubDly('time', Number(ev.target.value)));
+    document.getElementById('dub-dly-mix')?.addEventListener('input', ev => dubDly('mix', Number(ev.target.value)));
     document.getElementById('dub-dly-rel')?.addEventListener('input', ev => dubDly('rel', Number(ev.target.value)));
-    document.getElementById('dub-dly-sync')?.addEventListener('change', ev => dubDly('sync', ev.target.checked ? 1 : 0));
-    document.getElementById('dub-dly-div')?.addEventListener('change', ev => dubDly('div', Number(ev.target.value)));
+    document.getElementById('dub-dly-mode')?.addEventListener('change', ev => dubDly('mode', ev.target.value));
     document.querySelectorAll('[data-dub-band]').forEach(row => {
         row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));
     });

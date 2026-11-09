@@ -137,6 +137,30 @@ void dub_isolator_init(dub_isolator_t *d);
 void dub_isolator_process(dub_isolator_t *d, int32_t *left, int32_t *right, uint32_t n);
 void dub_isolator_set_band(dub_isolator_t *d, uint32_t band, dub_band_param_t p);
 
+/* 2.9.7: the DUB module's filter, the DUB page's KNOB 2. Bipolar: 0..63 lowpass
+ * (deeper the lower), 64 neutral (flat, no filtering), 65..127 highpass (deeper the
+ * higher). One state-variable filter a channel, its amount slewed so sweeps don't click. */
+void dub_filter_set(int16_t v);                                     /* 0..127, 64 = neutral */
+int16_t dub_filter_get(void);
+uint32_t dub_filter_hz(int16_t v);                                  /* the knob's cutoff, for the UI */
+void dub_filter_process(int32_t *left, int32_t *right, uint32_t n);
+
+/* 2.9.7: the DUB module's throw into the project's delay bus, the DUB page's KNOB 4
+ * (0..127), slewed. dub_send_feed adds the module's output (the same signal the master
+ * gets) into the delay's send bus, so the echoes come back through the project's MIX. */
+extern uint8_t dub_send;
+void dub_send_set(uint8_t v);
+void dub_send_feed(const int32_t *left, const int32_t *right, int32_t *dly_bus, uint32_t n);
+
+/* 2.9.7: the DLY page's tape delay — the project's delay bus running tape while DUB is
+ * on. SYNC off: the free time (dub_dly_ms, 40..1400) rules; SYNC on: the project's
+ * division (song.g[G_DTIME]) rules, as the delay always did. While DUB is on the read
+ * head wanders (wow and flutter) and the repeats are damped and saturated like a tape. */
+extern uint8_t dub_dly_sync;                                       /* 0 the free ms, 1 the division */
+extern uint16_t dub_dly_ms;                                        /* the free time, 40..1400 */
+void dub_dly_set_ms(uint16_t ms);
+void dub_dly_set_sync(uint8_t on);
+
 void dub_siren_init(dub_siren_t *s);
 void dub_siren_trigger(dub_siren_t *s, uint8_t level);
 void dub_siren_set_freq(dub_siren_t *s, uint16_t hz);      /* 220..1200, clamped */

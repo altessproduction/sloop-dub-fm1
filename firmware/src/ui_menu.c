@@ -3,11 +3,14 @@
 /* SLOOP menu (HOME held), in sections as the pages are (2.4): SCREEN (COLOR, ZOOM, KNOB ACCEL (2.7)), LIGHTS (LIGHTS, KEYS, NOTES),
  * AUDIO (LOWCUT, USB AUDIO, USB SERIAL (FELUCCA_CDC builds only), USB RATE (2.7 beta), FILTER RESO (2.7.2)), SEQ (2.7.1: STEP ADVANCE, DRUM PREVIEW),
  * SYSTEM (2ND CORE (dualcore), HARDWARE CALIBRATION, LEARN CLEAR (2.6), ABOUT),
- * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB PRESET, DUB MIX), SIREN (2.9.1, two pages:
+ * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB FILTER (2.9.7: a bipolar filter, lowpass
+ * left, highpass right, the center neutral), DUB MIX, DUB SEND (2.9.7: the throw into the delay),
+ * DUB PRESET), SIREN (2.9.1, two pages:
  * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN LEVEL — and SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM,
  * SIREN SEND), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
- * DSQ (2.9.6: the SLOOP sequencer's steps, what RIDDIM loaded — SEQ TRACK, SEQ LENGTH,
- * SEQ STEP, SEQ NOTE, SEQ VELOCITY read and edit the tracks' real steps), RIDDIM (2.9.2:
+ * DLY (2.9.7: the tape delay — DLY TIME (the free ms when SYNC is off), DLY RELEASE (the
+ * repeats' feedback), DLY SYNC (the tempo or not), DLY DIVISION (1/4, 1/8, 1/16, ...)),
+ * RIDDIM (2.9.2:
  * RIDDIM, BASS PATTERN, SKANK PATTERN, DRUM PATTERN; OCT+ on each loads the selection into
  * the SLOOP sequencer (dub_tracks_load): KNOB 1 the whole riddim, KNOB 2 the bass line,
  * KNOB 3 the skanks, KNOB 4 the drums — the PATTERN / NOTES pages show the steps after)
@@ -26,11 +29,11 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
        MI_SERIAL,
 #endif
        MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT,
-       MI_DUB_ON, MI_DUB_PRESET, MI_DUB_MIX,
+       MI_DUB_ON, MI_DUB_FLT, MI_DUB_MIX, MI_DUB_SEND, MI_DUB_PRESET,
        MI_SIR_TYPE, MI_SIR_WAVE, MI_SIR_FRQ, MI_SIR_LVL,
        MI_SIR_RATE, MI_SIR_DPT, MI_SIR_SYM, MI_SIR_SEND,
        MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
-       MI_DUB_TRACK, MI_DUB_LEN, MI_DUB_STEP, MI_DUB_NOTE, MI_DUB_VEL,
+       MI_DLY_TIME, MI_DLY_REL, MI_DLY_SYNC, MI_DLY_DIV,
        MI_RD_SEL, MI_RD_BASS, MI_RD_SKANK, MI_RD_DRUM,
        MI_PS_BASS, MI_PS_SKANK, MI_PS_MEL, MI_PS_KIT,
        MI_DUB_SUB, MI_DUB_BASS, MI_DUB_MIDS, MI_DUB_TOPS, MI_COUNT };
@@ -39,23 +42,23 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
                                               "USB SERIAL",
 #endif
                                               "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT",
-                                              "DUB ENABLE", "DUB PRESET", "DUB MIX",
+                                              "DUB ENABLE", "DUB FILTER", "DUB MIX", "DUB SEND", "DUB PRESET",
                                               "SIREN TYPE", "SIREN WAVE", "SIREN PITCH", "SIREN LEVEL",
                                               "SIREN RATE", "SIREN DEPTH", "SIREN SYM", "SIREN SEND",
                                               "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
-                                              "SEQ TRACK", "SEQ LENGTH", "SEQ STEP", "SEQ NOTE", "SEQ VELOCITY",
+                                              "DLY TIME", "DLY RELEASE", "DLY SYNC", "DLY DIVISION",
                                               "RIDDIM", "BASS PATTERN", "SKANK PATTERN", "DRUM PATTERN",
                                               "BASS PRESET", "SKANK PRESET", "MELODY PRESET", "DRUM KIT",
                                               "SUB", "BASS", "MIDS", "TOPS"};
-enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DSEQ, MS_RIDDIM, MS_PRESET, MS_ISO, MS_COUNT };
-static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DSQ", "RDM", "PRS", "ISO"};
+enum { MS_SCREEN, MS_LIGHTS, MS_AUDIO, MS_SEQ, MS_SYSTEM, MS_DUB, MS_SIREN, MS_SIREN2, MS_SKANK, MS_DLY, MS_RIDDIM, MS_PRESET, MS_ISO, MS_COUNT };
+static const char *const MS_NAME[MS_COUNT] = {"SCR", "LGT", "AUD", "SEQ", "SYS", "DUB", "SIR", "SR2", "SKK", "DLY", "RDM", "PRS", "ISO"};
 
-static uint8_t dub_menu_siren = 88;              /* the level OCT+ toggles the siren between */
+static uint8_t dub_menu_siren = 88;              /* the siren's level, the SIREN LEVEL row sets it */
+static uint8_t dub_menu_siren_held;              /* (2.9.8) OCT+ is down on a SIREN page: the siren sounds */
 static uint8_t dub_menu_chord;                   /* the skank's quality, DUB_SKANK_NAMES (dub_skank_conf) */
 static uint8_t dub_menu_root;                    /* the skank's root pitch class, 0..11 (C..B) (dub_skank_conf) */
 static uint8_t dub_menu_oct = 3;                 /* the skank's octave, 3..5 (dub_skank_conf) */
 static uint8_t dub_menu_vel = 108;               /* the skank's velocity (dub_skank_conf) */
-static uint8_t dub_menu_dtrk;                    /* the DSEQ page's track, DUB_TRK_* */
 static uint8_t dub_menu_riddim;                  /* the RIDDIM page's four selections */
 static uint8_t dub_menu_rbass;
 static uint8_t dub_menu_rskank;
@@ -65,10 +68,6 @@ static uint8_t dub_menu_pskank;
 static uint8_t dub_menu_pmel;
 static uint8_t dub_menu_pkit;
 static uint8_t dub_menu_preset;
-static uint8_t dub_menu_step;                    /* the DSQ page's cursor (2.9.6: a step of the SLOOP track) */
-static uint8_t dub_menu_lane;                    /* the DSQ page's drum lane (its NOTE row) */
-static uint8_t dub_menu_note = 36;               /* the note an empty step gets planted with */
-static uint8_t dub_menu_step_vel = 100;          /* the DSQ page's write velocity / level */
 static uint8_t dub_menu_skank_notes[DUB_SKANK_MAX_NOTES];
 static uint8_t dub_menu_skank_count;
 static const char *const DUB_NOTE[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
@@ -106,7 +105,6 @@ UI_SMALL static void dub_menu_riddim_load(uint32_t track)   /* OCT+ on the RIDDI
         dub_tracks_load(&dub_sequence, 1u << track, DUB_RIDDIM_STEPS);
         ui_message(track == DUB_TRK_BASS ? "BASS LOADED" : track == DUB_TRK_SKANK ? "SKANK LOADED" : "DRUM LOADED");
     }
-    dub_menu_step = 0;
     dub_enabled = 1;
     dub_isolator.enabled = 1;
 }
@@ -190,7 +188,7 @@ UI_SMALL static void dub_menu_preset_apply(void)
     dub_siren_set_send(&dub_siren, (uint8_t)(p->delay < 0 ? 0 : p->delay > 127 ? 127 : p->delay));
 }
 static const uint8_t MS_FIRST[MS_COUNT + 1] = {MI_COLOR, MI_LIGHTS, MI_LOWCUT, MI_ADV, MI_CPU1,
-                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DUB_TRACK, MI_RD_SEL, MI_PS_BASS, MI_DUB_SUB, MI_COUNT};
+                                               MI_DUB_ON, MI_SIR_TYPE, MI_SIR_RATE, MI_SKANK_CHD, MI_DLY_TIME, MI_RD_SEL, MI_PS_BASS, MI_DUB_SUB, MI_COUNT};
 
 UI_SMALL static int mi_cpu1_have(void)                      /* the second core is running (cpu1.c; the host tests have no cpu1.c) */
 {
@@ -325,42 +323,61 @@ UI_SMALL static const char *mi_value(uint32_t i, uint16_t *c)
         fmt_int(b, dub_menu_vel);
         return b;
     }
-    case MI_DUB_TRACK: return DUB_TRK_NAMES[dub_menu_dtrk % DUB_TRK_N];
-    case MI_DUB_LEN: {                                 /* 2.9.6: the track's own LEN (PATTERN page's too) */
-        static char b[8];
-        fmt_int(b, trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
-        return b;
-    }
-    case MI_DUB_STEP: {
-        static char b[8];
-        fmt_int(b, dub_menu_step + 1u);
-        return b;
-    }
-    case MI_DUB_NOTE: {                                /* the step's note ("--" an empty one); the drum
-                                                        * track: the lane the page targets (LANE_NOTE) */
-        static char b[8];
-        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM)
-            fmt_int(b, LANE_NOTE[dub_menu_lane & 15u]);
-        else {
-            const step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
-            if (sp->time == ST_NOTE && sp->n)
-                fmt_int(b, sp->note[0]);
-            else
-                str_cpy(b, "--", 8);
+    case MI_DUB_FLT: {                                 /* 2.9.7: the bipolar filter, its cutoff either side */
+        static char b[10];
+        int32_t v = dub_filter_get(), hz, n, t;
+        if (v == 64) {
+            *c = C_DIM;
+            return "FLAT";
         }
+        b[0] = v < 64 ? 'L' : 'H';
+        b[1] = v < 64 ? 'P' : 'P';
+        b[2] = ' ';
+        hz = (int32_t)dub_filter_hz(v);
+        if (hz >= 1000) {                              /* "LP 3.8K": tenths of a thousand */
+            t = (hz + 50) / 100;
+            fmt_int(b + 3, t / 10);
+            n = str_len(b + 3);
+            b[3 + n] = '.';
+            b[4 + n] = (char)('0' + t % 10);
+            b[5 + n] = 'K';
+            b[6 + n] = 0;
+        } else
+            fmt_int(b + 3, hz);
         return b;
     }
-    case MI_DUB_VEL: {                                 /* the step's velocity; the drum lane's level as one */
+    case MI_DUB_SEND: {                                /* 2.9.7: the throw into the delay, 0 dry */
         static char b[8];
-        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM) {
-            const dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
-            fmt_int(b, dstep_has(d, dub_menu_lane & 15u) ? (int32_t)lvl_vel(dstep_lvl(d, dub_menu_lane & 15u), 100) : (int32_t)dub_menu_step_vel);
-        } else {
-            const step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
-            fmt_int(b, sp->time == ST_NOTE && sp->n ? sp->vel : dub_menu_step_vel);
+        if (!dub_send) {
+            *c = C_DIM;
+            return "DRY";
         }
+        fmt_int(b, dub_send);
         return b;
     }
+    case MI_DLY_TIME: {                                /* 2.9.7: the tape's time, the free ms or the
+                                                        * division's (SYNC on: the division rules) */
+        static char b[10];
+        uint32_t ms;
+        if (dub_dly_sync) {
+            uint32_t s = dly_samples((uint32_t)song.g[G_DTIME]);
+            ms = (uint32_t)(((uint64_t)s * 1000) / FS);
+            *c = C_DIM;
+        } else
+            ms = dub_dly_ms;
+        fmt_int(b, (int32_t)ms);
+        str_cpy(b + str_len(b), " MS", 4);
+        return b;
+    }
+    case MI_DLY_REL: {                                 /* the repeats' feedback, the release */
+        static char b[8];
+        fmt_int(b, song.g[G_DFDBK]);
+        return b;
+    }
+    case MI_DLY_SYNC:                                  /* the tempo or not */
+        return dub_dly_sync ? "TEMPO" : "FREE";
+    case MI_DLY_DIV:                                   /* the synced division (N_DLY) */
+        return N_DLY[song.g[G_DTIME] < 0 ? 0 : song.g[G_DTIME] > 8 ? 8 : song.g[G_DTIME]];
     case MI_RD_SEL: return dub_riddim_name(dub_menu_riddim);
     case MI_RD_BASS: return dub_riddim_name(dub_menu_rbass);
     case MI_RD_SKANK: return dub_riddim_name(dub_menu_rskank);
@@ -395,10 +412,11 @@ UI_SMALL static void draw_menu(void)
                    dub_enabled * 6700417u + dub_siren.active * 6700453u + dub_siren.level * 6700459u +
                    dub_siren.freq_hz * 6700477u + dub_siren.depth * 6700479u + dub_siren.rate * 6700481u +
                    dub_siren.type * 6700519u + dub_siren.wave * 6700523u + dub_siren.sym * 6700531u + dub_siren.send * 6700533u +
-                   dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_menu_lane * 6700471u +
-                   dub_menu_step * 6700483u + dub_menu_note * 6700487u + dub_menu_step_vel * 6700491u +
+                   dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_filter_get() * 6700471u +
+                   dub_send * 6700483u + dub_dly_ms * 6700487u + dub_dly_sync * 6700491u +
+                   song.g[G_DFDBK] * 6700529u + song.g[G_DTIME] * 6700537u +
                    dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
-                   dub_menu_dtrk * 6700539u + dub_menu_riddim * 6700541u + dub_menu_rbass * 6700547u +
+                   dub_menu_riddim * 6700541u + dub_menu_rbass * 6700547u +
                    dub_menu_rskank * 6700551u + dub_menu_rdrum * 6700557u + dub_sequence.length * 6700563u +
                    dub_menu_pbass * 6700569u + dub_menu_pskank * 6700571u + dub_menu_pmel * 6700577u +
                    dub_menu_pkit * 6700581u +
@@ -535,9 +553,27 @@ UI_SMALL static void menu_close(void)
         settings_later = 1;                            /* (a flash write stops the audio: once stopped) */
     else
         settings_save();                               /* palette / panel table, if changed */
+    if (dub_menu_siren_held) {                         /* (2.9.8) the menu shuts with OCT+ held: the siren stops */
+        dub_siren_trigger(&dub_siren, 0);
+        dub_menu_siren_held = 0;
+    }
     ui.menu = 0;
     ui.force = 1;
     go_home();
+}
+
+/* 2.9.8: the Dub pages' knobs as potentiometers: a detent sweeps its share of the range, so
+ * the whole course runs in some 300 degrees (20 detents; an FM-1 turn is 24 detents) and a
+ * turn never outruns the pointer. The lists (names, toggles) keep a step a detent: a course
+ * of five names over 300 degrees would crawl. One share a detent however fast, no accel:
+ * the pot's feel is the point (s carries the frame's detents, one a click at any speed) */
+#define POT_DETENTS 20
+UI_SMALL static int32_t pot_s(int32_t s, int32_t span)
+{
+    int32_t st = (span + POT_DETENTS - 1) / POT_DETENTS;   /* the detent's share, round up */
+    if (st < 1)
+        st = 1;
+    return s * st;
 }
 
 /* item i: a knob turned s (> 0 right, < 0 left), or 0: OCT+ (steps round, toggles, or opens) */
@@ -630,20 +666,23 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         if (!dub_enabled)
             dub_siren_trigger(&dub_siren, 0);
         break;
-    case MI_DUB_PRESET:
+    case MI_DUB_PRESET:                                /* the fifth row, the PRESETS cursor's: no knob
+                                                        * maps to it, so OCT+ applies the shown preset
+                                                        * and arms the next one round (a one-button
+                                                        * browser); a knob turn would land on its row */
         if (s > 0)
             dub_menu_preset = (uint8_t)((dub_menu_preset + 1u) % DUB_PRESET_COUNT);
         else if (s < 0)
             dub_menu_preset = (uint8_t)((dub_menu_preset + DUB_PRESET_COUNT - 1u) % DUB_PRESET_COUNT);
-        else
+        else {
             dub_menu_preset_apply();
+            dub_menu_preset = (uint8_t)((dub_menu_preset + 1u) % DUB_PRESET_COUNT);
+        }
         break;
     case MI_DUB_MIX:                                   /* the isolator's wet blend, 0 (dry) .. 127; OCT+ kills it */
-        if (s > 0 && dub_isolator.mix < 127u)
-            dub_isolator.mix++;
-        else if (s < 0 && dub_isolator.mix > 0u)
-            dub_isolator.mix--;
-        else if (!s)
+        if (s)
+            dub_isolator.mix = (uint8_t)clamp((int32_t)dub_isolator.mix + pot_s(s, 127), 0, 127);
+        else
             dub_isolator.mix = dub_isolator.mix ? 0u : 127u;
         dub_enabled = 1;
         dub_isolator.enabled = 1;
@@ -668,64 +707,53 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIR_FRQ:                                   /* 220..1200 Hz, two Hz a detent; OCT+ back to 740 */
-        if (s > 0)
-            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz + 2u));
-        else if (s < 0)
-            dub_siren_set_freq(&dub_siren, (uint16_t)(dub_siren.freq_hz - 2u));
+    case MI_SIR_FRQ:                                   /* 220..1200 Hz, a pot course in some 300 degrees; OCT+ back to 740 */
+        if (s)
+            dub_siren_set_freq(&dub_siren, (uint16_t)clamp((int32_t)dub_siren.freq_hz + pot_s(s, 980), 220, 1200));
         else
             dub_siren_set_freq(&dub_siren, 740u);
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIR_LVL:                                   /* right up, left down (stops at the ends); OCT+ on / off */
-        if (s > 0 && dub_menu_siren < 127u)
-            dub_menu_siren++;
-        else if (s < 0 && dub_menu_siren > 0u)
-            dub_menu_siren--;
-        else if (!s)
+    case MI_SIR_LVL:                                   /* the pot's course 0..127; the momentary OCT+ sounds it (2.9.8) */
+        if (s)
+            dub_menu_siren = (uint8_t)clamp((int32_t)dub_menu_siren + pot_s(s, 127), 0, 127);
+        else
             dub_menu_siren = dub_menu_siren ? 0u : 88u;
-        dub_siren_trigger(&dub_siren, dub_menu_siren);
-        dub_enabled = dub_menu_siren ? 1u : dub_enabled;
+        if (dub_menu_siren_held)                       /* the level knob retunes the sounding siren */
+            dub_siren_trigger(&dub_siren, dub_menu_siren ? dub_menu_siren : 88u);
+        dub_enabled = dub_menu_siren || dub_menu_siren_held ? 1u : dub_enabled;
         dub_isolator.enabled = dub_enabled;
         break;
-    case MI_SIR_RATE:                                  /* the LFO's speed, 1..16 Hz; OCT+ back to 2 Hz */
-        if (s > 0 && dub_siren.rate < 127u)
-            dub_siren.rate++;
-        else if (s < 0 && dub_siren.rate > 0u)
-            dub_siren.rate--;
+    case MI_SIR_RATE:                                  /* the LFO's speed, a pot 0..127 (1..16 Hz); OCT+ back to 2 Hz */
+        if (s)
+            dub_siren.rate = (uint8_t)clamp((int32_t)dub_siren.rate + pot_s(s, 127), 0, 127);
         else if (!s)
             dub_siren.rate = 8u;
         dub_siren_set_rate(&dub_siren, dub_siren.rate);
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIR_DPT:                                   /* the pitch sweep, 0..127 = two octaves; OCT+ back to 96 */
-        if (s > 0 && dub_siren.depth < 127u)
-            dub_siren.depth++;
-        else if (s < 0 && dub_siren.depth > 0u)
-            dub_siren.depth--;
+    case MI_SIR_DPT:                                   /* the pitch sweep, a pot 0..127 = two octaves; OCT+ back to 96 */
+        if (s)
+            dub_siren.depth = (uint8_t)clamp((int32_t)dub_siren.depth + pot_s(s, 127), 0, 127);
         else if (!s)
             dub_siren.depth = 96u;
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIR_SYM:                                   /* the LFO's symmetry, 0..127; OCT+ back to 64 */
-        if (s > 0 && dub_siren.sym < 127u)
-            dub_siren.sym++;
-        else if (s < 0 && dub_siren.sym > 0u)
-            dub_siren.sym--;
+    case MI_SIR_SYM:                                   /* the LFO's symmetry, a pot 0..127; OCT+ back to 64 */
+        if (s)
+            dub_siren.sym = (uint8_t)clamp((int32_t)dub_siren.sym + pot_s(s, 127), 0, 127);
         else if (!s)
             dub_siren.sym = 64u;
         dub_enabled = 1;
         dub_isolator.enabled = 1;
         break;
-    case MI_SIR_SEND:                                  /* the delay send, 0..127; OCT+ 48 (a dubby echo) */
-        if (s > 0 && dub_siren.send < 127u)
-            dub_siren.send++;
-        else if (s < 0 && dub_siren.send > 0u)
-            dub_siren.send--;
-        else if (!s)
+    case MI_SIR_SEND:                                  /* the delay send, a pot 0..127; OCT+ 48 (a dubby echo) */
+        if (s)
+            dub_siren_set_send(&dub_siren, (uint8_t)clamp((int32_t)dub_siren.send + pot_s(s, 127), 0, 127));
+        else
             dub_siren_set_send(&dub_siren, dub_siren.send ? 0u : 48u);
         dub_enabled = 1;
         dub_isolator.enabled = 1;
@@ -766,76 +794,46 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             dub_menu_skank();
         dub_skank_conf.velocity = dub_menu_vel;
         break;
-    case MI_DUB_TRACK:                                 /* BASS SKNK MEL DRUM: the SLOOP track DSQ edits, round */
-        if (s > 0 || !s)
-            dub_menu_dtrk = (uint8_t)((dub_menu_dtrk + 1u) % DUB_TRK_N);
+    case MI_DUB_FLT:                                   /* 2.9.7: the bipolar filter, the center neutral;
+                                                        * 2.9.8: a pot, the whole course in some 300 degrees */
+        if (s)
+            dub_filter_set((int16_t)clamp((int32_t)dub_filter_get() + pot_s(s, 127), 0, 127));
         else
-            dub_menu_dtrk = (uint8_t)((dub_menu_dtrk + DUB_TRK_N - 1u) % DUB_TRK_N);
+            dub_filter_set(64);                        /* OCT+ back to the flat center */
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
         break;
-    case MI_DUB_LEN: {                                 /* 2.9.6: the track's own LEN, 16 / 32 / 64 */
-        uint8_t len = (uint8_t)trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN];
-        if (s > 0 || !s)
-            len = len >= 64u ? 16u : len >= 32u ? 64u : 32u;
+    case MI_DUB_SEND:                                  /* 2.9.7: the throw into the delay, a pot (2.9.8) */
+        if (s)
+            dub_send_set((uint8_t)clamp((int32_t)dub_send + pot_s(s, 127), 0, 127));
         else
-            len = len <= 16u ? 64u : len <= 32u ? 16u : 32u;
-        trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN] = len;
-        if (dub_menu_step >= len)
-            dub_menu_step = 0;
+            dub_send_set(dub_send ? 0u : 64u);         /* OCT+ dry or a half throw */
+        dub_enabled = 1;
+        dub_isolator.enabled = 1;
         break;
-    }
-    case MI_DUB_STEP:
-        if (s > 0 || !s)
-            dub_menu_step = (uint8_t)((dub_menu_step + 1u) % trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
+    case MI_DLY_TIME:                                  /* 2.9.7: the free ms when SYNC is off (the
+                                                        * division's ms shows dim when it is on);
+                                                        * 2.9.8: a pot, 40..1400 in some 300 degrees */
+        if (!dub_dly_sync && s)
+            dub_dly_set_ms((uint16_t)clamp((int32_t)dub_dly_ms + pot_s(s, 1360), 40, 1400));
+        else if (!s)
+            dub_dly_set_ms(400);                       /* OCT+ the usual echo, ready for when SYNC goes */
+        break;
+    case MI_DLY_REL:                                   /* the repeats' release (the project's FDBK), a pot */
+        if (s)
+            song.g[G_DFDBK] = (int16_t)clamp(song.g[G_DFDBK] + pot_s(s, 120), 0, 120);
         else
-            dub_menu_step = (uint8_t)((dub_menu_step + trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN] - 1u)
-                                      % trk[dub_menu_dtrk % DUB_TRK_N].p[P_SLEN]);
+            song.g[G_DFDBK] = 60;                      /* OCT+ the project's default */
         break;
-    case MI_DUB_NOTE: {                                /* a synth step's note (an empty step plants the last
-                                                        * one used); the drum track: the lane, OCT+ its hit */
-        uint32_t tr = dub_menu_dtrk % DUB_TRK_N;
-        step_t *sp = &trk[tr].step[dub_menu_step % NSTEP];
-        if (tr == DUB_TRK_DRUM) {
-            if (s > 0)
-                dub_menu_lane = (uint8_t)((dub_menu_lane + 1u) & 15u);
-            else if (s < 0)
-                dub_menu_lane = (uint8_t)((dub_menu_lane + 15u) & 15u);
-            else {                                     /* OCT+: the lane's hit on / off at the cursor */
-                dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
-                if (dstep_has(d, dub_menu_lane & 15u))
-                    dstep_clr(d, dub_menu_lane & 15u);
-                else
-                    dstep_set(d, dub_menu_lane & 15u, vel_lvl(dub_menu_step_vel), 0);
-            }
-            break;
-        }
-        if (s > 0) {
-            dub_menu_note = dub_menu_note < 127u ? (uint8_t)(dub_menu_note + 1u) : 0u;
-            sp->note[0] = dub_menu_note;
-        } else if (s < 0) {
-            dub_menu_note = dub_menu_note ? (uint8_t)(dub_menu_note - 1u) : 127u;
-            sp->note[0] = dub_menu_note;
-        } else                                           /* OCT+: the note an octave up, round */
-            dub_menu_note = (uint8_t)(dub_menu_note + 12u > 127u ? 36u : dub_menu_note + 12u);
-        sp->note[0] = dub_menu_note;
-        sp->n = 1;
-        sp->time = ST_NOTE;
-        sp->flags = 0;
+    case MI_DLY_SYNC:                                  /* the tempo or not */
+        dub_dly_set_sync((uint8_t)(s > 0 ? 1u : s < 0 ? 0u : !dub_dly_sync));
         break;
-    }
-    case MI_DUB_VEL: {
-        if (s > 0 && dub_menu_step_vel < 127u) dub_menu_step_vel++;
-        else if (s < 0 && dub_menu_step_vel > 0u) dub_menu_step_vel--;
-        else if (!s) dub_menu_step_vel = dub_menu_step_vel ? 0u : 100u;
-        if (dub_menu_dtrk % DUB_TRK_N == DUB_TRK_DRUM) { /* the aimed lane's level, when it is on */
-            dstep_t *d = &trk[DUB_TRK_DRUM].dstep[dub_menu_step % NSTEP];
-            if (dstep_has(d, dub_menu_lane & 15u))
-                dstep_set(d, dub_menu_lane & 15u, vel_lvl(dub_menu_step_vel), 0);
-        } else {
-            step_t *sp = &trk[dub_menu_dtrk % DUB_TRK_N].step[dub_menu_step % NSTEP];
-            sp->vel = dub_menu_step_vel;
-        }
+    case MI_DLY_DIV:                                   /* the synced division, round N_DLY */
+        if (s > 0 || !s)
+            song.g[G_DTIME] = (int16_t)(song.g[G_DTIME] >= 8u ? 0u : song.g[G_DTIME] + 1u);
+        else
+            song.g[G_DTIME] = (int16_t)(song.g[G_DTIME] <= 0 ? 8 : song.g[G_DTIME] - 1);
         break;
-    }
     case MI_RD_SEL:                                    /* the ten riddims, round; OCT+ loads the whole */
         if (s > 0)
             dub_menu_riddim = (uint8_t)((dub_menu_riddim + 1u) % DUB_RIDDIM_COUNT);
@@ -904,7 +902,7 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
     case MI_DUB_BASS:
     case MI_DUB_MIDS:
     case MI_DUB_TOPS:
-        dub_menu_band(i - MI_DUB_SUB, s, !s);
+        dub_menu_band(i - MI_DUB_SUB, pot_s(s, 36), !s);   /* the gain's pot: -24..+12 dB in some 300 degrees */
         break;
     case MI_PANEL:                                     /* actions: OCT+ only */
         if (!s) {
@@ -930,6 +928,26 @@ UI_SMALL static void menu_input(uint32_t pressed)
     uint32_t k, ok = (pressed >> panel.btn[B_OCTUP]) & 1u;
     uint32_t back = (pressed >> panel.btn[B_OCTDN]) & 1u;
     uint32_t sel = ui.menu_sel % MI_COUNT, sec = mi_sec(sel), n = MS_FIRST[sec + 1u] - MS_FIRST[sec];
+    /* 2.9.8: the siren pages own OCT+: held, it sounds the siren at the SIREN LEVEL row's
+     * level (88 when that is 0); released, it stops. A tap fires no row action (a tap would
+     * reset values under a playing siren) — the rows' knobs do all the setting. Elsewhere
+     * (any other page, the menu shut) OCT+ keeps its other lives and the siren stays quiet */
+    {
+        uint8_t held = (uint8_t)((fm1_in.buttons >> panel.btn[B_OCTUP]) & 1u);
+        if (sec == MS_SIREN || sec == MS_SIREN2) {
+            if (held && !dub_menu_siren_held) {
+                dub_siren_trigger(&dub_siren, dub_menu_siren ? dub_menu_siren : 88u);
+                dub_enabled = 1;
+                dub_isolator.enabled = 1;
+            } else if (!held && dub_menu_siren_held)
+                dub_siren_trigger(&dub_siren, 0);
+            dub_menu_siren_held = held;
+            ok = 0;
+        } else if (dub_menu_siren_held) {              /* the page walked away held: it stops */
+            dub_siren_trigger(&dub_siren, 0);
+            dub_menu_siren_held = 0;
+        }
+    }
     /* OCT- is the menu's universal escape.  Read the physical debounced
      * button as well as the edge mask: this keeps the escape reliable when
      * a host/emulator sends a held button across two scan frames. */

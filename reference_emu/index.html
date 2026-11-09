@@ -369,7 +369,8 @@ body.compact #manual { display: none; }
         <button class="dub-tab" data-dub-page="sir" role="tab" aria-selected="false" type="button">SIR</button>
         <button class="dub-tab" data-dub-page="sr2" role="tab" aria-selected="false" type="button">SR2</button>
         <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
-        <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">DSEQ</button>
+        <button class="dub-tab" data-dub-page="dly" role="tab" aria-selected="false" type="button">DLY</button>
+        <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">SEQ</button>
         <button class="dub-tab" data-dub-page="rdm" role="tab" aria-selected="false" type="button">RDM</button>
         <button class="dub-tab" data-dub-page="prs" role="tab" aria-selected="false" type="button">PRS</button>
         <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
@@ -385,9 +386,28 @@ body.compact #manual { display: none; }
             <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
         </div>
         <div class="dub-card">
+            <h3>DUB FILTER · DUB SEND <small>LP &larr; FLAT &rarr; HP</small></h3>
+            <label>Filtre <input id="dub-filter" type="range" min="0" max="127" value="64"><output>FLAT</output></label>
+            <label>Envoi delay <input id="dub-send" type="range" min="0" max="127" value="0"><output>DRY</output></label>
+        </div>
+        <div class="dub-card">
             <h3>DUB MIX · ISOLATOR <small>DRY &rarr; WET</small></h3>
             <label>Mix <input id="dub-mix" type="range" min="0" max="127" value="127"><output>127</output></label>
         </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="dly" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>DLY TIME · DLY RELEASE</h3>
+            <label>Durée <input id="dub-dly-time" type="range" min="40" max="1400" step="8" value="400"><output>400 ms</output></label>
+            <label>Release <input id="dub-dly-rel" type="range" min="0" max="120" value="60"><output>60</output></label>
+        </div>
+        <div class="dub-card">
+            <h3>DLY SYNC · DLY DIVISION</h3>
+            <label class="dub-toggle">Synchro tempo <input id="dub-dly-sync" type="checkbox" checked></label>
+            <label>Division <select id="dub-dly-div" aria-label="Division de synchro"><option value="0">1/4</option><option value="1" selected>1/8</option><option value="2">1/16</option><option value="3">1/32</option><option value="4">8T</option><option value="5">16T</option><option value="6">1/8D</option><option value="7">1/16D</option><option value="8">1/4D</option></select></label>
+        </div>
+        <p class="dub-hint">Le mode DUB fait tourner le delay en tape : la tête de lecture ondule (wow / flutter), les répétitions se saturent et le temps glisse vers le réglage. SYNC coupé, la durée libre (ms) règle le temps ; SYNC actif, la division suit le tempo du projet. L'envoi du module DUB (onglet DUB, « Envoi delay ») nourrit ce bus.</p>
     </div>
 
     <div class="dub-page" data-dub-panel="sir" role="tabpanel" hidden>

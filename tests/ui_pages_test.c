@@ -1209,19 +1209,37 @@ int main(int argc, char **argv)
     }
 
     {   /* the Dub pages (2.9): one page per function after a long HOME press:
-         * DUB (enable, preset, mix), SIREN (2.9.1, two pages: SIR — type, wave, pitch, level —
-         * and SR2 — rate, depth, sym, send), SKANK (chord, root, octave, velocity; OCT+ plays
-         * the chord), DSEQ (length, step, note, velocity) and ISO (the four bands) */
+         * DUB (enable, filter (2.9.7), mix, send (2.9.7), preset), SIREN (2.9.1, two pages:
+         * SIR — type, wave, pitch, level — and SR2 — rate, depth, sym, send), SKANK (chord,
+         * root, octave, velocity; OCT+ plays the chord), DLY (2.9.7: the tape delay: time,
+         * release, sync, division) and ISO (the four bands) */
         ui.menu = 1; ui.menu_sel = MI_DUB_ON; ui.force = 1; frame(); ppm("menu-dub");
-        check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB: the module's page (ENABLE, PRESET, MIX)");
+        check(mi_sec(ui.menu_sel) == MS_DUB, "menu DUB: the module's page (ENABLE, FILTER, MIX, SEND, PRESET)");
         turns(panel.enc[EN_K1], 1);
         check(dub_enabled == 1u && dub_isolator.enabled == 1u, "menu DUB: KNOB 1 right: DUB ENABLE ON");
-        turns(panel.enc[EN_K2], 1);
-        check(ui.menu_sel == MI_DUB_PRESET, "menu DUB: KNOB 2 moves the cursor to DUB PRESET");
+        turns(panel.enc[EN_K2], -3);                   /* left of the center: the lowpass (the pot's 7 a detent) */
+        check(ui.menu_sel == MI_DUB_FLT && dub_filter_get() == 43u, "menu DUB: KNOB 2 left three: DUB FILTER lowpass");
+        check(mi_value(MI_DUB_FLT, &(uint16_t){0})[0] == 'L', "menu DUB: the filter's value reads LP <hz>");
         tap(B_OCTUP);
-        check(dub_enabled == 1u && (dub_menu_chord & 7u) == 1u, "menu DUB: OCT+ applies the preset (SKANK CHORD: MIN)");
+        check(dub_filter_get() == 64u, "menu DUB: OCT+ on DUB FILTER: back to the flat center");
+        turns(panel.enc[EN_K2], 3);                    /* right of it: the highpass */
+        check(dub_filter_get() == 85u && mi_value(MI_DUB_FLT, &(uint16_t){0})[0] == 'H',
+              "menu DUB: KNOB 2 right three: DUB FILTER highpass");
+        tap(B_OCTUP);
+        check(dub_filter_get() == 64u, "menu DUB: OCT+ again: the center neutral, no filter run");
+        turns(panel.enc[EN_K4], 2);
+        check(ui.menu_sel == MI_DUB_SEND && dub_send == 14u, "menu DUB: KNOB 4 right two: DUB SEND up (the pot's 7 a detent)");
+        tap(B_OCTUP);
+        check(dub_send == 0u, "menu DUB: OCT+ on DUB SEND: dry");
+        tap(B_OCTUP);
+        check(dub_send == 64u, "menu DUB: OCT+ again: the throw back");
+        ui.menu_sel = MI_DUB_PRESET; ui.force = 1; frame();   /* the fifth row, the PRESETS cursor's */
+        tap(B_OCTUP);                                  /* applies ROOTS BASS and arms SKANK CHORD */
+        check(dub_menu_preset == 1u, "menu DUB: OCT+ on DUB PRESET applies it and arms the next");
+        tap(B_OCTUP);
+        check(dub_enabled == 1u && (dub_menu_chord & 7u) == 1u, "menu DUB: OCT+ again applies SKANK CHORD (MIN)");
         turns(panel.enc[EN_K3], -1);
-        check(ui.menu_sel == MI_DUB_MIX && dub_isolator.mix == 126u, "menu DUB: KNOB 3 left: DUB MIX down from full");
+        check(ui.menu_sel == MI_DUB_MIX && dub_isolator.mix == 120u, "menu DUB: KNOB 3 left: DUB MIX down (the pot's 7 a detent)");
         tap(B_OCTUP);
         check(dub_isolator.mix == 0u, "menu DUB: OCT+ on DUB MIX: the isolator dry");
         tap(B_OCTUP);
@@ -1236,49 +1254,46 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K2], 1);
         check(ui.menu_sel == MI_SIR_WAVE && dub_siren.wave == DUB_SIW_PLS,
               "menu SIR: KNOB 2 right: SIREN WAVE SQR -> PLS");
-        tap(B_OCTUP);
-        check(dub_menu_siren == 88u && dub_siren.active == 1u, "menu SIR: OCT+ on WAVE sounds the siren");
-        turns(panel.enc[EN_K3], 6);
-        check(ui.menu_sel == MI_SIR_FRQ && dub_siren.freq_hz == 752u,
-              "menu SIR: KNOB 3 right: SIREN PITCH 740 -> 752 (2 Hz a detent)");
-        tap(B_OCTUP);
-        check(dub_siren.freq_hz == 740u, "menu SIR: OCT+ on PITCH: back to 740 Hz");
-        turns(panel.enc[EN_K4], 3);
-        check(ui.menu_sel == MI_SIR_LVL && dub_siren.level == 91u,
-              "menu SIR: KNOB 4 right: SIREN LEVEL up from the played 88");
+        press(B_OCTUP);                                /* (2.9.8) the momentary siren: down it sounds */
+        check(dub_siren.active == 1u && dub_siren.level == 88u, "menu SIR: OCT+ down sounds the siren at its level 88");
+        turns(panel.enc[EN_K4], 3);                    /* the level, retuned while it sounds (the pot's
+                                                        * 7 a detent; the preset left the row at 0) */
+        check(dub_siren.level == 21u, "menu SIR: KNOB 4 right: SIREN LEVEL up to 21 while it sounds");
+        release(B_OCTUP);                              /* up it stops */
+        check(dub_siren.active == 0u, "menu SIR: OCT+ up stops the siren");
+        turns(panel.enc[EN_K3], 1);
+        check(ui.menu_sel == MI_SIR_FRQ && dub_siren.freq_hz == 789u,
+              "menu SIR: KNOB 3 right: SIREN PITCH 740 -> 789 (the pot's 49 Hz a detent)");
 
         turns(panel.enc[EN_SELECT], 1);
         check(mi_sec(ui.menu_sel) == MS_SIREN2 && ui.menu_sel == MI_SIR_RATE,
               "menu: SELECT right: SR2, SIREN RATE its first row");
         ui.force = 1; frame(); ppm("menu-siren2");
-        turns(panel.enc[EN_K1], 119);
+        turns(panel.enc[EN_K1], 17);
         check(ui.menu_sel == MI_SIR_RATE && dub_siren_rate_hz(dub_siren.rate) == 16u,
-              "menu SR2: KNOB 1 right: SIREN RATE to 16 Hz");
-        tap(B_OCTUP);
-        check(dub_siren_rate_hz(dub_siren.rate) == 2u, "menu SR2: OCT+ on RATE: back to 2 Hz");
-        turns(panel.enc[EN_K2], -96);
+              "menu SR2: KNOB 1 right: SIREN RATE to 16 Hz (the pot's 7 a detent: 8 + 17x7)");
+        press(B_OCTUP);
+        release(B_OCTUP);
+        check(dub_siren.active == 0u, "menu SR2: OCT+ taps no row action (the momentary owns it), the siren stops");
+        turns(panel.enc[EN_K2], -14);
         check(ui.menu_sel == MI_SIR_DPT && dub_siren.depth == 0u,
-              "menu SR2: KNOB 2 left: SIREN DEPTH (the sweep) to 0");
-        tap(B_OCTUP);
-        check(dub_siren.depth == 96u, "menu SR2: OCT+ on DEPTH: back to 96");
+              "menu SR2: KNOB 2 left: SIREN DEPTH (the sweep) to 0 (the pot clamps)");
         turns(panel.enc[EN_K3], -4);
-        check(ui.menu_sel == MI_SIR_SYM && dub_siren.sym == 60u,
-              "menu SR2: KNOB 3 left: SIREN SYM down");
-        tap(B_OCTUP);
-        check(dub_siren.sym == 64u, "menu SR2: OCT+ on SYM: back to 64");
+        check(ui.menu_sel == MI_SIR_SYM && dub_siren.sym == 36u,
+              "menu SR2: KNOB 3 left: SIREN SYM down (the pot's 7 a detent)");
         turns(panel.enc[EN_K4], 1);
-        check(ui.menu_sel == MI_SIR_SEND && dub_siren.send == 29u,
-              "menu SR2: KNOB 4 right: SIREN SEND up (the SKANK CHORD preset left 28)");
-        tap(B_OCTUP);
-        check(dub_siren.send == 0u, "menu SR2: OCT+ on SEND: dry");
-        tap(B_OCTUP);
-        check(dub_siren.send == 48u, "menu SR2: OCT+ again: SEND 48, the dubby echo");
+        check(ui.menu_sel == MI_SIR_SEND && dub_siren.send == 35u,
+              "menu SR2: KNOB 4 right: SIREN SEND up (the SKANK CHORD preset left 28, the pot's 7)");
 
         turns(panel.enc[EN_SELECT], -1);
         check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIR_TYPE,
               "menu: SELECT left: back to SIR");
-        turns(panel.enc[EN_K4], -91);
-        check(dub_siren.active == 0u && dub_siren.level == 0u, "menu SIR: KNOB 4 left: the siren off");
+        turns(panel.enc[EN_K4], -16);
+        check(dub_menu_siren == 0u, "menu SIR: KNOB 4 left: the level down to 0 (the pot clamps)");
+        press(B_OCTUP);
+        check(dub_siren.active == 1u && dub_siren.level == 88u, "menu SIR: OCT+ at level 0 still sounds (88, the siren's voice)");
+        release(B_OCTUP);
+        check(dub_siren.active == 0u && dub_siren.level == 0u, "menu SIR: OCT+ up: the siren off");
 
         turns(panel.enc[EN_SELECT], 2);
         check(mi_sec(ui.menu_sel) == MS_SKANK && ui.menu_sel == MI_SKANK_CHD,
@@ -1303,25 +1318,29 @@ int main(int argc, char **argv)
         check((dub_menu_chord & 7u) == 2u, "menu SKANK: KNOB 1 left two: SKANK CHORD DIM");
 
         turns(panel.enc[EN_SELECT], 1);
-        check(mi_sec(ui.menu_sel) == MS_DSEQ && ui.menu_sel == MI_DUB_TRACK,
-              "menu: SELECT right: DSEQ, SEQ TRACK its first row");
-        ui.force = 1; frame(); ppm("menu-dseq");
-        turns(panel.enc[EN_K1], 2);
-        check(ui.menu_sel == MI_DUB_TRACK && dub_menu_dtrk == 2u, "menu DSEQ: KNOB 1 right two: SEQ TRACK MEL");
-        turns(panel.enc[EN_K1], -2);
-        check(dub_menu_dtrk == 0u, "menu DSEQ: KNOB 1 left two: SEQ TRACK BASS");
-        turns(panel.enc[EN_K2], 1);
-        check(trk[0].p[P_SLEN] == 32u, "menu DSQ: KNOB 2 right: SEQ LENGTH 16 -> 32, the bass track's own LEN");
-        turns(panel.enc[EN_K3], 3);
-        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSQ: KNOB 3 right: SEQ STEP 4");
-        turns(panel.enc[EN_K4], 5);
-        check(trk[0].step[3].time == ST_NOTE && trk[0].step[3].n == 1u && trk[0].step[3].note[0] == 41u,
-              "menu DSQ: KNOB 4 right: SEQ NOTE 36 -> 41 written to the bass track's step");
-        ui.menu_sel = MI_DUB_VEL; ui.force = 1; frame();
-        tap(B_OCTUP);                                  /* the fifth row: OCT+ only, the knob's rows end at NOTE */
-        check(trk[0].step[3].vel == 0u, "menu DSQ: OCT+ on SEQ VEL: the step's velocity written (toggled off)");
-        tap(B_OCTUP);
-        check(dub_menu_step_vel == 100u && trk[0].step[3].vel == 100u, "menu DSQ: OCT+ again: the velocity back at 100");
+        check(mi_sec(ui.menu_sel) == MS_DLY && ui.menu_sel == MI_DLY_TIME,
+              "menu: SELECT right: DLY, DLY TIME its first row");
+        ui.force = 1; frame(); ppm("menu-dly");
+        {   /* 2.9.7: the tape delay's four rows; the release and the division ride the project's delay */
+            int16_t fdbk0 = song.g[G_DFDBK], dt0 = song.g[G_DTIME];
+            turns(panel.enc[EN_K2], 3);
+            check(ui.menu_sel == MI_DLY_REL && song.g[G_DFDBK] == fdbk0 + 18,
+                  "menu DLY: KNOB 2 right three: DLY RELEASE up (the pot's 6 a detent)");
+            tap(B_OCTUP);
+            check(song.g[G_DFDBK] == 60u, "menu DLY: OCT+ on DLY RELEASE: the project's default");
+            turns(panel.enc[EN_K3], 1);
+            check(ui.menu_sel == MI_DLY_SYNC && dub_dly_sync == 1u, "menu DLY: KNOB 3 right: DLY SYNC TEMPO");
+            tap(B_OCTUP);
+            check(dub_dly_sync == 0u, "menu DLY: OCT+ on DLY SYNC: the free time rules");
+            turns(panel.enc[EN_K1], 2);
+            check(dub_dly_ms == 536u, "menu DLY: KNOB 1 right two: the free time 400 -> 536 MS (the pot's 68 a detent)");
+            turns(panel.enc[EN_K4], 2);
+            check(ui.menu_sel == MI_DLY_DIV && song.g[G_DTIME] == dt0 + 2,
+                  "menu DLY: KNOB 4 right two: the division steps up");
+            tap(B_OCTUP);
+            check(song.g[G_DTIME] == (dt0 + 3 > 8 ? 0 : dt0 + 3), "menu DLY: OCT+ on DLY DIVISION: round");
+            dub_dly_set_sync(1);                       /* back to the tempo, the state the walk came with */
+        }
 
         turns(panel.enc[EN_SELECT], 1);
         check(mi_sec(ui.menu_sel) == MS_RIDDIM && ui.menu_sel == MI_RD_SEL,
@@ -1404,12 +1423,13 @@ int main(int argc, char **argv)
         check(mi_sec(ui.menu_sel) == MS_ISO && ui.menu_sel == MI_DUB_SUB,
               "menu: SELECT right: ISO, SUB its first row");
         ui.force = 1; frame(); ppm("menu-iso");
-        turns(panel.enc[EN_K1], -3);                   /* the preset's band gains are -2 dB: three left is -5 */
-        check(dub_isolator.p[DUB_SUB].gain_db == -5, "menu ISO: KNOB 1 left: SUB down (the preset left -2, now -5 dB)");
+        turns(panel.enc[EN_K1], -3);                   /* the preset's band gains are -2 dB: the pot's
+                                                        * 2 dB a detent, three left is -8 */
+        check(dub_isolator.p[DUB_SUB].gain_db == -8, "menu ISO: KNOB 1 left: SUB down (the preset left -2, now -8 dB)");
         tap(B_OCTUP);
         check(dub_isolator.p[DUB_SUB].mute == 1u, "menu ISO: OCT+ on SUB mutes the band");
         tap(B_OCTUP);
-        check(dub_isolator.p[DUB_SUB].mute == 0u && dub_isolator.p[DUB_SUB].gain_db == -5,
+        check(dub_isolator.p[DUB_SUB].mute == 0u && dub_isolator.p[DUB_SUB].gain_db == -8,
               "menu ISO: OCT+ again: the band back, the gain kept");
         tap(B_OCTDN);
         check(ui.menu == 0, "menu: OCT- closes from the ISO page");
@@ -1425,7 +1445,7 @@ int main(int argc, char **argv)
         dub_siren.level_cur = 0;
         dub_seq_set_length(&dub_sequence, 16);
         dub_seq_set_step(&dub_sequence, DUB_TRK_BASS, 3, 0, 0);
-        dub_menu_dtrk = 0; dub_menu_riddim = 0; dub_menu_rbass = 0; dub_menu_rskank = 0; dub_menu_rdrum = 0;
+        dub_menu_riddim = 0; dub_menu_rbass = 0; dub_menu_rskank = 0; dub_menu_rdrum = 0;
         dub_menu_pbass = 0; dub_menu_pskank = 0; dub_menu_pmel = 0; dub_menu_pkit = 0;
         go_home(); ui.force = 1; frame();
     }

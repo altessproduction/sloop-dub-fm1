@@ -242,6 +242,32 @@ function dubMix(mix) {
     if (out) out.textContent = String(mix);
     dubMessage({ t: 'dub-mix', mix: Number(mix) });
 }
+function dubFilterHz(x) {              /* the same sweep the firmware's knob holds, for the label */
+    const d = x < 64 ? (63 - x) / 64 : (x - 64) / 63;
+    return Math.round(x < 64 ? 16000 * Math.pow(2, -7 * d) : 30 * Math.pow(2, 7 * d));
+}
+function dubFilter(v) {
+    const out = document.querySelector('#dub-filter + output'), x = Number(v);
+    if (out) out.textContent = x === 64 ? 'FLAT' : (x < 64 ? 'LP ' : 'HP ') + dubFilterHz(x) + ' Hz';
+    dubMessage({ t: 'dub-filter', v: x });
+}
+function dubSend(v) {
+    const out = document.querySelector('#dub-send + output');
+    if (out) out.textContent = Number(v) ? String(v) : 'DRY';
+    dubMessage({ t: 'dub-send', v: Number(v) });
+}
+function dubDly(part, v) {             /* part: time (ms) / rel / sync / div — one bus, four rows */
+    const m = { t: 'dub-dly' };
+    m[part] = v;
+    if (part === 'time') {
+        const out = document.querySelector('#dub-dly-time + output');
+        if (out) out.textContent = v + ' ms';
+    } else if (part === 'rel') {
+        const out = document.querySelector('#dub-dly-rel + output');
+        if (out) out.textContent = String(v);
+    }
+    dubMessage(m);
+}
 function dubSkank() {
     dubMessage({ t: 'dub-skank', root: Number(document.getElementById('dub-root').value),
         quality: Number(document.getElementById('dub-quality').value),
@@ -433,6 +459,12 @@ function setupDubPanel() {
     document.getElementById('dub-siren-level')?.addEventListener('input', ev =>
         dubSirenLevel(Number(ev.target.value)));
     document.getElementById('dub-mix')?.addEventListener('input', ev => dubMix(ev.target.value));
+    document.getElementById('dub-filter')?.addEventListener('input', ev => dubFilter(ev.target.value));
+    document.getElementById('dub-send')?.addEventListener('input', ev => dubSend(ev.target.value));
+    document.getElementById('dub-dly-time')?.addEventListener('input', ev => dubDly('time', Number(ev.target.value)));
+    document.getElementById('dub-dly-rel')?.addEventListener('input', ev => dubDly('rel', Number(ev.target.value)));
+    document.getElementById('dub-dly-sync')?.addEventListener('change', ev => dubDly('sync', ev.target.checked ? 1 : 0));
+    document.getElementById('dub-dly-div')?.addEventListener('change', ev => dubDly('div', Number(ev.target.value)));
     document.querySelectorAll('[data-dub-band]').forEach(row => {
         row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));
     });

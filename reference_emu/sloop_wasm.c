@@ -398,6 +398,27 @@ WASM_EXPORT("emu_enc") void emu_enc(uint32_t e, int32_t steps)
         fm1_in.enc_steps[e] = (int16_t)(fm1_in.enc_steps[e] + steps);
 }
 
+WASM_EXPORT("emu_dbg") uint32_t emu_dbg(uint32_t idx)
+{   /* the console's state probe for the tests: 0 playing, 1 tick, 2 bpm, 3 dly div,
+     * 4 dly fdbk, 5 dly mix, 6 sir level, 7 sir active, 8 sir send, 9 dub send,
+     * 10 dly ms, 11 dly sync, 12 dub module on */
+    switch (idx) {
+    case 0: return song.playing;
+    case 1: return song.tick;
+    case 2: return (uint32_t)song.g[G_BPM];
+    case 3: return (uint32_t)song.g[G_DTIME];
+    case 4: return (uint32_t)song.g[G_DFDBK];
+    case 5: return (uint32_t)song.g[G_DMIX];
+    case 6: return dub_siren.level;
+    case 7: return dub_siren.active;
+    case 8: return dub_siren.send;
+    case 9: return dub_send;
+    case 10: return dub_dly_ms;
+    case 11: return dub_dly_sync;
+    default: return (uint32_t)dub_enabled;
+    }
+}
+
 WASM_EXPORT("emu_adc_set") void emu_adc_set(uint32_t ch, int32_t v)
 {
     emu_adc_v[ch & 7u] = v;
@@ -493,6 +514,70 @@ WASM_EXPORT("emu_dub_band") void emu_dub_band(uint32_t band, int32_t gain, uint3
     p.gain_db = (int8_t)(gain < -24 ? -24 : gain > 12 ? 12 : gain);
     p.mute = mute ? 1 : 0;
     dub_isolator_set_band(&dub_isolator, band, p);
+}
+
+/* 2.9.7: the DUB page's filter and throw, the DLY page's tape delay — the same state the
+ * menu rows hold, so the console and the hardware stay one machine */
+WASM_EXPORT("emu_dub_filter") void emu_dub_filter(uint32_t v)
+{
+    dub_filter_set((int16_t)(v > 127u ? 127u : v));
+    emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_filter_get") uint32_t emu_dub_filter_get(void)
+{
+    return (uint32_t)dub_filter_get();
+}
+
+WASM_EXPORT("emu_dub_send") void emu_dub_send(uint32_t v)
+{
+    dub_send_set((uint8_t)(v > 127u ? 127u : v));
+    emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_send_get") uint32_t emu_dub_send_get(void)
+{
+    return dub_send;
+}
+
+WASM_EXPORT("emu_dub_dly_time") void emu_dub_dly_time(uint32_t ms)
+{
+    dub_dly_set_ms((uint16_t)(ms > 1400u ? 1400u : ms));
+}
+
+WASM_EXPORT("emu_dub_dly_time_get") uint32_t emu_dub_dly_time_get(void)
+{
+    return dub_dly_ms;
+}
+
+WASM_EXPORT("emu_dub_dly_rel") void emu_dub_dly_rel(uint32_t v)
+{
+    song.g[G_DFDBK] = (int16_t)(v > 120u ? 120u : v);
+}
+
+WASM_EXPORT("emu_dub_dly_rel_get") uint32_t emu_dub_dly_rel_get(void)
+{
+    return (uint32_t)song.g[G_DFDBK];
+}
+
+WASM_EXPORT("emu_dub_dly_sync") void emu_dub_dly_sync(uint32_t on)
+{
+    dub_dly_set_sync((uint8_t)(on ? 1u : 0u));
+}
+
+WASM_EXPORT("emu_dub_dly_sync_get") uint32_t emu_dub_dly_sync_get(void)
+{
+    return dub_dly_sync;
+}
+
+WASM_EXPORT("emu_dub_dly_div") void emu_dub_dly_div(uint32_t d)
+{
+    song.g[G_DTIME] = (int16_t)(d > 8u ? 8u : d);
+}
+
+WASM_EXPORT("emu_dub_dly_div_get") uint32_t emu_dub_dly_div_get(void)
+{
+    return (uint32_t)song.g[G_DTIME];
 }
 
 WASM_EXPORT("emu_dub_seq_length") void emu_dub_seq_length(uint32_t length)   /* 2.9.6: every track's LEN */

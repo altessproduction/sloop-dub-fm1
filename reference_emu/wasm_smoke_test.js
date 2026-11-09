@@ -16,6 +16,9 @@ const WASM = process.argv[2] ||
 const u32 = (b0, b1, b2, b3) => (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) >>> 0;
 const NON = (n, v) => u32(9, 0x90, n, v);          /* USB-MIDI note-on,  CIN=9 */
 const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 */
+const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_PLAY = 12 (bit 10 was the
+                                                    * ARP button: the old passes rang the held skank chords,
+                                                    * the transport never ran). B_OCTUP = 1, B_OCTDN = 0 */
 
 (async () => {
     const { instance } = await WebAssembly.instantiate(fs.readFileSync(WASM), { env: {} });
@@ -121,6 +124,41 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
         if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));
     console.log('seq readback ...... OK (steps in the tracks, TIE holds, LEN 64)');
 
+    /* 2.9.7: the DUB page's filter and throw, the DLY page's tape delay: the same state
+     * the menu rows hold, and the audio path runs tape without a trap */
+    for (const n of ['emu_dub_filter', 'emu_dub_filter_get', 'emu_dub_send', 'emu_dub_send_get',
+                     'emu_dub_dly_time', 'emu_dub_dly_time_get', 'emu_dub_dly_rel', 'emu_dub_dly_rel_get',
+                     'emu_dub_dly_sync', 'emu_dub_dly_sync_get', 'emu_dub_dly_div', 'emu_dub_dly_div_get'])
+        if (!names.includes(n)) throw new Error('missing export ' + n);
+    e.emu_dub_filter(20);
+    if (e.emu_dub_filter_get() !== 20) throw new Error('filter get ' + e.emu_dub_filter_get());
+    e.emu_dub_filter(300);             /* clamps to the HP end */
+    if (e.emu_dub_filter_get() !== 127) throw new Error('filter clamp ' + e.emu_dub_filter_get());
+    e.emu_dub_filter(64);              /* the flat center */
+    if (e.emu_dub_filter_get() !== 64) throw new Error('filter center ' + e.emu_dub_filter_get());
+    e.emu_dub_send(80);
+    if (e.emu_dub_send_get() !== 80) throw new Error('send get ' + e.emu_dub_send_get());
+    e.emu_dub_dly_time(5000);          /* clamps to the tape's long end */
+    if (e.emu_dub_dly_time_get() !== 1400) throw new Error('dly ms ' + e.emu_dub_dly_time_get());
+    e.emu_dub_dly_time(400);
+    e.emu_dub_dly_rel(90);
+    if (e.emu_dub_dly_rel_get() !== 90) throw new Error('dly rel ' + e.emu_dub_dly_rel_get());
+    e.emu_dub_dly_sync(0);             /* the free ms rules */
+    if (e.emu_dub_dly_sync_get() !== 0) throw new Error('dly sync ' + e.emu_dub_dly_sync_get());
+    e.emu_dub_dly_div(3);
+    if (e.emu_dub_dly_div_get() !== 3) throw new Error('dly div ' + e.emu_dub_dly_div_get());
+    e.emu_dub_enable(1);               /* the module on: the filter, the throw, the tape run */
+    for (let i = 0; i < 40; i++) render(256);   /* the sweeps glide, the echo rings, no trap */
+    e.emu_dub_send(0);
+    e.emu_dub_filter(64);
+    e.emu_dub_dly_sync(1);
+    e.emu_dub_dly_rel(60);
+    e.emu_dub_siren_level(0);          /* the siren rests: it kept wailing into the tape above */
+    e.emu_dub_dly_rel(0);              /* one pass, no repeats: the tail dies young */
+    for (let i = 0; i < 260; i++) render(256);   /* the tape flushes (~1.5 s) before the
+                                        * riddim RMS; the module stays ON, as the walk came */
+    console.log('filter/throw/dly ... OK (bipolar filter, the throw, the tape state)');
+
     /* 2.9.3: the dub sound banks: eight a role, the names readable, every role loads */
     const roleNames = [];
     for (let role = 0; role < 4; role++) {
@@ -145,17 +183,24 @@ const NOFF = (n) => u32(8, 0x80, n, 64);           /* USB-MIDI note-off, CIN=8 *
     e.emu_dub_mix(0);
     e.emu_dub_band(0, 0, 0);
     e.emu_dub_band(2, 0, 0);
-    for (let i = 0; i < 8; i++) render(256);
+    for (let i = 0; i < 20; i++) render(256);   /* the unmuted bands let the held chord tails
+                                                 * through: they settle before the idle reads */
     const rIdle = rmsN(8);
-    e.emu_input(0, 1 << 10);           /* PLAY down (panel.c B_PLAY) */
+    e.emu_input(0, PLAYB);             /* PLAY down (panel.c B_PLAY = 12) */
+    e.emu_frame();
     for (let i = 0; i < 6; i++) render(256);
     e.emu_input(0, 0);                 /* PLAY up */
+    e.emu_frame();
     for (let i = 0; i < 16; i++) render(256);
     const rPlay = rmsN(16);
-    e.emu_input(0, 1 << 10);           /* PLAY again: STOP */
+    if (!e.emu_dbg(0)) throw new Error('transport not playing after PLAY');
+    e.emu_input(0, PLAYB);             /* PLAY again: STOP */
+    e.emu_frame();
     for (let i = 0; i < 6; i++) render(256);
     e.emu_input(0, 0);
-    for (let i = 0; i < 8; i++) render(256);
+    e.emu_frame();
+    if (e.emu_dbg(0)) throw new Error('transport still playing after STOP');
+    for (let i = 0; i < 40; i++) render(256);   /* the tracks' voices release, the echo dies */
     const rStop = rmsN(8);
     console.log('rms riddim idle ... ' + rIdle.toFixed(6));
     console.log('rms riddim playing  ' + rPlay.toFixed(6));

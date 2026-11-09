@@ -123,6 +123,138 @@ void dub_isolator_process(dub_isolator_t *d, int32_t *left, int32_t *right, uint
     }
 }
 
+/* ------------------------------------- 2.9.7: the DUB page's filter and throw --- */
+/* KNOB 2: a bipolar filter on the module's output — 0..63 lowpass (the deeper the
+ * lower), 64 neutral (the center detent: the untouched signal, no filter run),
+ * 65..127 highpass (the deeper the higher). One state-variable filter a channel; the
+ * cutoff and the dry/wet amount glide block to block, so a sweep slides and crossing
+ * the center never clicks. KNOB 4: the throw — the module's output added into the
+ * project's delay send bus, its gain gliding too (dub_send_feed). The DLY page runs
+ * that bus tape while DUB is on (fx.c): SYNC off the free ms (dub_dly_ms) rules, SYNC
+ * on the project's division (song.g[G_DTIME]) as the delay always did. */
+
+uint8_t dub_send;
+uint8_t dub_dly_sync = 1;
+uint16_t dub_dly_ms = 400;
+
+static int32_t dub_exp2(int32_t x);              /* (below, with the siren's sweep table) */
+
+typedef struct { int32_t low, band; } dub_svf_t;
+
+static struct {
+    int16_t v;                       /* the knob, 0..127, 64 neutral */
+    int32_t amt, amt_t;              /* the dry/wet share, Q15, gliding to amt_t */
+    int32_t hz, hz_t;                /* the cutoff, gliding to hz_t */
+    int32_t lp;                      /* 1 lowpass, 0 highpass (where the amount > 0) */
+    int32_t send, send_t;            /* the throw's gain, Q15, gliding to send_t */
+} dub_flt = {64, 0, 0, 16000, 16000, 1, 0, 0};
+static dub_svf_t dub_flt_ch[2];
+
+void dub_filter_set(int16_t v)
+{
+    int32_t d;                       /* the depth out of neutral, Q15 */
+    int16_t was = dub_flt.v;
+    dub_flt.v = (int16_t)dub_clamp(v, 0, 127);
+    if (dub_flt.v < 64) {
+        d = ((int32_t)(63 - dub_flt.v) << 15) / 64;
+        dub_flt.lp = 1;
+        dub_flt.hz_t = (16000 * dub_exp2(-7 * d)) >> 15;    /* 16 kHz down to 125 Hz */
+    } else if (dub_flt.v > 64) {
+        d = ((int32_t)(dub_flt.v - 64) << 15) / 63;
+        dub_flt.lp = 0;
+        dub_flt.hz_t = (30 * dub_exp2(7 * d)) >> 15;        /* 30 Hz up to 3.8 kHz */
+    } else {
+        d = 0;
+        dub_flt.hz_t = 16000;
+    }
+    dub_flt.amt_t = d;
+    if (dub_flt.v != was && !dub_flt.amt_t)          /* woke the filter: it starts on its
+                                                      * target, not from a stale cutoff */
+        dub_flt.hz = dub_flt.hz_t;
+}
+
+int16_t dub_filter_get(void) { return dub_flt.v; }
+
+uint32_t dub_filter_hz(int16_t v)                /* the knob's cutoff, for the UI */
+{
+    int32_t d;
+    if (v == 64)
+        return 16000;                            /* the neutral: flat, nothing filtered */
+    if (v < 64) {
+        d = ((int32_t)(63 - v) << 15) / 64;
+        return (uint32_t)((16000 * dub_exp2(-7 * d)) >> 15);
+    }
+    d = ((int32_t)(v - 64) << 15) / 63;
+    return (uint32_t)((30 * dub_exp2(7 * d)) >> 15);
+}
+
+void dub_filter_process(int32_t *left, int32_t *right, uint32_t n)
+{
+    uint32_t i;
+    int32_t amt, f, q = 29491;       /* the damping: a mild resonance, stable for f < q */
+    if (!dub_flt.amt && !dub_flt.amt_t)
+        return;                      /* the neutral: the untouched signal, no filter run */
+    if (dub_flt.amt != dub_flt.amt_t) {
+        int32_t st = (dub_flt.amt_t - dub_flt.amt) >> 3;
+        if (!st)
+            st = dub_flt.amt_t > dub_flt.amt ? 1 : -1;
+        dub_flt.amt += st;
+    }
+    if (dub_flt.hz != dub_flt.hz_t) {
+        int32_t st = (dub_flt.hz_t - dub_flt.hz) >> 3;
+        if (!st)
+            st = dub_flt.hz_t > dub_flt.hz ? 16 : -16;
+        dub_flt.hz += st;
+    }
+    f = (int32_t)(((int64_t)dub_flt.hz * 205887) / FS);    /* 2 sin(pi fc/fs) ~ 2 pi fc/fs, Q15 */
+    if (f < 1)
+        f = 1;
+    if (f > 8000)
+        f = 8000;
+    amt = dub_flt.amt;
+    for (i = 0; i < n; i++) {
+        int32_t inl = left[i], inr = right[i], outl, outh, outr, our;
+        outl = dub_flt_ch[0].low + dub_mul15(dub_flt_ch[0].band, f);
+        outh = inl - outl - dub_mul15(dub_flt_ch[0].band, q);
+        dub_flt_ch[0].band += dub_mul15(outh, f);
+        dub_flt_ch[0].low = outl;
+        outr = dub_flt_ch[1].low + dub_mul15(dub_flt_ch[1].band, f);
+        our = inr - outr - dub_mul15(dub_flt_ch[1].band, q);
+        dub_flt_ch[1].band += dub_mul15(our, f);
+        dub_flt_ch[1].low = outr;
+        if (dub_flt.lp) {
+            left[i] = inl + dub_mul15(outl - inl, amt);
+            right[i] = inr + dub_mul15(outr - inr, amt);
+        } else {
+            left[i] = inl + dub_mul15(outh - inl, amt);
+            right[i] = inr + dub_mul15(our - inr, amt);
+        }
+    }
+}
+
+void dub_send_set(uint8_t v) { dub_send = v > 127u ? 127u : v; }
+
+void dub_send_feed(const int32_t *left, const int32_t *right, int32_t *dly_bus, uint32_t n)
+{
+    uint32_t i;
+    int32_t g, st;
+    dub_flt.send_t = (int32_t)dub_send * 258;            /* 0..127 -> Q15 */
+    if (dub_flt.send != dub_flt.send_t) {
+        st = (dub_flt.send_t - dub_flt.send) >> 3;
+        if (!st)
+            st = dub_flt.send_t > dub_flt.send ? 1 : -1;
+        dub_flt.send += st;
+    }
+    g = dub_flt.send;
+    if (!g)
+        return;
+    for (i = 0; i < n; i++)
+        dly_bus[i] += dub_mul15((left[i] + right[i]) >> 1, g);
+}
+
+void dub_dly_set_ms(uint16_t ms) { dub_dly_ms = ms < 40u ? 40u : ms > 1400u ? 1400u : ms; }
+void dub_dly_set_sync(uint8_t on) { dub_dly_sync = on ? 1u : 0u; }
+
 const char *const DUB_SIR_TYPE_NAMES[DUB_SIR_TYPES] = {"WAIL", "HILO", "RAMP", "SWEEP", "SPACE"};
 const char *const DUB_SIW_NAMES[DUB_SIW_N] = {"SQR", "PLS", "SAW", "TRI", "SIN"};
 
@@ -282,13 +414,14 @@ void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, int32_t *se
 
 void dub_seq_init(dub_seq_t *s)
 {
-    uint32_t i;
+    uint32_t t, i;
     s->length = 16;
     s->step = 0;
-    for (i = 0; i < 64u * DUB_TRK_N; i++) {
-        s->notes[0][i] = DUB_SEQ_REST;                 /* a rest: nothing plays until written */
-        s->velocity[0][i] = 0;
-    }
+    for (t = 0; t < DUB_TRK_N; t++)
+        for (i = 0; i < 64u; i++) {
+            s->notes[t][i] = DUB_SEQ_REST;             /* a rest: nothing plays until written */
+            s->velocity[t][i] = 0;
+        }
 }
 
 void dub_seq_set_length(dub_seq_t *s, uint8_t length)

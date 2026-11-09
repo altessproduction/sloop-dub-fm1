@@ -54,10 +54,11 @@ def main():
             assert "SLOOP DUB" in page.locator("#title").inner_text()
             assert "FELUCCA" not in page.locator("body").inner_text()
             # The Dub controls are part of this same firmware emulator page: the tabbed
-            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DSEQ RDM ISO).
+            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DLY RDM PRS
+            # ISO), plus the sequencer view (SEQ) — 2.9.7 replaced the DSQ page with DLY.
             assert page.locator("#dub-console").is_visible()
-            assert page.locator(".dub-tab").count() == 8
-            assert page.locator(".dub-page").count() == 8
+            assert page.locator(".dub-tab").count() == 9
+            assert page.locator(".dub-page").count() == 9
             assert page.locator(".dub-page.on").count() == 1
             assert page.locator("#dub-enabled").count() == 1
             assert page.locator("#dub-mix").count() == 1

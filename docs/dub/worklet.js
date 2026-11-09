@@ -48,6 +48,16 @@ class SloopProcessor extends AudioWorkletProcessor {
             }
             else if (m.t === 'dub-band') this.e.emu_dub_band(m.band || 0, m.gain || 0, m.mute ? 1 : 0);
             else if (m.t === 'dub-mix') { if (typeof this.e.emu_dub_mix === 'function') this.e.emu_dub_mix(m.mix || 0); }
+            else if (m.t === 'dub-filter') { if (typeof this.e.emu_dub_filter === 'function') this.e.emu_dub_filter(m.v || 64); }   // (2.9.7) the DUB page's KNOB 2
+            else if (m.t === 'dub-send') { if (typeof this.e.emu_dub_send === 'function') this.e.emu_dub_send(m.v || 0); }           // (2.9.7) the throw, KNOB 4
+            else if (m.t === 'dub-dly') {                        // (2.9.7) the DLY page's tape delay
+                if (typeof this.e.emu_dub_dly_time === 'function') {
+                    if (m.time != null) this.e.emu_dub_dly_time(m.time);
+                    if (m.rel != null) this.e.emu_dub_dly_rel(m.rel);
+                    if (m.sync != null) this.e.emu_dub_dly_sync(m.sync);
+                    if (m.div != null) this.e.emu_dub_dly_div(m.div);
+                }
+            }
             else if (m.t === 'dub-seq-length') this.e.emu_dub_seq_length(m.length || 16);
             else if (m.t === 'dub-seq-step') {
                 if (m.track != null && typeof this.e.emu_dub_riddim_count === 'function')

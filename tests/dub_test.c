@@ -251,5 +251,66 @@ int main(void)
           "skank quality names for the UI");
     check(DUB_PRESET_COUNT >= 5 && strcmp(DUB_PRESETS[2].name, "DUB SIREN") == 0,
           "reggae/dub preset bank");
+
+    {   /* 2.9.7: the DUB page's bipolar filter, throw and the DLY page's tape settings */
+        int32_t l[256], r[256], bus[256];
+        dub_filter_set(-5);
+        check(dub_filter_get() == 0, "dub filter set clamps to the low end");
+        dub_filter_set(200);
+        check(dub_filter_get() == 127, "dub filter set clamps to the high end");
+        dub_filter_set(64);
+        check(dub_filter_hz(64) == 16000, "dub filter neutral sits at the top");
+        check(dub_filter_hz(0) < 200 && dub_filter_hz(127) > 3000,
+              "dub filter sweep spans its octaves either side");
+        dub_filter_set(64);
+        for (i = 0; i < 256; i++)
+            l[i] = r[i] = (int32_t)(i * 97) - 12000;
+        dub_filter_process(l, r, 256);                   /* the neutral: no filter run at all */
+        check(l[255] == 255 * 97 - 12000 && r[100] == 100 * 97 - 12000,
+              "dub filter neutral leaves the signal untouched");
+        dub_filter_set(0);                               /* the deepest lowpass, 125 Hz */
+        for (i = 0; i < 40u * 32u; i++) {                /* the amount glides, then a full-scale square */
+            uint32_t k = i % 256u;
+            l[k] = r[k] = (k & 1u) ? 2000000 : -2000000;
+            dub_filter_process(l + k, r + k, 1);
+        }
+        {   /* the lowpass: the fast square comes out far smaller than it went in */
+            int32_t mx = 0;
+            for (i = 0; i < 256; i++)
+                if (l[i] > mx || -l[i] > mx)
+                    mx = l[i] > 0 ? l[i] : -l[i];
+            check(mx > 0 && mx < 1000000, "dub filter lowpass darkens the square");
+        }
+        dub_filter_set(127);                             /* the deepest highpass */
+        for (i = 0; i < 40u * 32u; i++) {
+            uint32_t k = i % 256u;
+            l[k] = r[k] = 40000;                         /* DC: the highpass grounds it */
+            dub_filter_process(l + k, r + k, 1);
+        }
+        check(l[255] < 4000 && l[255] > -4000, "dub filter highpass grounds DC");
+        dub_filter_set(64);
+
+        dub_dly_set_ms(10);
+        check(dub_dly_ms == 40, "dub dly ms clamps at the short end");
+        dub_dly_set_ms(5000);
+        check(dub_dly_ms == 1400, "dub dly ms clamps at the long end");
+        dub_dly_set_sync(0);
+        check(dub_dly_sync == 0, "dub dly sync off");
+        dub_dly_set_sync(7);
+        check(dub_dly_sync == 1, "dub dly sync on, any value");
+        dub_send_set(200);
+        check(dub_send == 127, "dub send clamps at full");
+        dub_send_set(0);
+        memset(bus, 0, sizeof bus);
+        for (i = 0; i < 256; i++)
+            l[i] = r[i] = 30000;
+        dub_send_feed(l, r, bus, 256);                   /* send 0: the glide settles dry, nothing lands */
+        check(bus[255] == 0, "dub send dry feeds nothing");
+        dub_send_set(127);
+        dub_send_feed(l, r, bus, 256);                   /* the glide is on its way, the bus fills */
+        dub_send_feed(l, r, bus, 256);
+        check(bus[255] != 0, "dub send feeds the delay bus");
+        check(bus[255] < 60000, "dub send stays in scale");
+    }
     return fails ? 1 : 0;
 }

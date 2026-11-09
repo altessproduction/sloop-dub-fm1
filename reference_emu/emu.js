@@ -257,7 +257,29 @@ function dubPreset(index) {
 function dubSeqLength(length) { dubMessage({ t: 'dub-seq-length', length: Number(length) }); }
 function dubSeqStep(step, button) {
     button.classList.toggle('active');
-    dubMessage({ t: 'dub-seq-step', step, note: 36 + (step % 12), velocity: button.classList.contains('active') ? 104 : 0 });
+    dubMessage({ t: 'dub-seq-step', track: 0, step, note: 36 + (step % 12), velocity: button.classList.contains('active') ? 104 : 0 });   // (2.9.2: the bass track)
+}
+/* the RIDDIM page: the ten riddims tools/gen_riddims.py composed, four tracks each
+ * (1 bass, 2 skanks, 3 melody, 4 drums). The load buttons mirror the firmware's OCT+. */
+const DUB_RIDDIM_NAMES = ['ONE DROP', 'STEPPERS', 'ROCKERS', 'DUBWALK', 'DIGITAL', 'LOVERS', 'MEDITATE', 'SKANKIN', 'DUB CUT', 'ZION'];
+function dubFillRiddims() {
+    for (const id of ['dub-riddim', 'dub-rbass', 'dub-rskank', 'dub-rdrum']) {
+        const sel = document.getElementById(id);
+        if (!sel || sel.options.length) continue;
+        DUB_RIDDIM_NAMES.forEach((n, i) => {
+            const o = document.createElement('option');
+            o.value = String(i);
+            o.textContent = n;
+            sel.appendChild(o);
+        });
+    }
+}
+function dubRiddim(selId, track) {
+    const m = track == null ? { t: 'dub-riddim', riddim: Number(document.getElementById(selId).value || 0) }
+                            : { t: 'dub-riddim-track', riddim: Number(document.getElementById(selId).value || 0), track };
+    dubMessage(m);
+    const enabled = document.getElementById('dub-enabled');
+    if (enabled && !enabled.checked) { enabled.checked = true; dubEnable(true); }
 }
 /* the tab strip mirrors the firmware's Dub pages: one tab, one LCD page */
 function dubPage(name) {
@@ -320,6 +342,11 @@ function setupDubPanel() {
     document.getElementById('dub-skank')?.addEventListener('click', dubSkank);
     document.getElementById('dub-length')?.addEventListener('change', ev => dubSeqLength(ev.target.value));
     document.querySelectorAll('#dub-steps button').forEach((button, step) => button.addEventListener('click', () => dubSeqStep(step, button)));
+    dubFillRiddims();
+    document.getElementById('dub-riddim-load')?.addEventListener('click', () => dubRiddim('dub-riddim', null));
+    document.getElementById('dub-rbass-load')?.addEventListener('click', () => dubRiddim('dub-rbass', 0));
+    document.getElementById('dub-rskank-load')?.addEventListener('click', () => dubRiddim('dub-rskank', 1));
+    document.getElementById('dub-rdrum-load')?.addEventListener('click', () => dubRiddim('dub-rdrum', 3));
     document.querySelectorAll('#dub-presets button').forEach((button, index) => button.addEventListener('click', () => dubPreset(index)));
 }
 

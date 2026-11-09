@@ -62,12 +62,29 @@ typedef struct {
     uint8_t active;
 } dub_siren_t;
 
+/* the dub sequence's tracks: the bass line, the skanks, the melody, the drums */
+enum { DUB_TRK_BASS = 0, DUB_TRK_SKANK, DUB_TRK_MEL, DUB_TRK_DRUM, DUB_TRK_N };
+extern const char *const DUB_TRK_NAMES[DUB_TRK_N];   /* "BASS", "SKNK", "MEL", "DRUM" */
+
 typedef struct {
     uint8_t length;
     uint8_t step;
-    uint8_t notes[64];
-    uint8_t velocity[64];
+    uint8_t notes[DUB_TRK_N][64];
+    uint8_t velocity[DUB_TRK_N][64];
 } dub_seq_t;
+
+/* the riddim bank (dub_riddim.h, tools/gen_riddims.py): ten 64-step sequences, four
+ * tracks each. A step's note DUB_SEQ_REST (255) is a rest. The RIDDIM page loads a
+ * whole riddim (OCT+ on KNOB 1) or one track's motif (OCT+ on KNOB 2..4) into the
+ * dub sequence; seq.c plays it on the transport's sixteenths. */
+#define DUB_SEQ_REST 255u
+#define DUB_RIDDIM_STEPS 64u
+typedef struct {
+    const char *name;                              /* "ONE DROP", the LCD and the web tab */
+    uint8_t note[DUB_TRK_N][DUB_RIDDIM_STEPS];
+    uint8_t vel[DUB_TRK_N][DUB_RIDDIM_STEPS];
+} dub_riddim_t;
+extern const dub_riddim_t DUB_RIDDIMS[];
 
 /* quality: 0 MAJ, 1 MIN, 2 DIM, 3 AUG, 4 7TH, 5 MIN7, 6 9TH, 7 PWR (root + fifth).
  * The build writes up to five note numbers, the count it wrote is returned. */
@@ -77,6 +94,10 @@ typedef struct {
     uint8_t octave;
     uint8_t velocity;
 } dub_skank_t;
+
+/* the skank chords the SKANK page and the riddim's skank track both sound */
+extern dub_skank_t dub_skank_conf;
+extern const uint32_t DUB_RIDDIM_COUNT;                /* the bank's size, dub.c computes it */
 
 #define DUB_SKANK_QUALITIES 8u
 #define DUB_SKANK_MAX_NOTES 5u
@@ -112,8 +133,11 @@ void dub_siren_render(dub_siren_t *s, int32_t *left, int32_t *right, int32_t *se
 
 void dub_seq_init(dub_seq_t *s);
 void dub_seq_set_length(dub_seq_t *s, uint8_t length);
-void dub_seq_set_step(dub_seq_t *s, uint8_t step, uint8_t note, uint8_t velocity);
+void dub_seq_set_step(dub_seq_t *s, uint8_t track, uint8_t step, uint8_t note, uint8_t velocity);
 void dub_seq_advance(dub_seq_t *s);
+void dub_riddim_load(dub_seq_t *s, uint32_t riddim);                       /* the four tracks, 64 steps */
+void dub_riddim_load_track(dub_seq_t *s, uint32_t riddim, uint32_t track); /* one track only */
+const char *dub_riddim_name(uint32_t riddim);                              /* "ONE DROP", clamped */
 
 uint8_t dub_skank_build(const dub_skank_t *s, uint8_t key, uint8_t *notes, uint8_t max_notes);
 

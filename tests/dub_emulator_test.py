@@ -54,10 +54,10 @@ def main():
             assert "SLOOP DUB" in page.locator("#title").inner_text()
             assert "FELUCCA" not in page.locator("body").inner_text()
             # The Dub controls are part of this same firmware emulator page: the tabbed
-            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DSEQ ISO).
+            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DSEQ RDM ISO).
             assert page.locator("#dub-console").is_visible()
-            assert page.locator(".dub-tab").count() == 6
-            assert page.locator(".dub-page").count() == 6
+            assert page.locator(".dub-tab").count() == 7
+            assert page.locator(".dub-page").count() == 7
             assert page.locator(".dub-page.on").count() == 1
             assert page.locator("#dub-enabled").count() == 1
             assert page.locator("#dub-mix").count() == 1
@@ -87,6 +87,23 @@ def main():
             page.click('.dub-tab[data-dub-page="sr2"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "sr2"
             assert page.locator('[data-dub-panel="sr2"]').is_visible()
+            page.click('.dub-tab[data-dub-page="dub"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
+            # 2.9.2: the RIDDIM tab: four selectors of the ten riddims, the four load buttons
+            page.click('.dub-tab[data-dub-page="rdm"]')
+            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "rdm"
+            assert page.locator("#dub-riddim option").count() == 10
+            assert page.locator("#dub-rbass option").count() == 10
+            assert page.locator("#dub-rskank option").count() == 10
+            assert page.locator("#dub-rdrum option").count() == 10
+            for b in ["dub-riddim-load", "dub-rbass-load", "dub-rskank-load", "dub-rdrum-load"]:
+                assert page.locator("#" + b).count() == 1
+            page.select_option("#dub-riddim", "3")
+            page.click("#dub-riddim-load")
+            page.wait_for_timeout(400)
+            page.select_option("#dub-rdrum", "5")
+            page.click("#dub-rdrum-load")
+            page.wait_for_timeout(300)
             page.click('.dub-tab[data-dub-page="dub"]')
             assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
             duplicate_ids = page.evaluate("""() => {

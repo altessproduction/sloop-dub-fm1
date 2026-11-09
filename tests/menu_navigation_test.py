@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Walk the HOME-hold menu's ten pages in the local emulator and screenshot
+"""Walk the HOME-hold menu's twelve pages in the local emulator and screenshot
 each Dub page (DUB, SIREN, SKANK, DSEQ, ISO) after SELECT steps."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -33,9 +33,9 @@ def main():
             page.screenshot(path=str(OUT / "menu_home_long.png"))
             page.keyboard.up("7")
             page.wait_for_timeout(250)
-            # SELECT is ArrowUp (next page) / ArrowDown (previous page): the eleven pages
-            # are SCR LGT AUD SEQ SYS DUB SIR SR2 SKK DSQ ISO; screenshot the Dub ones.
-            pages = [("dub", 5), ("siren", 1), ("siren2", 1), ("skank", 1), ("dseq", 1), ("iso", 1)]
+            # SELECT is ArrowUp (next page) / ArrowDown (previous page): the twelve pages
+            # are SCR LGT AUD SEQ SYS DUB SIR SR2 SKK DSQ RDM ISO; screenshot the Dub ones.
+            pages = [("dub", 5), ("siren", 1), ("siren2", 1), ("skank", 1), ("dseq", 1), ("riddim", 1), ("iso", 1)]
             for name, steps in pages:
                 for _ in range(steps):
                     page.keyboard.press("ArrowUp")

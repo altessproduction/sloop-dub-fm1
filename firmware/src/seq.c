@@ -1978,6 +1978,98 @@ static void drum_input(uint32_t lane, uint32_t lvl, uint32_t rat, int rec)
     trk_note_on(t, LANE_NOTE[lane], lvl_vel(lvl, 100));
 }
 
+/* ------------------------------------------------------- dub seq --- */
+/* 2.9.2: the dub sequence's playback (the RIDDIM page's ten riddims, the DSEQ page's steps).
+ * The transport's sixteenths drive it while DUB ENABLE is on and PLAY runs: the bass line
+ * sounds on track 1 (trk[0]), the skanks stab their chord on track 2, the melody plays
+ * track 3, the drum notes hit the drum track's lanes. A melodic track holds its note over
+ * equal steps (a rest or a different note ends it), a skank stabs one sixteenth and off. */
+static track_t *const DUB_TO[DUB_TRK_N] = {&trk[0], &trk[1], &trk[2], TDRUM};
+static uint8_t dub_hold[DUB_TRK_N];                    /* the note each melodic track holds */
+static uint8_t dub_stab[DUB_SKANK_MAX_NOTES];          /* the skank's chord, sounding now */
+static uint8_t dub_stab_n;
+static uint32_t dub_sixteenth;                         /* the sixteenth last played; ~0 = PLAY just armed */
+
+static void dub_all_off(void)                          /* STOP / DUB off: no dub note stays held */
+{
+    uint32_t tr, i;
+    for (tr = 0; tr < DUB_TRK_N; tr++) {
+        if (dub_hold[tr] != DUB_SEQ_REST) {
+            input_off(DUB_TO[tr], dub_hold[tr]);
+            dub_hold[tr] = DUB_SEQ_REST;
+        }
+    }
+    for (i = 0; i < dub_stab_n; i++)
+        input_off(DUB_TO[DUB_TRK_SKANK], dub_stab[i]);
+    dub_stab_n = 0;
+}
+
+static void dub_step_play(uint32_t st)                 /* one sixteenth of the dub sequence */
+{
+    dub_seq_t *s = &dub_sequence;
+    uint32_t tr, i;
+    for (tr = 0; tr < DUB_TRK_N; tr++) {
+        uint8_t note = s->notes[tr][st], vel = s->velocity[tr][st];
+        if (tr == DUB_TRK_DRUM) {
+            if (note != DUB_SEQ_REST)
+                drum_input(midi_drum_lane(note), vel_lvl(vel), 0, 0);
+            continue;
+        }
+        if (tr == DUB_TRK_SKANK) {
+            for (i = 0; i < dub_stab_n; i++)           /* the last stab ends, one sixteenth long */
+                input_off(DUB_TO[tr], dub_stab[i]);
+            dub_stab_n = 0;
+            if (note != DUB_SEQ_REST) {                /* the chord: the SKANK page's quality */
+                dub_skank_t c;
+                uint8_t notes[DUB_SKANK_MAX_NOTES];
+                c.root = note % 12u;
+                c.quality = dub_skank_conf.quality;
+                c.octave = dub_skank_conf.octave;
+                c.velocity = vel;
+                dub_stab_n = dub_skank_build(&c, 0, notes, DUB_SKANK_MAX_NOTES);
+                for (i = 0; i < dub_stab_n; i++) {
+                    dub_stab[i] = notes[i];
+                    input_on(DUB_TO[tr], notes[i], c.velocity);
+                }
+            }
+            continue;
+        }
+        if (note == DUB_SEQ_REST) {                    /* the bass and the melody, legato */
+            if (dub_hold[tr] != DUB_SEQ_REST) {
+                input_off(DUB_TO[tr], dub_hold[tr]);
+                dub_hold[tr] = DUB_SEQ_REST;
+            }
+        } else if (note != dub_hold[tr]) {
+            if (dub_hold[tr] != DUB_SEQ_REST)
+                input_off(DUB_TO[tr], dub_hold[tr]);
+            input_on(DUB_TO[tr], note, vel);
+            dub_hold[tr] = note;
+        }                                              /* the same note again: held */
+    }
+    s->step = (uint8_t)(st % s->length);               /* the playhead follows the transport */
+}
+
+static void dub_clock(void)                            /* once a block, on the transport's grid */
+{
+    uint32_t q = BEAT_U / 4u, now;
+    if (!dub_enabled) {
+        dub_all_off();
+        return;
+    }
+    now = (uint32_t)(((uint64_t)clk_beat * BEAT_U + clk_pos) / q);
+    if (dub_sixteenth == 0xFFFFFFFFu) {                /* PLAY just started: its step 0 at once */
+        dub_sixteenth = now;
+        if (dub_sequence.length)
+            dub_step_play(now % dub_sequence.length);
+        return;
+    }
+    if (now != dub_sixteenth) {                        /* a sixteenth began inside this block */
+        dub_sixteenth = now;
+        if (dub_sequence.length)
+            dub_step_play(now % dub_sequence.length);
+    }
+}
+
 /* -------------------------------------------------------------- roll --- */
 /* ARP + key: note repeat. The key plays at G_ROLL (1/8, 1/16, 1/32, 32T, 1/64) on the transport's grid
  * (stopped: from the press) until it or ARP is up. Recorded, a roll faster than the track's steps
@@ -3570,8 +3662,13 @@ static void events_block(uint32_t n)
             clk_pos -= BEAT_U;
             clk_beat++;
         }
+        dub_clock();                                /* 2.9.2: the dub sequence rides the sixteenths */
 #if FELUCCA_ARRANGER
         arr_elapse(&arrangement_clock, adv, 1u);   /* (units: n x BPM, or the MIDI clock) */
 #endif
+    } else {
+        dub_all_off();                             /* STOP: no dub note stays held, the next PLAY
+                                                   * begins the riddim at its step 0 (dub_clock) */
+        dub_sixteenth = 0xFFFFFFFFu;
     }
 }

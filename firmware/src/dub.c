@@ -3,6 +3,7 @@
  */
 #include <stdint.h>
 #include "dub.h"
+#include "dub_riddim.h"
 
 #ifndef FS
 #define FS 44100u
@@ -284,9 +285,9 @@ void dub_seq_init(dub_seq_t *s)
     uint32_t i;
     s->length = 16;
     s->step = 0;
-    for (i = 0; i < 64; i++) {
-        s->notes[i] = 0;
-        s->velocity[i] = 0;
+    for (i = 0; i < 64u * DUB_TRK_N; i++) {
+        s->notes[0][i] = DUB_SEQ_REST;                 /* a rest: nothing plays until written */
+        s->velocity[0][i] = 0;
     }
 }
 
@@ -296,12 +297,12 @@ void dub_seq_set_length(dub_seq_t *s, uint8_t length)
         s->length = length;
 }
 
-void dub_seq_set_step(dub_seq_t *s, uint8_t step, uint8_t note, uint8_t velocity)
+void dub_seq_set_step(dub_seq_t *s, uint8_t track, uint8_t step, uint8_t note, uint8_t velocity)
 {
-    if (step >= 64)
+    if (track >= DUB_TRK_N || step >= 64)
         return;
-    s->notes[step] = note;
-    s->velocity[step] = velocity;
+    s->notes[track][step] = note > 127u ? DUB_SEQ_REST : note;
+    s->velocity[track][step] = velocity;
 }
 
 void dub_seq_advance(dub_seq_t *s)
@@ -309,6 +310,45 @@ void dub_seq_advance(dub_seq_t *s)
     s->step++;
     if (s->step >= s->length)
         s->step = 0;
+}
+
+const char *const DUB_TRK_NAMES[DUB_TRK_N] = {"BASS", "SKNK", "MEL", "DRUM"};
+
+void dub_riddim_load(dub_seq_t *s, uint32_t riddim)            /* the whole riddim: four tracks, 64 steps */
+{
+    uint32_t tr, st;
+    if (riddim >= DUB_RIDDIM_COUNT)
+        riddim %= DUB_RIDDIM_COUNT;
+    for (tr = 0; tr < DUB_TRK_N; tr++) {
+        for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
+            s->notes[tr][st] = DUB_RIDDIMS[riddim].note[tr][st];
+            s->velocity[tr][st] = DUB_RIDDIMS[riddim].vel[tr][st];
+        }
+    }
+    s->length = 64;                                            /* a riddim plays its four bars whole */
+    s->step = 0;
+}
+
+void dub_riddim_load_track(dub_seq_t *s, uint32_t riddim, uint32_t track)   /* one track's motif only */
+{
+    uint32_t st;
+    if (riddim >= DUB_RIDDIM_COUNT)
+        riddim %= DUB_RIDDIM_COUNT;
+    if (track >= DUB_TRK_N)
+        return;
+    for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
+        s->notes[track][st] = DUB_RIDDIMS[riddim].note[track][st];
+        s->velocity[track][st] = DUB_RIDDIMS[riddim].vel[track][st];
+    }
+    if (s->length < DUB_RIDDIM_STEPS) {
+        s->length = 64;                                        /* the motif's bars need the four */
+        s->step = 0;
+    }
+}
+
+const char *dub_riddim_name(uint32_t riddim)
+{
+    return DUB_RIDDIMS[riddim >= DUB_RIDDIM_COUNT ? 0u : riddim].name;
 }
 
 const char *const DUB_SKANK_NAMES[DUB_SKANK_QUALITIES] =
@@ -350,4 +390,6 @@ const uint32_t DUB_PRESET_COUNT = sizeof DUB_PRESETS / sizeof DUB_PRESETS[0];
 dub_isolator_t dub_isolator;
 dub_siren_t dub_siren;
 dub_seq_t dub_sequence;
+dub_skank_t dub_skank_conf = {45, 1, 3, 108};                  /* A MIN, octave 3, the SKANK page's chord too */
+const uint32_t DUB_RIDDIM_COUNT = sizeof DUB_RIDDIMS / sizeof DUB_RIDDIMS[0];
 uint8_t dub_enabled = 0;

@@ -1303,17 +1303,53 @@ int main(int argc, char **argv)
         check((dub_menu_chord & 7u) == 2u, "menu SKANK: KNOB 1 left two: SKANK CHORD DIM");
 
         turns(panel.enc[EN_SELECT], 1);
-        check(mi_sec(ui.menu_sel) == MS_DSEQ && ui.menu_sel == MI_DUB_LEN,
-              "menu: SELECT right: DSEQ, SEQ LENGTH its first row");
+        check(mi_sec(ui.menu_sel) == MS_DSEQ && ui.menu_sel == MI_DUB_TRACK,
+              "menu: SELECT right: DSEQ, SEQ TRACK its first row");
         ui.force = 1; frame(); ppm("menu-dseq");
-        turns(panel.enc[EN_K1], 1);
-        check(dub_sequence.length == 32u, "menu DSEQ: KNOB 1 right: SEQ LENGTH 16 -> 32");
-        turns(panel.enc[EN_K2], 3);
-        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSEQ: KNOB 2 right: SEQ STEP 4");
-        turns(panel.enc[EN_K3], 5);
-        check(dub_sequence.notes[3] == 41u, "menu DSEQ: KNOB 3 right: SEQ NOTE 36 -> 41 written to the step");
-        turns(panel.enc[EN_K4], 27);
-        check(dub_sequence.velocity[3] == 127u, "menu DSEQ: KNOB 4 right: SEQ VELOCITY written to the step");
+        turns(panel.enc[EN_K1], 2);
+        check(ui.menu_sel == MI_DUB_TRACK && dub_menu_dtrk == 2u, "menu DSEQ: KNOB 1 right two: SEQ TRACK MEL");
+        turns(panel.enc[EN_K1], -2);
+        check(dub_menu_dtrk == 0u, "menu DSEQ: KNOB 1 left two: SEQ TRACK BASS");
+        turns(panel.enc[EN_K2], 1);
+        check(dub_sequence.length == 32u, "menu DSEQ: KNOB 2 right: SEQ LENGTH 16 -> 32");
+        turns(panel.enc[EN_K3], 3);
+        check(ui.menu_sel == MI_DUB_STEP && dub_menu_step == 3u, "menu DSEQ: KNOB 3 right: SEQ STEP 4");
+        turns(panel.enc[EN_K4], 5);
+        check(dub_sequence.notes[DUB_TRK_BASS][3] == 41u, "menu DSEQ: KNOB 4 right: SEQ NOTE 36 -> 41 written to the bass track");
+        ui.menu_sel = MI_DUB_VEL; ui.force = 1; frame();
+        tap(B_OCTUP);                                  /* the fifth row: OCT+ only, the knob's rows end at NOTE */
+        check(dub_sequence.velocity[DUB_TRK_BASS][3] == 0u, "menu DSEQ: OCT+ on SEQ VEL: the step's velocity written (toggled off)");
+        tap(B_OCTUP);
+        check(dub_menu_step_vel == 100u, "menu DSEQ: OCT+ again: the velocity back at 100");
+
+        turns(panel.enc[EN_SELECT], 1);
+        check(mi_sec(ui.menu_sel) == MS_RIDDIM && ui.menu_sel == MI_RD_SEL,
+              "menu: SELECT right: RIDDIM, its first row");
+        ui.force = 1; frame(); ppm("menu-rdm");
+        turns(panel.enc[EN_K1], 2);
+        check(dub_menu_riddim == 2u && !strcmp(mi_value(MI_RD_SEL, &(uint16_t){0}), "ROCKERS"),
+              "menu RIDDIM: KNOB 1 right two: ROCKERS selected");
+        tap(B_OCTUP);
+        check(dub_sequence.length == 64u && dub_sequence.notes[DUB_TRK_DRUM][8] == DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8] &&
+              dub_enabled == 1u, "menu RIDDIM: OCT+ loads the whole riddim, 64 steps, dub on");
+        turns(panel.enc[EN_K2], 1);
+        check(dub_menu_rbass == 1u, "menu RIDDIM: KNOB 2 right: STEPPERS's bass selected");
+        dub_sequence.notes[DUB_TRK_BASS][5] = 77;      /* a step the load must overwrite */
+        tap(B_OCTUP);
+        check(dub_sequence.notes[DUB_TRK_BASS][5] == DUB_RIDDIMS[1].note[DUB_TRK_BASS][5] &&
+              dub_sequence.notes[DUB_TRK_DRUM][8] == DUB_RIDDIMS[2].note[DUB_TRK_DRUM][8],
+              "menu RIDDIM: OCT+ on BASS PATTERN loads the bass motif only");
+        turns(panel.enc[EN_K3], 1);
+        check(dub_menu_rskank == 1u, "menu RIDDIM: KNOB 3 right: the skank motif moves");
+        tap(B_OCTUP);
+        check(dub_sequence.notes[DUB_TRK_SKANK][2] == DUB_RIDDIMS[1].note[DUB_TRK_SKANK][2],
+              "menu RIDDIM: OCT+ on SKANK PATTERN loads the skank track");
+        turns(panel.enc[EN_K4], 1);
+        check(dub_menu_rdrum == 1u, "menu RIDDIM: KNOB 4 right: the drum motif moves");
+        dub_sequence.notes[DUB_TRK_DRUM][0] = 200;
+        tap(B_OCTUP);
+        check(dub_sequence.notes[DUB_TRK_DRUM][0] == DUB_RIDDIMS[1].note[DUB_TRK_DRUM][0],
+              "menu RIDDIM: OCT+ on DRUM PATTERN loads the drum track");
 
         turns(panel.enc[EN_SELECT], 1);
         check(mi_sec(ui.menu_sel) == MS_ISO && ui.menu_sel == MI_DUB_SUB,
@@ -1339,7 +1375,8 @@ int main(int argc, char **argv)
         dub_siren_set_send(&dub_siren, 0);
         dub_siren.level_cur = 0;
         dub_seq_set_length(&dub_sequence, 16);
-        dub_seq_set_step(&dub_sequence, 3, 0, 0);
+        dub_seq_set_step(&dub_sequence, DUB_TRK_BASS, 3, 0, 0);
+        dub_menu_dtrk = 0; dub_menu_riddim = 0; dub_menu_rbass = 0; dub_menu_rskank = 0; dub_menu_rdrum = 0;
         go_home(); ui.force = 1; frame();
     }
 

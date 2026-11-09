@@ -146,16 +146,61 @@ int main(void)
 
     dub_seq_init(&seq);
     dub_seq_set_length(&seq, 64);
-    dub_seq_set_step(&seq, 63, 36, 100);
+    dub_seq_set_step(&seq, DUB_TRK_BASS, 63, 36, 100);
     for (i = 0; i < 63; i++)
         dub_seq_advance(&seq);
-    check(seq.length == 64 && seq.step == 63 && seq.notes[63] == 36,
+    check(seq.length == 64 && seq.step == 63 && seq.notes[DUB_TRK_BASS][63] == 36,
           "64-step sequence");
     dub_seq_set_length(&seq, 32);
     dub_seq_advance(&seq);
     check(seq.step == 0, "sequence wraps at selected length");
     dub_seq_set_length(&seq, 17);
     check(seq.length == 32, "rejects unsupported sequence length");
+    {   /* 2.9.2: the four tracks, the rests, the riddim bank */
+        uint32_t r, tr, st;
+        check(seq.notes[DUB_TRK_SKANK][63] == DUB_SEQ_REST && seq.notes[DUB_TRK_MEL][0] == DUB_SEQ_REST,
+              "dub_seq_init: every track starts at rest");
+        seq.notes[DUB_TRK_MEL][7] = 60;                /* load_track touches only its track */
+        dub_riddim_load_track(&seq, 0, DUB_TRK_BASS);
+        check(seq.notes[DUB_TRK_MEL][7] == 60 && seq.length == 64,
+              "riddim load_track: the other tracks keep their steps");
+        check(seq.notes[DUB_TRK_BASS][0] == DUB_RIDDIMS[0].note[DUB_TRK_BASS][0] &&
+              seq.velocity[DUB_TRK_BASS][0] == DUB_RIDDIMS[0].vel[DUB_TRK_BASS][0],
+              "riddim load_track: the bass steps land in the sequence");
+        dub_riddim_load(&seq, 1);
+        for (tr = 0; tr < DUB_TRK_N; tr++)
+            for (st = 0; st < 64; st++)
+                if (seq.notes[tr][st] != DUB_RIDDIMS[1].note[tr][st] ||
+                    seq.velocity[tr][st] != DUB_RIDDIMS[1].vel[tr][st])
+                    break;
+        check(tr == DUB_TRK_N && st == 64 && seq.length == 64 && seq.step == 0,
+              "riddim load: the four tracks whole, 64 steps, the head at 0");
+        for (r = 0; r < DUB_RIDDIM_COUNT; r++) {
+            uint32_t hits = 0, bad = 0;
+            const dub_riddim_t *d = &DUB_RIDDIMS[r];
+            for (tr = 0; tr < DUB_TRK_N; tr++) {
+                check(d->name && d->name[0], "riddim: its name");
+                for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
+                    if (d->note[tr][st] != DUB_SEQ_REST && d->note[tr][st] > 127u)
+                        bad++;
+                    if (d->vel[tr][st] > 127u)
+                        bad++;
+                    if (d->note[tr][st] != DUB_SEQ_REST)
+                        hits++;
+                }
+            }
+            check(!bad, "riddim: every note and velocity in range");
+            check(hits > 40, "riddim: it has music on its tracks");
+        }
+        check(DUB_RIDDIM_COUNT == 10 && !strcmp(dub_riddim_name(0), "ONE DROP") &&
+              !strcmp(dub_riddim_name(9), "ZION") && strcmp(dub_riddim_name(0), dub_riddim_name(1)),
+              "riddim bank: ten, named, different");
+        dub_seq_set_step(&seq, 9, 0, 60, 100);         /* the bounds: a bad track, a bad note */
+        check(seq.notes[0][0] == DUB_RIDDIMS[1].note[DUB_TRK_BASS][0], "seq_set_step: track >= DUB_TRK_N ignored");
+        dub_seq_set_step(&seq, DUB_TRK_DRUM, 200, 60, 100);
+        dub_seq_set_step(&seq, DUB_TRK_DRUM, 0, 200, 100);
+        check(seq.notes[DUB_TRK_DRUM][0] == DUB_SEQ_REST, "seq_set_step: note > 127 becomes a rest");
+    }
 
     skank.quality = 0;                                       /* MAJ */
     check(dub_skank_build(&skank, 2, notes, DUB_SKANK_MAX_NOTES) == 3 &&

@@ -328,6 +328,7 @@ body.compact #manual { display: none; }
 #dub-console button.active { color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 #dub-console .dub-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 #dub-console .dub-row select { flex: 0 1 auto; }
+#dub-console .dub-hint { margin: 12px 0 0; font-size: 11px; color: var(--muted, #8a919b); }
 #dub-console #dub-siren { flex: 1; color: var(--accent); }
 #dub-steps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 12px; }
 #dub-steps button { padding: 10px 0; font-size: 11px; }
@@ -363,6 +364,7 @@ body.compact #manual { display: none; }
         <button class="dub-tab" data-dub-page="sr2" role="tab" aria-selected="false" type="button">SR2</button>
         <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
         <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">DSEQ</button>
+        <button class="dub-tab" data-dub-page="rdm" role="tab" aria-selected="false" type="button">RDM</button>
         <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
     </div>
 
@@ -437,6 +439,29 @@ body.compact #manual { display: none; }
                 <button type="button" aria-label="Pas 13">13</button><button type="button" aria-label="Pas 14">14</button>
                 <button type="button" aria-label="Pas 15">15</button><button type="button" aria-label="Pas 16">16</button>
             </div>
+        </div>
+    </div>
+
+    <div class="dub-page" data-dub-panel="rdm" role="tabpanel" hidden>
+        <div class="dub-card">
+            <h3>RIDDIM · 10 SÉQUENCES · 64 PAS · 4 PISTES</h3>
+            <div class="dub-row">
+                <select id="dub-riddim" aria-label="Riddim"></select>
+                <button id="dub-riddim-load" type="button">CHARGER TOUT · OCT+</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-rbass" aria-label="Motif de basse"></select>
+                <button id="dub-rbass-load" type="button">BASS · PISTE 1</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-rskank" aria-label="Motif skank"></select>
+                <button id="dub-rskank-load" type="button">SKANK · PISTE 2</button>
+            </div>
+            <div class="dub-row">
+                <select id="dub-rdrum" aria-label="Motif drum"></select>
+                <button id="dub-rdrum-load" type="button">DRUM · PISTE 4</button>
+            </div>
+            <p class="dub-hint">Piste 1 basse · 2 skanks · 3 mélodie · 4 drums. Après le chargement, lance PLAY : la séquence suit le transport.</p>
         </div>
     </div>
 

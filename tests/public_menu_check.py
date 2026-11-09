@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Public-site check: the deployed emulator's HOME menu walks the eleven pages and
+# Public-site check: the deployed emulator's HOME menu walks the twelve pages and
 # the six Dub pages show their rows. Run after deploying docs/ to GitHub Pages
 # with the rebuilt sloop.wasm (reference_emu/build.sh).
 from pathlib import Path
@@ -34,7 +34,7 @@ with sync_playwright() as p:
       for (let k = 0; k < d.length; k += 4) if (d[k] + d[k+1] + d[k+2] > 60) n++;
       return n / (240 * 240);
     }"""
-    for name, steps in [('dub', 5), ('siren', 1), ('siren2', 1), ('skank', 1), ('dseq', 1), ('iso', 1)]:
+    for name, steps in [('dub', 5), ('siren', 1), ('siren2', 1), ('skank', 1), ('dseq', 1), ('riddim', 1), ('iso', 1)]:
         for _ in range(steps):
             page.keyboard.press('ArrowUp')
             page.wait_for_timeout(220)

@@ -500,10 +500,32 @@ WASM_EXPORT("emu_dub_seq_length") void emu_dub_seq_length(uint32_t length)
     dub_seq_set_length(&dub_sequence, (uint8_t)length);
 }
 
-WASM_EXPORT("emu_dub_seq_step") void emu_dub_seq_step(uint32_t step, uint32_t note, uint32_t velocity)
+WASM_EXPORT("emu_dub_seq_step") void emu_dub_seq_step(uint32_t track, uint32_t step, uint32_t note, uint32_t velocity)
 {
-    dub_seq_set_step(&dub_sequence, (uint8_t)step, (uint8_t)(note > 127u ? 127u : note),
+    dub_seq_set_step(&dub_sequence, (uint8_t)track, (uint8_t)step, (uint8_t)(note > 127u ? 127u : note),
         (uint8_t)(velocity > 127u ? 127u : velocity));
+}
+
+WASM_EXPORT("emu_dub_riddim_count") uint32_t emu_dub_riddim_count(void)
+{
+    return DUB_RIDDIM_COUNT;
+}
+
+WASM_EXPORT("emu_dub_riddim_name") uint32_t emu_dub_riddim_name(uint32_t riddim)   /* const char *, a wasm offset */
+{
+    return (uint32_t)(uintptr_t)dub_riddim_name(riddim);
+}
+
+WASM_EXPORT("emu_dub_riddim_load") void emu_dub_riddim_load(uint32_t riddim)       /* the whole riddim, the RIDDIM page's OCT+ */
+{
+    dub_riddim_load(&dub_sequence, riddim);
+    emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_riddim_track") void emu_dub_riddim_track(uint32_t riddim, uint32_t track)   /* one track's motif */
+{
+    dub_riddim_load_track(&dub_sequence, riddim, track);
+    emu_dub_enable(1);
 }
 
 static uint8_t emu_dub_skank_notes[DUB_SKANK_MAX_NOTES];

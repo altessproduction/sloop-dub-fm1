@@ -49,7 +49,13 @@ class SloopProcessor extends AudioWorkletProcessor {
             else if (m.t === 'dub-band') this.e.emu_dub_band(m.band || 0, m.gain || 0, m.mute ? 1 : 0);
             else if (m.t === 'dub-mix') { if (typeof this.e.emu_dub_mix === 'function') this.e.emu_dub_mix(m.mix || 0); }
             else if (m.t === 'dub-seq-length') this.e.emu_dub_seq_length(m.length || 16);
-            else if (m.t === 'dub-seq-step') this.e.emu_dub_seq_step(m.step || 0, m.note || 60, m.velocity || 0);
+            else if (m.t === 'dub-seq-step') {
+                if (m.track != null && typeof this.e.emu_dub_riddim_count === 'function')
+                    this.e.emu_dub_seq_step(m.track || 0, m.step || 0, m.note || 60, m.velocity || 0);   // 2.9.2's four tracks
+                else this.e.emu_dub_seq_step(m.step || 0, m.note || 60, m.velocity || 0);   // the older wasm's single track
+            }
+            else if (m.t === 'dub-riddim') { if (typeof this.e.emu_dub_riddim_load === 'function') this.e.emu_dub_riddim_load(m.riddim || 0); }   // the RIDDIM page's loads
+            else if (m.t === 'dub-riddim-track') { if (typeof this.e.emu_dub_riddim_track === 'function') this.e.emu_dub_riddim_track(m.riddim || 0, m.track || 0); }
             else if (m.t === 'dub-skank') this.e.emu_dub_skank(m.root || 0, m.quality || 0, m.octave || 3, m.velocity || 100);
             else if (m.t === 'dub-preset') this.e.emu_dub_preset(m.index || 0);
             else if (m.t === 'stop') this.running = false;

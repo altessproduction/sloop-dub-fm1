@@ -53,6 +53,14 @@ def main():
             assert "FIRMWARE RÉEL" in page.locator("#firmware-badge").inner_text()
             assert "SLOOP DUB" in page.locator("#title").inner_text()
             assert "FELUCCA" not in page.locator("body").inner_text()
+            # The Dub controls are part of this same firmware emulator page.
+            assert page.locator("#dub-console").is_visible()
+            assert page.locator("#dub-enabled").count() == 1
+            assert page.locator("#dub-siren").count() == 1
+            assert page.locator("#dub-skank").count() == 1
+            assert page.locator("#dub-steps button").count() == 16
+            assert page.locator("#dub-console [data-dub-band]").count() == 4
+            assert page.locator("#dub-presets button").count() == 5
             duplicate_ids = page.evaluate("""() => {
               const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
               return ids.filter((x,i)=>ids.indexOf(x)!==i);

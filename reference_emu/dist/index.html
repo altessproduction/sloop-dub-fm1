@@ -147,34 +147,25 @@ body.compact #device { position: fixed; left: 50%; top: 50%; }
 #fs:active { background: rgba(52, 56, 63, .85); }
 body.compact.fs-ok #fs { display: flex; }
 
-/* firmware switcher — top-left corner, always available */
-#fw {
-    position: fixed; z-index: 20; display: flex; gap: 0; overflow: hidden;
+/* fixed identity badge — this build contains only the local SLOOP Dub firmware */
+#firmware-badge {
+    position: fixed; z-index: 20;
     top: calc(env(safe-area-inset-top, 0px) + 10px);
     left: calc(env(safe-area-inset-left, 0px) + 10px);
-    background: rgba(32, 35, 40, .72); border: 1px solid rgba(0,0,0,.6);
-    border-radius: 11px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    box-shadow: 0 2px 8px rgba(0,0,0,.45); cursor: pointer;
+    padding: 11px 14px; font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent); background: rgba(32, 35, 40, .82);
+    border: 1px solid rgba(0,0,0,.6); border-radius: 11px;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
-#fw span {
-    padding: 11px 14px; font-size: 11px; letter-spacing: 2px; color: var(--dim);
-}
-#fw span.on { color: var(--accent); background: rgba(14, 15, 18, .8); }
-/* phones, landscape: top right beside the fullscreen button */
-body.compact #fw {
-    left: auto; bottom: auto;
+body.compact #firmware-badge {
     right: calc(env(safe-area-inset-right, 0px) + 62px);
-    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    left: auto; top: calc(env(safe-area-inset-top, 0px) + 10px);
+    padding: 8px 10px; font-size: 10px;
 }
-body.compact #fw span { padding: 8px 10px; font-size: 10px; }
-/* phones, portrait (device rotated 90°): the pill rotates with it and sits
-   in the empty case strip along the right edge, beside the LCD — over no
-   control, and reading upright when the phone is held sideways */
-body.compact.rotated #fw {
-    top: 32%; bottom: auto; left: auto;
-    right: env(safe-area-inset-right, 0px);
-    transform: translateX(calc(50% - 15px)) rotate(90deg);
-    opacity: .94;
+body.compact.rotated #firmware-badge {
+    top: 32%; right: env(safe-area-inset-right, 0px); left: auto;
+    transform: translateX(calc(50% - 15px)) rotate(90deg); opacity: .94;
 }
 
 /* iOS tip overlay (no Fullscreen API on iPhone → Add to Home Screen) */
@@ -289,7 +280,7 @@ body.compact #manual { display: none; }
 
 <button id="fs" aria-label="Toggle fullscreen" title="Fullscreen">&#x26F6;</button>
 
-<div id="fw" title="Firmware embarqué"><span data-fw="sloop">SLOOP DUB</span></div>
+<div id="firmware-badge" title="Firmware embarqué">SLOOP DUB · FIRMWARE RÉEL</div>
 
 <div id="fstip"><div class="card">
     <h2>FULLSCREEN</h2>
@@ -300,6 +291,51 @@ body.compact #manual { display: none; }
 <div id="device">
     <div id="power"><div class="ring">&#x23FB;</div><span>POWER ON</span><small>lance le vrai firmware SLOOP Dub, compilé en WebAssembly &middot; son activé</small></div>
 </div>
+
+<section id="dub-console" aria-label="Commandes SLOOP Dub">
+    <h2>SLOOP DUB · COMMANDES ACTIVES</h2>
+    <p class="dub-lead">Ces commandes pilotent le firmware Dub réel chargé dans le WASM. Active le module, puis teste chaque section.</p>
+    <div class="dub-grid">
+        <div class="dub-card">
+            <h3>MODULE & SIREN</h3>
+            <label>Activer le traitement Dub <input id="dub-enabled" type="checkbox"></label>
+            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
+            <label>Fréquence <input id="dub-siren-freq" type="range" min="220" max="1200" value="740"><output>740 Hz</output></label>
+            <label>Profondeur <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
+        </div>
+        <div class="dub-card">
+            <h3>SKANK · ONE KEY</h3>
+            <div class="dub-row">
+                <select id="dub-root"><option value="0">C</option><option value="2">D</option><option value="4">E</option><option value="5">F</option><option value="7">G</option><option value="9">A</option><option value="11">B</option></select>
+                <select id="dub-quality"><option value="0">TRIAD</option><option value="1">7TH</option><option value="2">9TH</option><option value="3">POWER</option></select>
+                <select id="dub-octave"><option value="3">OCT 3</option><option value="4" selected>OCT 4</option><option value="5">OCT 5</option></select>
+                <button id="dub-skank" type="button">JOUER L’ACCORD</button>
+            </div>
+        </div>
+        <div class="dub-card">
+            <h3>SÉQUENCEUR DUB</h3>
+            <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
+            <div id="dub-steps" aria-label="Pas du séquenceur">
+                <button type="button" aria-label="Pas 1">1</button><button type="button" aria-label="Pas 2">2</button>
+                <button type="button" aria-label="Pas 3">3</button><button type="button" aria-label="Pas 4">4</button>
+                <button type="button" aria-label="Pas 5">5</button><button type="button" aria-label="Pas 6">6</button>
+                <button type="button" aria-label="Pas 7">7</button><button type="button" aria-label="Pas 8">8</button>
+                <button type="button" aria-label="Pas 9">9</button><button type="button" aria-label="Pas 10">10</button>
+                <button type="button" aria-label="Pas 11">11</button><button type="button" aria-label="Pas 12">12</button>
+                <button type="button" aria-label="Pas 13">13</button><button type="button" aria-label="Pas 14">14</button>
+                <button type="button" aria-label="Pas 15">15</button><button type="button" aria-label="Pas 16">16</button>
+            </div>
+        </div>
+        <div class="dub-card">
+            <h3>DUB ISOLATOR · 4 BANDES</h3>
+            ${[['SUB',0],['BASS',1],['MIDS',2],['TOPS',3]].map(([name, i]) => `<div class="dub-band" data-dub-band="${i}"><span>${name}</span><input type="range" min="-24" max="12" value="0" aria-label="Gain ${name}"><label><input type="checkbox" aria-label="Mute ${name}"> MUTE</label></div>`).join('')}
+        </div>
+        <div class="dub-card" id="dub-presets-card">
+            <h3>PRESETS REGGAE / DUB</h3>
+            <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
+        </div>
+    </div>
+</section>
 
 <section id="manual">
 
@@ -386,59 +422,6 @@ body.compact #manual { display: none; }
 <p class="src">Condensed from the project's own documentation — full manual: <a href="https://github.com/isod89/sloop-fm1" target="_blank" rel="noopener">SLOOP on GitHub</a> (README &amp; SLOOP.md).</p>
 </div>
 
-<div id="man-felucca">
-<h2>FELUCCA — HOW TO PLAY</h2>
-<p class="lead">Felucca is a multi-engine synthesizer: four tracks with an engine and sound each, thirteen engines, a 64-step sequencer with chords, chance and motion recording, and a modulation matrix. Navigation: <b>tap a page button for its page, tap again for the next; <kbd>HOME</kbd> returns home.</b> On action pages and in dialogs, <kbd>OCT+</kbd> confirms and <kbd>OCT−</kbd> goes back.</p>
-
-<div class="cards">
-<div class="card">
-<h3>FIRST STEPS</h3>
-<ul>
-<li><span class="kn">ALGORITHM</span> selects the track 1–4 on every page; <span class="kn">PRESETS</span> browses sounds; <span class="kn">SELECT</span> sets the tempo on home; <span class="kn">KNOB 1–4</span> edit the four cards on screen.</li>
-<li><kbd>PLAY</kbd> starts; <kbd>REC</kbd> records live with overdub, on every page.</li>
-<li>Save a sound: stop, tap <kbd>SAVE</kbd>, pick a slot with <span class="kn">KNOB 1</span>, then <kbd>OCT+</kbd> twice — name it with the keys.</li>
-</ul>
-</div>
-
-<div class="card">
-<h3>QUICK LAYERS</h3>
-<ul>
-<li><span class="chip">FX</span> held — punch-in effects: repeat, reverse, filter sweeps, tape stop, freeze, a harmonizer with shimmer; mutes on the black keys.</li>
-<li><span class="chip">GLO</span> held — the mixer: levels, mutes, global settings.</li>
-<li><span class="chip">SCL</span> held — key and scale: 16 scales, white-key mode, one-finger <b>chord keys</b> with voicings.</li>
-<li><span class="chip">EDIT</span> held — editing shortcuts on keys and knobs.</li>
-<li><b>Double-tap</b> any of the four to keep its layer open hands-free; tap again to close.</li>
-</ul>
-</div>
-
-<div class="card">
-<h3>HOLD FOR MORE</h3>
-<ul>
-<li><kbd>SAVE</kbd> held — one-step undo.</li>
-<li><kbd>SEQ</kbd> held — the song: chain patterns A–D.</li>
-<li><kbd>HOME</kbd> held — the menu (below).</li>
-</ul>
-</div>
-
-<div class="card">
-<h3>SEQUENCER</h3>
-<p>64 steps per track with chords, ties, accent, slide and per-step <b>chance</b>; a piano-roll view; a drum grid — white keys are steps, black keys are lanes; <b>motion recording</b> of knob moves, marked by a motion icon on the cards it drives; divisions from 4 bars to 1/32. Loading a sound never touches your patterns.</p>
-</div>
-
-<div class="card wide">
-<h3>THE THIRTEEN ENGINES</h3>
-<p><b>ANALOG</b> two osc + noise, resonant low-pass · <b>FM6</b> 6-operator FM, 32 algorithms (Dexed-based) · <b>PHASE</b> phase distortion · <b>LOFI</b> chiptune with 4-bit wave RAM · <b>SAMPLE</b> multisamples + user slots · <b>VOICE</b> formant vowels · <b>TRIO</b> 3 osc, ring mod, sync · <b>WHEEL</b> tonewheel organ with rotary · <b>GRAIN</b> granular · <b>PHYS</b> modal resonators, strings, membranes · <b>NOISE</b> analog to digital noises · <b>DRUM</b> the drum engine.</p>
-<p>Per track: distortion and slicer; sends to chorus, delay and reverb (ROOM or SPRING); a modulation matrix with 4 slots per track.</p>
-</div>
-
-<div class="card">
-<h3>THE MENU — HOLD HOME</h3>
-<p><span class="kn">PRESETS</span> moves through the rows, <span class="kn">KNOB 1</span> or <kbd>OCT+</kbd> changes the value, hold <kbd>HOME</kbd> again to leave. Highlights: <b>COLOR</b> (ten palettes incl. PAPER, NIGHT, HI-CON), <b>STYLE</b> FLAT/LINE, <b>LARGE</b> tall knob cards, <b>LEDS</b>, <b>KNOB ACCEL</b>, <b>FX LATCH</b>, <b>BPM LOCK</b>.</p>
-</div>
-</div>
-
-<p class="src">Condensed from the project's own documentation — full manual: <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca on GitHub</a>.</p>
-</div>
 
 <h2>IN THIS EMULATOR</h2>
 <div class="cards">
@@ -446,7 +429,7 @@ body.compact #manual { display: none; }
 <ul>
 <li><b>Hold</b> means click-and-hold or touch-and-hold a button — or hold its computer key (<kbd>1</kbd>–<kbd>0</kbd> for the function buttons; full map in the line below).</li>
 <li>Knobs turn by dragging vertically or scrolling; on a rotated phone, drag along the device's own up — toward its knobs.</li>
-<li>Your work autosaves to this browser, per firmware: projects, settings and user presets survive reloads and firmware switches. The first save lands ~20&nbsp;s after power-on at the earliest — the firmware's own pacing.</li>
+<li>Your work autosaves to this browser. The first save lands ~20&nbsp;s after power-on at the earliest — the firmware's own pacing.</li>
 <li>Not available here: the USB web editor, sample upload, USB audio and firmware install — and avoid MENU&nbsp;&gt;&nbsp;HARDWARE&nbsp;CALIBRATION, which waits on the real key matrix.</li>
 </ul>
 </div>
@@ -458,7 +441,7 @@ body.compact #manual { display: none; }
     <b>1&ndash;0</b> FX SEL ENV LFO EDIT GLO HOME SAVE ARP SEQ &middot; <b>Space</b> PLAY &middot; <b>R</b> REC &middot;
     <b>&uarr;&darr;</b> SELECT &middot; <b>&larr;&rarr;</b> ALGORITHM &middot; <b>[ \</b> PRESETS &middot;
     knobs: drag or scroll (MASTER too) &middot; hold a function button to use its layer &middot; MIDI in supported<br>
-    firmware switcher top-left: <a href="https://github.com/isod89/sloop-fm1" target="_blank" rel="noopener">SLOOP</a> or <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> (both GPL-3.0, by Leo Kuroshita / Hügelton Instruments; SLOOP by isod89) &middot; emulator runs the unmodified firmware sources in an AudioWorklet &middot; your work saves locally in this browser, per firmware (autosave, projects, user presets)<br>
+    SLOOP Dub est le seul firmware chargé ici : sources locales modifiées, compilées en WebAssembly et exécutées dans un AudioWorklet &middot; licence GPL-3.0 et crédits SLOOP conservés<br>
     more FM-1 tools: <a href="https://quixotic7.github.io/MvaveFM1-Designer/" target="_blank" rel="noopener">ChoralRoot FM-1 designer</a> — paint LED states, relabel controls and mock up 240&times;240 screens for your own firmware layouts (by <a href="https://github.com/Quixotic7/MvaveFM1-Designer" target="_blank" rel="noopener">Quixotic7</a>, MIT)
 </div>
 

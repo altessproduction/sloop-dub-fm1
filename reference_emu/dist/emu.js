@@ -10,25 +10,16 @@
 const S = 1.25;                          // px per drawing unit
 const DEV = { w: 963, h: 588 };
 
-/* ---- firmware selection (SLOOP or its upstream, Felucca) ----
- * Same hardware, same faceplate; only the wasm differs. The choice is kept
- * in localStorage and each firmware has its own flash image in IndexedDB. */
-const FW = (localStorage.getItem('fw') === 'felucca') ? 'felucca' : 'sloop';
-document.querySelectorAll('#fw span').forEach(s => {
-    s.classList.toggle('on', s.dataset.fw === FW);
-});
-document.getElementById('fw').addEventListener('click', () => {
-    localStorage.setItem('fw', FW === 'sloop' ? 'felucca' : 'sloop');
-    location.reload();
-});
-document.getElementById('title').innerHTML = FW === 'felucca'
-    ? '<b>FELUCCA</b> &middot; M-VAVE FM-1 &middot; browser emulator'
-    : '<b>SLOOP</b> 2.3 &middot; M-VAVE FM-1 &middot; browser emulator';
-document.title = (FW === 'felucca' ? 'Felucca' : 'SLOOP') + ' — FM-1 emulator';
+/* ---- firmware: the local SLOOP Dub fork, compiled as a full FM-1 image ----
+ * This page deliberately has no firmware switcher: the browser always runs
+ * the modified SLOOP firmware built from this repository. */
+const FW = 'sloop';
+document.getElementById('title').innerHTML =
+    '<b>SLOOP DUB</b> &middot; M-VAVE FM-1 &middot; browser emulator';
+document.title = 'SLOOP Dub — FM-1 emulator';
 document.querySelector('#power small').textContent =
-    'runs the real ' + (FW === 'felucca' ? 'Felucca' : 'SLOOP') + ' firmware, compiled to WebAssembly · sound on';
-document.getElementById('man-sloop').style.display = FW === 'sloop' ? '' : 'none';
-document.getElementById('man-felucca').style.display = FW === 'felucca' ? '' : 'none';
+    'runs the real SLOOP Dub firmware, compiled to WebAssembly · sound on';
+document.getElementById('man-sloop').style.display = '';
 
 /* ---- panel mapping (firmware/src/panel.c PANEL_DEFAULT) ----
  * label order: FX SCL ENV LFO EDIT GLO HOME SAVE ARP SEQ PLAY REC OCT- OCT+ */
@@ -226,6 +217,55 @@ const KEYBTNS = { 1: 'FX', 2: 'SCL', 3: 'ENV', 4: 'LFO', 5: 'EDIT', 6: 'GLO', 7:
 const KEYENC = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowRight: [1, 1], ArrowLeft: [1, -1],
                  '[': [6, -1] };
 KEYENC['\\'] = [6, 1];
+
+/* -------------------------------------------------------------- Dub panel ---
+ * The controls below send firmware commands into the same AudioWorklet as the
+ * FM-1 faceplate. They never synthesize audio in JavaScript. */
+function dubMessage(message) { if (node) node.port.postMessage(message); }
+function dubEnable(on) { dubMessage({ t: 'dub-enable', on: !!on }); }
+function dubSiren(level) {
+    const frequency = Number(document.getElementById('dub-siren-freq')?.value || 740);
+    const depth = Number(document.getElementById('dub-siren-depth')?.value || 96);
+    dubMessage({ t: 'dub-siren', level: level ? 104 : 0, frequency, depth });
+}
+function dubBand(band) {
+    const row = document.querySelector('[data-dub-band="' + band + '"]');
+    if (!row) return;
+    dubMessage({ t: 'dub-band', band, gain: Number(row.querySelector('input[type=range]').value),
+        mute: row.querySelector('input[type=checkbox]').checked });
+}
+function dubSkank() {
+    dubMessage({ t: 'dub-skank', root: Number(document.getElementById('dub-root').value),
+        quality: Number(document.getElementById('dub-quality').value),
+        octave: Number(document.getElementById('dub-octave').value), velocity: 108 });
+}
+function dubPreset(index) {
+    dubMessage({ t: 'dub-preset', index });
+    document.querySelectorAll('#dub-presets button').forEach((b, i) => b.classList.toggle('active', i === index));
+    const enabled = document.getElementById('dub-enabled');
+    if (enabled) { enabled.checked = true; dubEnable(true); }
+}
+function dubSeqLength(length) { dubMessage({ t: 'dub-seq-length', length: Number(length) }); }
+function dubSeqStep(step, button) {
+    button.classList.toggle('active');
+    dubMessage({ t: 'dub-seq-step', step, note: 36 + (step % 12), velocity: button.classList.contains('active') ? 104 : 0 });
+}
+function setupDubPanel() {
+    const enabled = document.getElementById('dub-enabled');
+    enabled?.addEventListener('change', () => dubEnable(enabled.checked));
+    document.getElementById('dub-siren')?.addEventListener('pointerdown', () => dubSiren(true));
+    document.getElementById('dub-siren')?.addEventListener('pointerup', () => dubSiren(false));
+    document.getElementById('dub-siren')?.addEventListener('pointercancel', () => dubSiren(false));
+    document.getElementById('dub-siren-freq')?.addEventListener('input', () => dubSiren(false));
+    document.getElementById('dub-siren-depth')?.addEventListener('input', () => dubSiren(false));
+    document.querySelectorAll('[data-dub-band]').forEach(row => {
+        row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));
+    });
+    document.getElementById('dub-skank')?.addEventListener('click', dubSkank);
+    document.getElementById('dub-length')?.addEventListener('change', ev => dubSeqLength(ev.target.value));
+    document.querySelectorAll('#dub-steps button').forEach((button, step) => button.addEventListener('click', () => dubSeqStep(step, button)));
+    document.querySelectorAll('#dub-presets button').forEach((button, index) => button.addEventListener('click', () => dubPreset(index)));
+}
 
 const heldKeys = new Set();
 window.addEventListener('keydown', ev => {
@@ -526,6 +566,7 @@ for (const t of [150, 500, 1200, 2500])
 buildKnobs();
 buildButtons();
 buildKeyboard();
+setupDubPanel();
 const screenCanvas = buildScreen();
 c2d = screenCanvas.getContext('2d');
 img = c2d.createImageData(240, 240);

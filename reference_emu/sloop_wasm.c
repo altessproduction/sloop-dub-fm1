@@ -412,3 +412,82 @@ WASM_EXPORT("emu_led_dim_ptr") uint32_t emu_led_dim_ptr(void) { return (uint32_t
 WASM_EXPORT("emu_flash_ptr") uint32_t emu_flash_ptr(void) { return (uint32_t)(uintptr_t)emu_flash; }
 WASM_EXPORT("emu_flash_size") uint32_t emu_flash_size(void) { return EMU_FLASH_SIZE; }
 WASM_EXPORT("emu_flash_gen") uint32_t emu_flash_gen_get(void) { return emu_flash_gen; }
+
+/* ----------------------------------------------------------- Dub controls ---
+ * These entry points are deliberately small firmware commands.  The page only
+ * sends parameters; all sound generation and filtering remains in dub.c/fx.c. */
+WASM_EXPORT("emu_dub_enable") void emu_dub_enable(uint32_t on)
+{
+    dub_enabled = on ? 1 : 0;
+    dub_isolator.enabled = dub_enabled;
+}
+
+WASM_EXPORT("emu_dub_siren") void emu_dub_siren(uint32_t level, uint32_t frequency, uint32_t depth)
+{
+    uint32_t hz = frequency < 220u ? 220u : frequency > 1200u ? 1200u : frequency;
+    dub_siren.phase_inc = dub_hz_inc(hz);
+    dub_siren.depth = (uint8_t)(depth > 127u ? 127u : depth);
+    dub_siren_trigger(&dub_siren, (uint8_t)(level > 127u ? 127u : level));
+    if (level)
+        emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_band") void emu_dub_band(uint32_t band, int32_t gain, uint32_t mute)
+{
+    dub_band_param_t p;
+    if (band >= DUB_BANDS)
+        return;
+    p = dub_isolator.p[band];
+    p.gain_db = (int8_t)(gain < -24 ? -24 : gain > 12 ? 12 : gain);
+    p.mute = mute ? 1 : 0;
+    dub_isolator_set_band(&dub_isolator, band, p);
+}
+
+WASM_EXPORT("emu_dub_seq_length") void emu_dub_seq_length(uint32_t length)
+{
+    dub_seq_set_length(&dub_sequence, (uint8_t)length);
+}
+
+WASM_EXPORT("emu_dub_seq_step") void emu_dub_seq_step(uint32_t step, uint32_t note, uint32_t velocity)
+{
+    dub_seq_set_step(&dub_sequence, (uint8_t)step, (uint8_t)(note > 127u ? 127u : note),
+        (uint8_t)(velocity > 127u ? 127u : velocity));
+}
+
+static uint8_t emu_dub_skank_notes[3];
+static uint8_t emu_dub_skank_count;
+WASM_EXPORT("emu_dub_skank") void emu_dub_skank(uint32_t root, uint32_t quality, uint32_t octave, uint32_t velocity)
+{
+    dub_skank_t s;
+    uint8_t notes[3];
+    uint8_t i;
+    for (i = 0; i < emu_dub_skank_count; i++)
+        input_off(&trk[0], emu_dub_skank_notes[i]);
+    s.root = (uint8_t)(root > 11u ? 11u : root);
+    s.quality = (uint8_t)(quality & 3u);
+    s.octave = (uint8_t)(octave > 7u ? 7u : octave);
+    s.velocity = (uint8_t)(velocity > 127u ? 127u : velocity);
+    emu_dub_skank_count = dub_skank_build(&s, 0, notes, 3);
+    for (i = 0; i < emu_dub_skank_count; i++) {
+        emu_dub_skank_notes[i] = notes[i];
+        input_on(&trk[0], notes[i], s.velocity);
+    }
+    emu_dub_enable(1);
+}
+
+WASM_EXPORT("emu_dub_preset") void emu_dub_preset(uint32_t index)
+{
+    const dub_preset_t *p;
+    uint32_t b;
+    if (index >= DUB_PRESET_COUNT)
+        return;
+    p = &DUB_PRESETS[index];
+    emu_dub_enable(1);
+    for (b = 0; b < DUB_BANDS; b++) {
+        dub_band_param_t q = dub_isolator.p[b];
+        q.gain_db = (int8_t)(p->level / 2);
+        q.mute = 0;
+        dub_isolator_set_band(&dub_isolator, b, q);
+    }
+    dub_siren_trigger(&dub_siren, index == 2u ? 88u : 0u);
+}

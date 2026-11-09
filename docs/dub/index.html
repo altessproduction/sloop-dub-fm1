@@ -292,6 +292,54 @@ body.compact #manual { display: none; }
     <div id="power"><div class="ring">&#x23FB;</div><span>POWER ON</span><small>lance le vrai firmware SLOOP Dub, compilé en WebAssembly &middot; son activé</small></div>
 </div>
 
+<section id="dub-console" aria-label="Commandes SLOOP Dub">
+    <h2>SLOOP DUB · COMMANDES ACTIVES</h2>
+    <p class="dub-lead">Ces commandes pilotent le firmware Dub réel chargé dans le WASM. Active le module, puis teste chaque section.</p>
+    <div class="dub-grid">
+        <div class="dub-card">
+            <h3>MODULE & SIREN</h3>
+            <label>Activer le traitement Dub <input id="dub-enabled" type="checkbox"></label>
+            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
+            <label>Fréquence <input id="dub-siren-freq" type="range" min="220" max="1200" value="740"><output>740 Hz</output></label>
+            <label>Profondeur <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
+        </div>
+        <div class="dub-card">
+            <h3>SKANK · ONE KEY</h3>
+            <div class="dub-row">
+                <select id="dub-root"><option value="0">C</option><option value="2">D</option><option value="4">E</option><option value="5">F</option><option value="7">G</option><option value="9">A</option><option value="11">B</option></select>
+                <select id="dub-quality"><option value="0">TRIAD</option><option value="1">7TH</option><option value="2">9TH</option><option value="3">POWER</option></select>
+                <select id="dub-octave"><option value="3">OCT 3</option><option value="4" selected>OCT 4</option><option value="5">OCT 5</option></select>
+                <button id="dub-skank" type="button">JOUER L’ACCORD</button>
+            </div>
+        </div>
+        <div class="dub-card">
+            <h3>SÉQUENCEUR DUB</h3>
+            <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
+            <div id="dub-steps" aria-label="Pas du séquenceur">
+                <button type="button" aria-label="Pas 1">1</button><button type="button" aria-label="Pas 2">2</button>
+                <button type="button" aria-label="Pas 3">3</button><button type="button" aria-label="Pas 4">4</button>
+                <button type="button" aria-label="Pas 5">5</button><button type="button" aria-label="Pas 6">6</button>
+                <button type="button" aria-label="Pas 7">7</button><button type="button" aria-label="Pas 8">8</button>
+                <button type="button" aria-label="Pas 9">9</button><button type="button" aria-label="Pas 10">10</button>
+                <button type="button" aria-label="Pas 11">11</button><button type="button" aria-label="Pas 12">12</button>
+                <button type="button" aria-label="Pas 13">13</button><button type="button" aria-label="Pas 14">14</button>
+                <button type="button" aria-label="Pas 15">15</button><button type="button" aria-label="Pas 16">16</button>
+            </div>
+        </div>
+        <div class="dub-card">
+            <h3>DUB ISOLATOR · 4 BANDES</h3>
+            <div class="dub-band" data-dub-band="0"><span>SUB</span><input type="range" min="-24" max="12" value="0" aria-label="Gain SUB"><label><input type="checkbox" aria-label="Mute SUB"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="1"><span>BASS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain BASS"><label><input type="checkbox" aria-label="Mute BASS"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="2"><span>MIDS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain MIDS"><label><input type="checkbox" aria-label="Mute MIDS"> MUTE</label></div>
+            <div class="dub-band" data-dub-band="3"><span>TOPS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain TOPS"><label><input type="checkbox" aria-label="Mute TOPS"> MUTE</label></div>
+        </div>
+        <div class="dub-card" id="dub-presets-card">
+            <h3>PRESETS REGGAE / DUB</h3>
+            <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
+        </div>
+    </div>
+</section>
+
 <section id="manual">
 
 <div id="padmap" style="display:none">

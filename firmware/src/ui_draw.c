@@ -398,6 +398,53 @@ UI_SMALL static void graph_slicer(const track_t *t, uint16_t c)
             cv_rect(x, 85, 11, 3, C_WHITE);
     }
 }
+/* (2.9.9) SEQ > ACCENTS / SLIDES: the four tracks' flags as a 16-step bank grid, a row a track
+ * (B S M D). A cell full where the flag stands; the steps that carry a note ticked under it; the
+ * drum row dots its hits (the drums have no accent or slide of their own: their grid owns the
+ * levels). KNOB 1 walks the step, KNOB 2 the bank, ALGORITHM the track, OCT+ flips the selected
+ * track's flag at the cursor. The playhead rides each row, the cursor frames the selected row */
+UI_SMALL static void graph_flags(const track_t *t, uint16_t c, uint32_t slide)
+{
+    uint32_t v0 = ui.cursor / 16u * 16u, len = (uint32_t)t->p[P_SLEN], r, i;
+    uint32_t flag = slide ? SF_SLIDE : SF_ACCENT;
+    char b[12];
+    fmt_int(b, (int32_t)v0 + 1);
+    str_cpy(b + str_len(b), "-", 2);
+    fmt_int(b + str_len(b), (int32_t)(v0 + 16u > len ? len : v0 + 16u));
+    cv_text(2, 0, &FONT_S, b, C_GRAY);
+    cv_text(238 - text_w(&FONT_S, "ACCENTS"), 0, &FONT_S, slide ? "SLIDES" : "ACCENTS", C_DIM);
+    for (r = 0; r < NTRK; r++) {
+        const track_t *q = &trk[r];
+        uint32_t rl = (uint32_t)q->p[P_SLEN];
+        int32_t y = 18 + (int32_t)r * 25;
+        cv_text(0, y + 3, &FONT_S, r == TRK_DRUM ? "D" : r == 2u ? "M" : r == 1u ? "S" : "B",
+                r == song.sel ? C_WHITE : C_DIM);
+        for (i = 0; i < 16u; i++) {
+            uint32_t st_i = v0 + i;
+            int32_t x = 14 + (int32_t)i * 13 + (int32_t)(i / 4u) * 3;
+            if (st_i >= rl)
+                break;
+            if (song.playing && q->seq_idx == st_i)
+                cv_rect(x, y - 2, 1, 17, C_HI);
+            if (r == TRK_DRUM) {                            /* the drums: the hits dotted, no flags of theirs */
+                const dstep_t *d = &q->dstep[st_i];
+                if (d->on[0] | d->on[1])
+                    cv_rect(x + 3, y + 12, 5, 3, C_DIM);
+                continue;
+            }
+            if (q->step[st_i].flags & flag)
+                cv_rect(x, y, 10, 12, r == song.sel ? c : TE_DIM[r & 3u]);
+            if (step_on(&q->step[st_i]))
+                cv_rect(x + 2, y + 12, 6, 2, (q->step[st_i].flags & flag) ? c : C_GRAY);
+            if (r == song.sel && st_i == ui.cursor) {
+                cv_rect(x - 1, y - 1, 12, 1, C_WHITE);
+                cv_rect(x - 1, y + 13, 12, 1, C_WHITE);
+                cv_rect(x - 1, y - 1, 1, 15, C_WHITE);
+                cv_rect(x + 10, y - 1, 1, 15, C_WHITE);
+            }
+        }
+    }
+}
 UI_SMALL static uint32_t steps_hash(const track_t *t)
 {
     uint32_t h = 2166136261u, i;
@@ -446,11 +493,16 @@ UI_SMALL static uint32_t graph_signature(void)
     if (pg->graph == GR_SLOTS)                       /* (a checksum over each slot) */
         for (i = 0; i < 4u; i++)
             h ^= (uint32_t)project_used(i) << (20u + i);
-    if (pg->graph == GR_STEPS || pg->graph == GR_ROLL) {
+    if (pg->graph == GR_STEPS || pg->graph == GR_ROLL || pg->graph == GR_ACC || pg->graph == GR_SLD) {
         uint32_t ph = song.playing ? t->seq_idx : 0xFFFFu;
         if (pg->graph == GR_ROLL)                    /* (2.7.2 NOTES: the note under edit, the zoom, the sheet) */
             h ^= ui.note_k * 104729u + ui.zoom * 7u + ui.sheet * 977u + (uint32_t)t->micro[ui.cursor] * 31337u +
                  step_fill(t, ui.cursor) * 3u + last_note * 65537u;
+        if (pg->graph == GR_ACC || pg->graph == GR_SLD) {   /* (2.9.9) all four tracks' flags at once */
+            uint32_t q;
+            for (q = 0; q < NTRK; q++)
+                h = h * 31u + steps_hash(&trk[q]);
+        }
         h ^= steps_hash(t) + ph * 31u + ui.cursor * 7919u;
     }
     return h;
@@ -773,6 +825,11 @@ UI_SMALL static void draw_graph(void)
             cv_oy = 0;
             graph_roll(t, c);
             break;
+        case GR_ACC:                                       /* (2.9.9) the flags' grids: the four tracks' */
+        case GR_SLD:
+            cv_oy = 0;
+            graph_flags(t, c, pg->graph == GR_SLD);
+            break;
         case GR_SCALE:
             graph_scale(t, c);
             break;
@@ -803,9 +860,11 @@ UI_SMALL static void draw_graph(void)
         }
     }
     top = !ui.home && !drum_note && (pg->graph == GR_BROWSE || pg->graph == GR_SLOTS || pg->graph == GR_USER ||
-                                     pg->graph == GR_ROLL || big_page(pg));   /* these draw from the top */
+                                     pg->graph == GR_ROLL || pg->graph == GR_ACC || pg->graph == GR_SLD ||
+                                     big_page(pg));   /* these draw from the top */
     cv_oy = 0;
-    if (ui.hot_t && settings.zoom && !(top && (big_page(pg) || pg->graph == GR_ROLL) && !drum_note)) {   /* (the big values show it already) */                 /* focus (menu ZOOM): the touched value, large and white */
+    if (ui.hot_t && settings.zoom && !(top && (big_page(pg) || pg->graph == GR_ROLL || pg->graph == GR_ACC ||
+                                               pg->graph == GR_SLD) && !drum_note)) {   /* (the big values show it already) */                 /* focus (menu ZOOM): the touched value, large and white */
         int32_t x;
         top = 1;
         cv_rect(0, 0, 150, 50, C_BLACK);

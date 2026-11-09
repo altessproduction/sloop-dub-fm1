@@ -915,8 +915,9 @@ int main(int argc, char **argv)
             ui.menu_sel = MI_USB; ui.force = 1; frame();      /* (back to AUDIO) */
             check(ok, "MENU > COLOR (2.7): your theme after MONO, by its name; its colours, background and the tracks'; bit 30");
         }
-        {   /* 2.7: the page counter counts the pages SELECT walks (SEQ: STEP 1/2, PATTERN 2/2; SONG not counted) */
-            uint32_t n, k1, n1, k2, n2, k3 = 0, n3 = 0, menu0 = ui.menu, sel0 = ui.menu_sel;
+        {   /* 2.7: the page counter counts the pages SELECT walks (SEQ: NOTES 1/4, PATTERN 2/4, ACCENTS 3/4,
+             * SLIDES 4/4; the SONG screen counts once shown: 5/5) */
+            uint32_t n, k1, n1, k2, n2, k3 = 0, n3 = 0, k4 = 0, n4 = 0, k5 = 0, n5 = 0, menu0 = ui.menu, sel0 = ui.menu_sel;
             int ok = 1;
             ui.menu = 0; go_home(); frame();
             open_family(FAM_SEQ); frame();
@@ -925,19 +926,28 @@ int main(int argc, char **argv)
             open_family(FAM_SEQ); frame();
             ok &= !strcmp(PAGES[ui.page].title, "PATTERN");
             k2 = page_pos(&n2);
+            open_family(FAM_SEQ); frame();
+            ok &= !strcmp(PAGES[ui.page].title, "ACCENTS");
+            k4 = page_pos(&n4);
+            open_family(FAM_SEQ); frame();
+            ok &= !strcmp(PAGES[ui.page].title, "SLIDES");
+            k5 = page_pos(&n5);
             open_family(FAM_SEQ); frame();            /* SEQ again: the SONG screen (its own) */
             if (PAGES[ui.page].scope == SC_SONG)
                 k3 = page_pos(&n3);
-            open_family(FAM_SEQ); frame();            /* (round to STEP again: SEQ opens there, as before) */
+            open_family(FAM_SEQ); frame();            /* (round to NOTES again: SEQ opens there, as before) */
+            ok &= !strcmp(PAGES[ui.page].title, "NOTES");
             go_home(); frame();
             open_family(FAM_GLO); frame();
             (void)page_pos(&n);                       /* GLO: its nine pages */
             go_home(); frame();
             ui.menu = (uint8_t)menu0, ui.menu_sel = (uint8_t)sel0, ui.force = 1; frame();
-            ok &= k1 == 1u && n1 == 2u && k2 == 2u && n2 == 2u && k3 == 3u && n3 == 3u && n == 9u;
+            ok &= k1 == 1u && n1 == 4u && k2 == 2u && n2 == 4u && k4 == 3u && n4 == 4u && k5 == 4u && n5 == 4u &&
+                  k3 == 5u && n3 == 5u && n == 9u;
             if (!ok)
-                printf("ui:   counter: STEP %u/%u PATTERN %u/%u SONG %u/%u GLO /%u\n", k1, n1, k2, n2, k3, n3, n);
-            check(ok, "page counter (2.7): as SELECT walks them: STEP 1/2, PATTERN 2/2 (SONG, its own screen, not counted)");
+                printf("ui:   counter: NOTES %u/%u PATTERN %u/%u ACCENTS %u/%u SLIDES %u/%u SONG %u/%u GLO /%u\n",
+                       k1, n1, k2, n2, k4, n4, k5, n5, k3, n3, n);
+            check(ok, "page counter (2.7): as SELECT walks them: NOTES 1/4, PATTERN 2/4, ACCENTS 3/4, SLIDES 4/4");
         }
         {   /* 2.7: a sound loaded under a running arp keeps it (settings and the notes it holds); arp OFF: the preset's */
             track_t *t = &trk[0];
@@ -1492,7 +1502,7 @@ int main(int argc, char **argv)
         SEL(9);
         check(!strcmp(PT(), "VOICE 2"), "SELECT on EDIT: up to VOICE 2");
         tap(B_SEQ); SEL(9);
-        check(!strcmp(PT(), "PATTERN"), "SELECT on SEQ: STEP <-> PATTERN, not into the SONG screen");
+        check(!strcmp(PT(), "SLIDES"), "SELECT on SEQ: walks the steps' pages, stops before the SONG screen");
         tap(B_ENV);
         check(!strcmp(PT(), "ENV"), "the button still opens its family");
         tap(B_ENV);
@@ -2363,6 +2373,70 @@ int main(int argc, char **argv)
         ok &= !dstep_has(&TDRUM->dstep[7], 2) && dstep_has(&TDRUM->dstep[6], 2) && !ui.sheet;
         check(ok, "DRUMS sheet: MOVE (KNOB 2), COPY (OCT+: the next step), DELETE (OCT+)");
         TDRUM->p[P_SLEN] = 16;
+        go_home(); song.sel = 0; frame();
+    }
+    {   /* (2.9.9) SEQ > ACCENTS / SLIDES: the four tracks' flags as a grid, a second sequencer over
+         * the steps the notes already fire with: KNOB 1 walks the step, KNOB 2 jumps the bank,
+         * ALGORITHM walks the track, OCT+ flips the selected track's flag; the drum track shows
+         * the pages greyed, its hits dotted on the other tracks' grids */
+        track_t *t = &trk[0];
+        uint32_t j;
+        int ok;
+        transport_req = 2; frames(2);
+        song.rec = 0; rec_wait = 0; song.sel = 0; song.octave = 0; layer_unlock();
+        go_home(); frame();
+        t->p[P_SLEN] = 32;
+        trk[1].p[P_SLEN] = 32;                              /* (the second track's steps get flagged too) */
+        for (j = 0; j < NSTEP; j++) step_clear(&t->step[j]);
+        for (j = 0; j < NSTEP; j++) memset(&trk[1].step[j], 0, sizeof(step_t));
+        t->step[4].n = 1; t->step[4].note[0] = 40; t->step[4].time = ST_NOTE; t->step[4].vel = 100;
+        t->step[20].n = 1; t->step[20].note[0] = 45; t->step[20].time = ST_NOTE; t->step[20].vel = 100;
+        memset(&TDRUM->dstep[4], 0, sizeof(dstep_t));
+        dstep_set(&TDRUM->dstep[4], 2, LV_HARD, 0);         /* the drum row's dot */
+        while (strcmp(PAGES[ui.page].title, "ACCENTS")) { open_family(FAM_SEQ); frame(); }
+        cursor_set(0); ui.force = 1; frame();
+        encs[panel.enc[EN_K1]] = 4; frame();
+        ok = ui.cursor == 4u;
+        tap(B_OCTUP); frame();
+        ok &= (t->step[4].flags & SF_ACCENT) != 0;
+        tap(B_OCTUP); frame();
+        ok &= !(t->step[4].flags & SF_ACCENT);
+        tap(B_OCTUP); frame();
+        ok &= (t->step[4].flags & SF_ACCENT) != 0;
+        check(ok, "ACCENTS (2.9.9): KNOB 1 walks the step, OCT+ flips its accent (on, off, on)");
+        encs[panel.enc[EN_K2]] = 1; frame();
+        check(ui.cursor == 20u, "ACCENTS: KNOB 2 jumps the bank (step 4 -> step 20)");
+        tap(B_OCTUP); frame();
+        ok = (t->step[20].flags & SF_ACCENT) != 0;
+        encs[panel.enc[EN_ALGO]] = 1; frame();              /* ALGORITHM: the track, on every page */
+        ok &= song.sel == 1u && !(trk[1].step[20].flags & SF_ACCENT);
+        cursor_set(20); frame();                            /* (track_select resets the cursor) */
+        tap(B_OCTUP); frame();
+        ok &= (trk[1].step[20].flags & SF_ACCENT) != 0;
+        check(ok, "ACCENTS: ALGORITHM walks the track, OCT+ flags its step 21 (the grid shows all four)");
+        ui.force = 1; frame(); ppm("accents-grid");
+        while (strcmp(PAGES[ui.page].title, "SLIDES")) { open_family(FAM_SEQ); frame(); }
+        cursor_set(20); ui.force = 1; frame();
+        ok = !(trk[1].step[20].flags & SF_SLIDE);
+        tap(B_OCTUP); frame();
+        ok &= (trk[1].step[20].flags & SF_SLIDE) != 0;
+        tap(B_OCTUP); frame();
+        ok &= !(trk[1].step[20].flags & SF_SLIDE);
+        tap(B_OCTUP); frame();
+        ok &= (trk[1].step[20].flags & SF_SLIDE) != 0;
+        check(ok, "SLIDES (2.9.9): OCT+ flips the slide at the cursor (on, off, on)");
+        ui.force = 1; frame(); ppm("slides-grid");
+        encs[panel.enc[EN_ALGO]] = 1; frame();              /* track 1 -> 2 */
+        encs[panel.enc[EN_ALGO]] = 1; frame();              /* track 2 -> 3: the drum track */
+        ok = song.sel == TRK_DRUM;
+        encs[panel.enc[EN_K1]] = 1; frame();
+        ok &= ui.cursor == 0u;                              /* its knobs rest on the greyed page (the cursor
+                                                             * track_select left at 0 stays there) */
+        tap(B_OCTUP); frame();
+        ok &= !(trk[3].step[20].flags & (SF_ACCENT | SF_SLIDE));
+        encs[panel.enc[EN_ALGO]] = -1; frame();             /* ALGORITHM walks back out */
+        ok &= song.sel == 2u;
+        check(ok, "ACCENTS/SLIDES on the drum track: greyed, the knobs rest, ALGORITHM walks out");
         go_home(); song.sel = 0; frame();
     }
     {   /* fuzz: 20000 frames of random buttons (held or tapped), knobs and keys, with the audio running

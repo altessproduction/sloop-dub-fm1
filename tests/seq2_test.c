@@ -2126,6 +2126,42 @@ static void t_drdly(void)
           "2.5: GLO > DRUMS > DLY: the drums echo in the tempo delay (more with more DLY, through the FILTER too); 0: none");
 }
 
+static void t_flags(void)
+{   /* (2.9.9) the ACCENTS / SLIDES pages' flags: what the notes fire with. The accent: the step's
+     * velocity at 127. The slide: the flagged note glides to the next step's instead of it striking
+     * again (a REST in between ends the chain, as a TIE's hold would not) */
+    step_t *st;
+    uint32_t into, slen;
+    reset(120);
+    st = &trk[0].step[8];
+    st->n = 1; st->note[0] = 40; st->time = ST_NOTE; st->vel = 100;
+    check(step_vel(st, 0) == 100u, "2.9.9 a plain step fires at its own velocity (100)");
+    st->flags |= SF_ACCENT;
+    check(step_vel(st, 0) == 127u, "2.9.9 the ACCENTS grid's flag: the step fires at 127");
+    reset(120);
+    trk[0].p[P_SLEN] = 16;
+    trk[0].p[P_GLIDE] = 0;                               /* the flag's own slide (SLIDE_T), not the knob's */
+    trk[0].step[0].n = 1; trk[0].step[0].note[0] = 36; trk[0].step[0].time = ST_NOTE; trk[0].step[0].vel = 100;
+    trk[0].step[0].flags |= SF_SLIDE;
+    trk[0].step[1].n = 1; trk[0].step[1].note[0] = 48; trk[0].step[1].time = ST_NOTE; trk[0].step[1].vel = 100;
+    transport_req = 1;
+    {   /* the hold rides step 0's window (the flag set at its fire), the glide rides step 1's:
+         * the grid reports the step to come, so both are scanned across the two steps' blocks */
+        uint32_t i, g, saw_hold = 0, saw_glide = 0;
+        for (i = 0; i < 600u; i++) {
+            run_block();
+            g = trk_grid(&trk[0], &into, &slen);
+            saw_hold |= g <= 1u && trk[0].seq_hold == 1u;
+            saw_glide |= g == 1u && trk[0].slide_glide == 1u;
+            if (g >= 2u)
+                break;
+        }
+        check(saw_hold && saw_glide,
+              "2.9.9 the SLIDES grid's flag: the next step glides from it instead of striking again");
+    }
+    transport_req = 2; run_block();
+}
+
 int main(void)
 {
     t_midich();
@@ -2165,6 +2201,7 @@ int main(void)
     t_chords();
     t_mute();
     t_chordplus();
+    t_flags();
     printf("seq2: %s\n", fails ? "FAILED" : "all checks ok");
     return fails;
 }

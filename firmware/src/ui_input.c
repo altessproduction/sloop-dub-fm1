@@ -333,7 +333,17 @@ UI_SMALL static void note_mark(void)
 }
 UI_SMALL static int on_notes_page(void)
 {
-    return !ui.home && song.seq_mode && cur_page()->scope == SC_STEP && !is_drum(TSEL);
+    const page_t *pg = cur_page();
+    return !ui.home && song.seq_mode && pg->scope == SC_STEP && !is_drum(TSEL) &&
+           pg->graph != GR_ACC && pg->graph != GR_SLD;      /* (2.9.9: the flags' grids have no sheet) */
+}
+/* (2.9.9) SEQ > ACCENTS / SLIDES: the flags' grids. The drum track shows them greyed (the drums
+ * have no accent or slide of their own): its knobs rest, ALGORITHM walks the track out of there */
+UI_SMALL static int on_acc_page(void)
+{
+    const page_t *pg = cur_page();
+    return !ui.home && song.seq_mode && pg->scope == SC_STEP &&
+           (pg->graph == GR_ACC || pg->graph == GR_SLD);
 }
 /* the note's sheet (OCT+ held): KNOB 1 the row, KNOB 2 its value (MOVE: a step a detent); OCT+ acts (SLIDE on / off,
  * COPY: just after it, then MOVE moves the copy; DELETE), OCT- closes */
@@ -501,6 +511,19 @@ UI_SMALL static void edit_param(uint32_t slot, int32_t steps)
     int32_t v;
     if (is_drum(TSEL) && !page_for_drum(pg))
         return;                                           /* "DRUM TRACK": nothing to edit here */
+    if (on_acc_page()) {                                  /* (2.9.9) the flags' grids' knobs: KNOB 1 walks the
+                                                           * step, KNOB 2 jumps the bank; the flag itself is
+                                                           * OCT+ (a tap), not a knob turn */
+        if (slot == 0u) {
+            for (; steps > 0; steps--)
+                cursor_set((int32_t)ui.cursor + 1);
+            for (; steps < 0; steps++)
+                cursor_set((int32_t)ui.cursor - 1);
+        } else if (slot == 1u) {
+            cursor_set((int32_t)ui.cursor + (steps > 0 ? 16 : -16));
+        }
+        return;
+    }
     if (pg->scope == SC_STEP) {
         step_edit(slot, steps);
         return;
@@ -635,7 +658,9 @@ UI_SMALL static void midi_entry(void)                              /* (top of ui
         mono_hint = 0;
     }
     track_t *t = TSEL;
-    int on_page = mi_ok && song.seq_mode && cur_page()->scope == SC_STEP && !is_drum(t) && !song.rec && !rec_wait && !ft_on;
+    int on_page = mi_ok && song.seq_mode && cur_page()->scope == SC_STEP && !is_drum(t) && !song.rec && !rec_wait && !ft_on &&
+                  cur_page()->graph != GR_ACC && cur_page()->graph != GR_SLD;   /* (2.9.9: the flags' grids take no
+                                                                                 * live notes: nothing to enter) */
     int rec_arm = song.rec || rec_wait || ft_on;          /* (2.6) recording, armed or a free take: on which track */
     uint32_t rec_trk = ft_on ? ft_trk % NTRK : song.sel % NTRK;
     static uint8_t rh_st, rh_trk;                         /* its hint: 0 off, 1 not said yet, 2 said (or not needed) */
@@ -1209,6 +1234,23 @@ UI_SMALL static void ui_input(void)
         }
     }
     cursor_fix();                                       /* LEN may have changed (knob, editor, load) */
+    if (on_acc_page()) {                                /* (2.9.9) OCT+ tapped: the selected track's flag at
+                                                         * the cursor flips; held: nothing (the sheet is the
+                                                         * NOTES page's); both: the octave, as ever */
+        uint32_t ev;
+        pressed = octp_filter(pressed, &ev);
+        if (ev == 1u && !is_drum(TSEL)) {
+            track_t *t = TSEL;
+            uint32_t f = cur_page()->graph == GR_ACC ? SF_ACCENT : SF_SLIDE;
+            note_mark();
+            t->step[ui.cursor].flags ^= (uint8_t)f;
+            sync_reload = 1;
+            ui_message(t->step[ui.cursor].flags & f ? (f == SF_ACCENT ? "ACCENT ON" : "SLIDE ON")
+                                                    : (f == SF_ACCENT ? "ACCENT OFF" : "SLIDE OFF"));
+        }
+        if (ev)
+            ui.force = 1;
+    }
     if (on_notes_page()) {                              /* (2.7.2) OCT+ held: the note's sheet; tapped: as before */
         uint32_t ev, ob = 1u << panel.btn[B_OCTDN];
         pressed = octp_filter(pressed, &ev);
@@ -1261,8 +1303,10 @@ UI_SMALL static void ui_input(void)
             break;
         }
     }
-    if (song.seq_mode && cur_page()->scope == SC_STEP && !ui.sheet)
-        seq_entry(notes);                                 /* (and the MIDI keyboard's: midi_entry) */
+    if (song.seq_mode && cur_page()->scope == SC_STEP && cur_page()->graph != GR_ACC &&
+        cur_page()->graph != GR_SLD && !ui.sheet)
+        seq_entry(notes);                                 /* (and the MIDI keyboard's: midi_entry; 2.9.9: not on
+                                                           * the flags' grids — no note is entered there) */
 
     if (on_notes_page() && (s = panel_enc(EN_PRESET)) != 0) {   /* (2.7.2) NOTES: PRESETS zooms, 8 .. 64 steps */
         ui.zoom = (uint8_t)(clamp((int32_t)(int8_t)ui.zoom + (s > 0 ? 1 : -1), -1, 2));

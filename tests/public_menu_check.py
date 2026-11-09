@@ -10,7 +10,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 URL = 'https://altessproduction.github.io/sloop-dub-fm1/dub/'
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True, args=['--autoplay-policy=no-user-gesture-required'])
+    browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required", "--no-proxy-server"])
     page = browser.new_page(viewport={'width': 1280, 'height': 800})
     errors = []
     page.on('console', lambda msg: errors.append('console: ' + msg.text) if msg.type == 'error' else None)

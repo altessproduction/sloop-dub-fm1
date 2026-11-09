@@ -22,7 +22,7 @@ def main():
     Thread(target=server.serve_forever, daemon=True).start()
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required"])
+            browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required", "--no-proxy-server"])
             page = browser.new_page(viewport={"width": 1280, "height": 800})
             page.goto("http://127.0.0.1:8766/dub/", wait_until="networkidle")
             page.click("#power")

@@ -31,7 +31,7 @@ def main():
     errors, page_errors, failed, responses = [], [], [], []
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required"])
+            browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required", "--no-proxy-server"])
             context = browser.new_context(
                 viewport={"width": 1280, "height": 800},
             )

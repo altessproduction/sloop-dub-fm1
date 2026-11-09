@@ -385,14 +385,18 @@ UI_SMALL static void draw_menu(void)
                    dub_isolator.p[DUB_SUB].gain_db * 6700493u + dub_isolator.p[DUB_BASS].gain_db * 6700497u +
                    dub_isolator.p[DUB_MIDS].gain_db * 6700501u + dub_isolator.p[DUB_TOPS].gain_db * 6700507u +
                    dub_isolator.p[DUB_SUB].mute * 6700511u + dub_isolator.p[DUB_BASS].mute * 6700517u +
-                   dub_isolator.p[DUB_MIDS].mute * 6700521u + dub_isolator.p[DUB_TOPS].mute * 6700527u;
+                   dub_isolator.p[DUB_MIDS].mute * 6700521u + dub_isolator.p[DUB_TOPS].mute * 6700527u +
+                   (ui.msg_t ? 6700599u : 0u) + (uint8_t)ui.msg[0] * 6700607u;
     if (!ui.force && sig == ui.menu_sig)
         return;
     ui.menu_sig = sig;
     if (ui.force)                                   /* head + rule + two bands cover rows 0..229 */
         lcd_fill(0, H_HEAD + 1 + 124 + 95, 240, 240 - (H_HEAD + 1 + 124 + 95), C_BLACK);
     cv_begin(240, H_HEAD, C_BLACK);
-    cv_text(4, 1, &FONT_S, ui.menu == 2 ? "ABOUT" : "MENU", C_HI);
+    if (ui.msg_t && ui.msg[0])                       /* the load's word, seen from the menu too */
+        cv_text(4, 1, &FONT_S, ui.msg, C_AMB);
+    else
+        cv_text(4, 1, &FONT_S, ui.menu == 2 ? "ABOUT" : "MENU", C_HI);
     if (ui.menu != 2) {                             /* the page and its number, as a page's "ENV DEST 2/2" */
         char t[16];
         str_cpy(t, MS_NAME[sec], sizeof t);

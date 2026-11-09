@@ -63,7 +63,7 @@ def active_steps(page, trk=None):
 
 def main():
     url = sys.argv[1] if len(sys.argv) > 1 else f"http://127.0.0.1:{PORT}/dub/"
-    live = url.startswith("http")
+    live = url.startswith("http") and "127.0.0.1" not in url and "localhost" not in url
     server = serve() if not live else None
     if live:
         time.sleep(0.2)
@@ -76,7 +76,8 @@ def main():
             fails.append(name)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required"])
+        browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required",
+                                                         "--no-proxy-server"])
         page = browser.new_context(viewport={"width": 1400, "height": 1000}).new_page()
         page.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
         page.on("pageerror", lambda e: errs.append("PAGE: " + str(e)))
@@ -150,23 +151,39 @@ def main():
         press(page, 12)
         time.sleep(0.3)
 
-        # 5. the firmware path on the LCD: RDM page, K1 turn, OCT+, the DSQ page's LEN 64
-        press(page, 8, 1200)
-        time.sleep(0.5)
-        for _ in range(10):
-            page.evaluate("enc(0, 1)")
-            page.wait_for_timeout(90)
-        page.evaluate("enc(3, 1)")               # KNOB 1: the next riddim
-        time.sleep(0.2)
-        press(page, 1)                           # OCT+ on the RDM page: load
-        time.sleep(0.4)
-        page.evaluate("enc(0, -1)")              # one page left: the DSQ page
+        # 5. the firmware path on the LCD: RDM page, KNOB 1 (enc 2) selects, OCT+ loads,
+        #    all four tracks land in the sequence (the DSQ view reads the wasm back).
+        #    Deterministic: close whatever menu state step 3 left (a long HOME over an
+        #    open menu goes to ABOUT, where every input is swallowed), reopen, clamp to
+        #    the first page with 15 lefts, then 10 rights is the RDM page (11/13).
+        press(page, 0)                           # OCT- closes the menu (or ABOUT -> menu)
         time.sleep(0.3)
-        lcd = page.evaluate("""() => {
-            const c = document.getElementById('screen');
-            return c ? c.toDataURL('image/png') : '';
-        }""")
-        (OUT / "dsq-after-fw-load.png").write_bytes(__import__("base64").b64decode(lcd.split(",", 1)[1]))
+        press(page, 0)                           # (a second one if ABOUT ate the first)
+        time.sleep(0.3)
+        press(page, 8, 1200)                     # long HOME: the menu opens
+        time.sleep(0.5)
+        for _ in range(15):
+            page.evaluate("enc(0, -1)")          # hard left: the SCR page (clamped)
+            page.wait_for_timeout(60)
+        for _ in range(10):
+            page.evaluate("enc(0, 1)")           # SCR 1/13 -> RDM 11/13
+            page.wait_for_timeout(60)
+        time.sleep(0.3)
+        page.evaluate("enc(2, 1)")               # KNOB 1 (enc 2): the next riddim
+        time.sleep(0.2)
+        page.evaluate("enc(2, 1)")               # one more: the selection is 2 = ROCKERS
+        time.sleep(0.2)
+        lcd0 = page.evaluate("document.getElementById('screen').toDataURL('image/png')")
+        press(page, 1)                           # OCT+ on the RDM page: load
+        time.sleep(0.25)                         # a few frames paint the header's message
+        lcd1 = page.evaluate("document.getElementById('screen').toDataURL('image/png')")
+        check("the menu tells the load (a RIDDIM LOADED flash)", lcd1 != lcd0)
+        time.sleep(0.6)                          # the message's 40 frames run out
+        page.evaluate("dubSeqRefresh()")         # the DSQ view reads the sequence back
+        time.sleep(0.5)
+        n_fw = [active_steps(page, t) for t in range(4)]
+        check("firmware OCT+ loads the whole ROCKERS (all four tracks, exact)",
+              n_fw == [24, 24, 6, 36], f"({n_fw})")
         check("firmware OCT+ load kept the sequence at 64",
               page.evaluate("document.getElementById('dub-length').value") == "64")
 

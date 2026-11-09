@@ -1,195 +1,405 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#161512">
-  <title>SLOOP DUB — FM-1 playground</title>
-  <meta name="description" content="Une première interface jouable pour le firmware SLOOP Dub FM-1 : sirène, skank, séquenceur et isolateur quatre bandes.">
-  <style>
-    :root { --paper:#161512; --surface:#211f1c; --ink:#f7f6f4; --body:#b3aca4; --muted:#8a847c; --line:rgba(247,246,244,.11); --blue:#3b96f0; --blue-tint:rgba(59,150,240,.16); --gold:#ffb110; --coral:#f64932; --sky:#62aef0; --green:#83b86a; --panel-gold:#6b4a08; --panel-coral:#6b1f14; --panel-sky:#1f4a6b; --panel-mocha:#4a3527; --card:12px; --button:8px; }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; min-width:320px; background:var(--paper); color:var(--ink); font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; font-feature-settings:"lnum"; }
-    button, input { font:inherit; }
-    button { border:0; cursor:pointer; }
-    button:focus-visible, input:focus-visible { outline:2px solid var(--sky); outline-offset:3px; }
-    .shell { width:min(1440px,100%); margin:auto; padding:0 24px; }
-    .nav { position:sticky; top:0; z-index:10; height:64px; display:flex; align-items:center; justify-content:space-between; gap:20px; background:rgba(22,21,18,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(12px); }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.02em; }
-    .brand-mark { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--gold); border-radius:50%; color:var(--gold); font-size:12px; }
-    .nav .status { color:var(--muted); font-size:12px; }
-    .hero { display:grid; grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr); gap:64px; align-items:center; padding:72px 0 64px; }
-    .eyebrow, .label { color:rgba(247,246,244,.6); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; }
-    h1,h2,h3,p { margin:0; }
-    h1 { max-width:760px; font-size:clamp(40px,5.8vw,82px); line-height:1.02; letter-spacing:-.045em; font-weight:600; }
-    h1 span { display:inline-block; padding:3px 14px 6px; border-radius:999px; background:var(--gold); color:var(--paper); font-size:.78em; letter-spacing:inherit; }
-    .lede { max-width:58ch; margin-top:24px; color:var(--body); font-size:18px; }
-    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
-    .btn { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:9px 15px; border-radius:var(--button); font-size:14px; font-weight:600; transition:background .2s ease,color .2s ease,transform .2s ease; }
-    .btn:hover { transform:translateY(-2px); }
-    .primary { background:var(--blue); color:#fff; }
-    .ghost { background:var(--blue-tint); color:#7ab8f7; }
-    .outline { background:transparent; border:1px solid var(--line); color:var(--ink); }
-    .hardware { position:relative; border:1px solid var(--line); border-radius:var(--card); background:var(--surface); padding:24px; box-shadow:0 4px 16px rgba(0,0,0,.5); overflow:hidden; }
-    .hardware:before { content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--gold); }
-    .hardware-top { display:flex; align-items:center; justify-content:space-between; padding-bottom:18px; border-bottom:1px solid var(--line); }
-    .hardware-title { letter-spacing:.08em; font-size:12px; color:var(--body); }
-    .screen { margin:20px 0; padding:18px; border:1px solid rgba(98,174,240,.45); background:#0b171d; color:#a7dcff; border-radius:4px; box-shadow:inset 0 0 28px rgba(59,150,240,.08); }
-    .screen-top { display:flex; justify-content:space-between; color:#72bdf2; font-size:12px; }
-    #preset-name { margin-top:10px; font-size:26px; font-weight:700; letter-spacing:.05em; }
-    #step-position { color:#a7dcff; font-size:13px; }
-    .meter { height:8px; margin-top:16px; border-radius:999px; background:#142931; overflow:hidden; }
-    .meter > span { display:block; width:36%; height:100%; background:var(--sky); transition:width .1s linear; }
-    .keys { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; }
-    .keys i { height:38px; border-radius:4px; background:#e9e5dc; border-bottom:4px solid #aaa69d; }
-    .keys i:nth-child(4n) { background:#f3bc42; }
-    section { padding:64px 0; }
-    .section-head { display:flex; justify-content:space-between; gap:24px; align-items:end; margin-bottom:28px; }
-    .section-head h2 { max-width:22ch; font-size:clamp(28px,3.4vw,48px); font-weight:500; line-height:1.1; letter-spacing:-.03em; }
-    .section-head p { max-width:54ch; color:var(--body); }
-    .console { display:grid; grid-template-columns:1.1fr .9fr; gap:20px; }
-    .card { border:1px solid var(--line); border-radius:var(--card); background:var(--surface); padding:24px; }
-    .card h3 { margin:4px 0 4px; font-size:22px; letter-spacing:-.015em; }
-    .help { color:var(--muted); font-size:14px; }
-    .transport { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; }
-    .transport-output { color:var(--sky); font-size:13px; font-weight:600; letter-spacing:.04em; }
-    .seq-controls { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 12px; }
-    .small-btn { padding:7px 10px; border-radius:4px; background:rgba(247,246,244,.06); color:var(--body); font-size:12px; font-weight:700; }
-    .small-btn.active { background:var(--blue); color:white; }
-    .step-grid { display:grid; grid-template-columns:repeat(16,minmax(0,1fr)); gap:5px; }
-    .step-grid button { height:35px; min-width:0; border-radius:4px; color:var(--muted); background:#181715; border:1px solid rgba(247,246,244,.08); font-size:10px; }
-    .step-grid button:nth-child(4n+1) { border-left-color:var(--gold); }
-    .step-grid button.active { background:var(--gold); color:var(--paper); border-color:var(--gold); }
-    .step-grid button.playhead { outline:2px solid var(--sky); outline-offset:1px; }
-    .step-grid button:disabled { opacity:.25; cursor:not-allowed; }
-    .skank { display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center; margin-top:20px; padding:18px; border-radius:var(--card); background:var(--panel-mocha); }
-    #skank-readout { color:#f6d5b8; font-size:13px; letter-spacing:.08em; }
-    .siren { border-radius:var(--card); padding:24px; background:var(--panel-coral); }
-    .siren button { width:100%; min-height:86px; border-radius:var(--button); background:rgba(246,73,50,.25); border:1px solid rgba(247,246,244,.22); color:var(--ink); font-weight:700; letter-spacing:.05em; }
-    .siren button[aria-pressed="true"] { background:var(--coral); }
-    .knob-row { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:20px; }
-    .range { display:grid; gap:5px; color:var(--body); font-size:12px; }
-    input[type="range"] { accent-color:var(--sky); width:100%; }
-    .preset-panel { margin-top:20px; }
-    .presets { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:12px; }
-    .preset { min-height:74px; border-radius:4px; padding:10px; background:#191816; border:1px solid var(--line); color:var(--body); text-align:left; font-size:12px; font-weight:700; line-height:1.2; }
-    .preset.active { border-color:var(--gold); color:var(--gold); background:rgba(255,177,16,.08); }
-    .isolator { border-radius:var(--card); background:var(--panel-sky); padding:24px; }
-    .iso-top { display:flex; justify-content:space-between; align-items:center; gap:18px; }
-    .iso-top h2 { font-size:clamp(30px,4vw,54px); line-height:1; letter-spacing:-.035em; }
-    .toggle { min-height:40px; padding:8px 12px; border-radius:var(--button); background:rgba(247,246,244,.12); color:var(--ink); font-weight:700; font-size:12px; }
-    .toggle[aria-pressed="true"] { background:var(--blue); }
-    .bands { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:24px; }
-    .band-card { padding:18px; border-radius:var(--card); background:rgba(7,21,28,.44); border:1px solid rgba(247,246,244,.16); }
-    .band-card h3 { font-size:16px; letter-spacing:.06em; }
-    .band-card .hz { color:#8ac8ff; font-size:12px; }
-    .band-card.muted { opacity:.42; }
-    .band-card .mute { margin-top:12px; width:100%; padding:8px; background:rgba(247,246,244,.1); border-radius:4px; color:var(--ink); font-size:12px; font-weight:700; }
-    .band-card .mute[aria-pressed="true"] { background:var(--coral); }
-    .band-card input { margin:12px 0 2px; }
-    .band-readout { color:#d4ebff; font-size:12px; }
-    .foundation { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-    .foundation .card:nth-child(1) { background:var(--panel-gold); border:0; }
-    .foundation .card:nth-child(2) { background:var(--panel-coral); border:0; }
-    .foundation .card:nth-child(3) { background:var(--surface); }
-    .foundation p { color:rgba(247,246,244,.74); margin-top:10px; font-size:14px; }
-    footer { border-top:1px solid var(--line); padding:28px 0 42px; color:var(--muted); font-size:12px; }
-    footer a { color:#7ab8f7; }
-    .notice { margin-top:18px; padding:12px; border-left:2px solid var(--gold); background:rgba(255,177,16,.08); color:var(--body); font-size:13px; }
-    @media (max-width:900px) { .hero,.console { grid-template-columns:1fr; gap:36px; } .foundation { grid-template-columns:1fr; } .hero { padding-top:48px; } }
-    @media (max-width:640px) { .shell { padding:0 24px; } .nav .status { display:none; } section { padding:40px 0; } .hero { padding-bottom:40px; } .section-head { display:block; } .section-head p { margin-top:14px; } .bands { grid-template-columns:repeat(2,1fr); } .presets { grid-template-columns:repeat(2,1fr); } .preset:last-child { grid-column:span 2; } .skank { grid-template-columns:1fr; } .step-grid { gap:4px; } .step-grid button { height:29px; font-size:9px; } .card,.isolator,.siren,.hardware { padding:18px; } }
-    @media (prefers-reduced-motion:reduce) { *,*:before,*:after { transition-duration:.01ms!important; scroll-behavior:auto!important; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>SLOOP Dub — FM-1 firmware emulator</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#101114">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SLOOP">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --txt: #c9cdd4;
+    --dim: #70757d;
+    --accent: #e8b84b;
+    /* safe-area insets, readable from JS (fitDevice) */
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+html, body { background: #101114; color: var(--txt); font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace; }
+body { display: flex; flex-direction: column; align-items: center; padding: 18px 10px 40px; }
+
+h1 { font-size: 15px; letter-spacing: 3px; color: var(--dim); margin-bottom: 12px; font-weight: normal; }
+h1 b { color: var(--txt); }
+
+/* the device: every control is absolutely positioned from the FM-1 user
+   manual's panel drawing (page 1), normalized to the case outline */
+#device {
+    position: relative;
+    background: linear-gradient(175deg, #24272c, #1a1c20 55%, #17191d);
+    border: 1px solid #000;
+    border-radius: 34px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 6px rgba(0,0,0,.4);
+}
+
+.pane {                       /* recessed containers (buttons, OCT, keybed) */
+    position: absolute; transform: translate(-50%, -50%); background: #141619;
+    border: 1px solid #000; border-radius: 14px;
+    box-shadow: inset 0 1px 5px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.05);
+}
+
+.lab { position: absolute; font-size: 11px; letter-spacing: 2px; color: var(--dim); text-align: center; transform: translate(-50%, -50%); white-space: nowrap; }
+
+.cap {
+    position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 35% 30%, #3a3e46, #15161a 75%);
+    border: 1px solid #000; cursor: ns-resize; touch-action: none;
+    box-shadow: 0 3px 8px rgba(0,0,0,.6), inset 0 1px 1px rgba(255,255,255,.1);
+}
+.cap::before {                /* knurled edge */
+    content: ""; position: absolute; inset: 7%; border-radius: 50%;
+    background: repeating-conic-gradient(#2c2f35 0deg 9deg, #202329 9deg 18deg);
+    opacity: .55;
+}
+.cap::after {                 /* pointer */
+    content: ""; position: absolute; left: 50%; top: 7%; width: 6%; height: 28%;
+    margin-left: -3%; border-radius: 3px; background: var(--pcol, #cfd3da); z-index: 1;
+    transform-origin: 50% 154%; transform: rotate(var(--rot, 0deg));
+}
+.cap .grab {                  /* enlarged touch target (compact only) */
+    position: absolute; inset: -16px; border-radius: 50%;
+    touch-action: none; display: none;
+}
+body.compact .cap .grab { display: block; }
+
+#bezel {
+    position: absolute; background: #000; border-radius: 12px;
+    border: 1px solid #000;
+    box-shadow: inset 0 0 14px rgba(0,0,0,.95), 0 1px 0 rgba(255,255,255,.05);
+    display: flex; align-items: center; justify-content: center;
+}
+#screen { image-rendering: pixelated; display: block; background: #000; }
+
+.btn {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 11px; letter-spacing: 1px; line-height: 1.1;
+    background: linear-gradient(#34383f, #22252a);
+    border: 1px solid #000; border-radius: 8px; cursor: pointer; color: var(--txt);
+    box-shadow: 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+    touch-action: none;
+}
+.btn.down { box-shadow: 0 1px 2px rgba(0,0,0,.5); background: linear-gradient(#2a2d33, #1d2024); }
+.btn.lit { color: #fff; box-shadow: 0 0 14px 2px rgba(240,220,160,.45), inset 0 1px 0 rgba(255,255,255,.1); background: linear-gradient(#5a5341, #3c3831); }
+.btn.glow { box-shadow: 0 0 8px 0 rgba(240,220,160,.2), 0 2px 4px rgba(0,0,0,.5); }
+.btn kbd { position: absolute; top: 1px; right: 4px; font-size: 8px; color: #565b63; }
+
+/* silicone pill keys; the slot is the LED window, as on the device */
+.pill {
+    position: absolute; transform: translate(-50%, -50%);
+    background: linear-gradient(#f2f0ea, #d7d4cb);
+    border: 1px solid #101214; cursor: pointer; touch-action: none;
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.pill .slot {
+    position: absolute; left: 50%; top: 14%; width: 14%; height: 36%;
+    transform: translateX(-50%); border-radius: 999px; background: #1b1d20;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.8);
+}
+.pill.bk .slot { top: 12%; height: 40%; }
+.pill i { position: absolute; bottom: 6%; left: 0; right: 0; text-align: center; font-size: 8px; color: #8a877d; font-style: normal; letter-spacing: 0; }
+.pill.down { background: linear-gradient(#d2cfc8, #c1beb5); }
+.pill.lit .slot { background: #ffd467; box-shadow: 0 0 12px 3px rgba(255,212,103,.75), inset 0 0 2px rgba(120,80,0,.6); }
+.pill.glow .slot { background: #6b5c2e; box-shadow: 0 0 5px 1px rgba(255,212,103,.25); }
+.pill kbd { position: absolute; top: 4%; left: 6%; font-size: 8px; color: #a5a299; }
+.pill.bk kbd { color: #a5a299; }
+
+#power {
+    position: absolute; inset: 0; z-index: 10; border-radius: 34px;
+    background: rgba(8,9,11,.93); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px; cursor: pointer;
+}
+#power span { font-size: 26px; letter-spacing: 8px; color: var(--txt); }
+#power small { color: var(--dim); font-size: 11px; letter-spacing: 1px; }
+#power .ring {
+    width: 74px; height: 74px; border-radius: 50%; border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--accent);
+}
+
+/* compact mode (phones / small windows): the device is scaled — and in
+   portrait rotated 90° — to fill the viewport; emu.js sets the transform */
+body.compact { padding: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+body.compact h1, body.compact #help { display: none; }
+body.compact #device { position: fixed; left: 50%; top: 50%; }
+
+/* fullscreen toggle — only on phones that support the Fullscreen API */
+#fs {
+    position: fixed; z-index: 20; display: none;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    right: calc(env(safe-area-inset-right, 0px) + 10px);
+    width: 42px; height: 42px; padding: 0;
+    align-items: center; justify-content: center;
+    font-size: 20px; line-height: 1; color: var(--txt); cursor: pointer;
+    background: rgba(32, 35, 40, .72); border: 1px solid rgba(0,0,0,.6);
+    border-radius: 11px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+}
+#fs:active { background: rgba(52, 56, 63, .85); }
+body.compact.fs-ok #fs { display: flex; }
+
+/* fixed identity badge — this build contains only the local SLOOP Dub firmware */
+#firmware-badge {
+    position: fixed; z-index: 20;
+    top: calc(env(safe-area-inset-top, 0px) + 10px);
+    left: calc(env(safe-area-inset-left, 0px) + 10px);
+    padding: 11px 14px; font-size: 11px; letter-spacing: 1.5px;
+    color: var(--accent); background: rgba(32, 35, 40, .82);
+    border: 1px solid rgba(0,0,0,.6); border-radius: 11px;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.45);
+}
+body.compact #firmware-badge {
+    right: calc(env(safe-area-inset-right, 0px) + 62px);
+    left: auto; top: calc(env(safe-area-inset-top, 0px) + 10px);
+    padding: 8px 10px; font-size: 10px;
+}
+body.compact.rotated #firmware-badge {
+    top: 32%; right: env(safe-area-inset-right, 0px); left: auto;
+    transform: translateX(calc(50% - 15px)) rotate(90deg); opacity: .94;
+}
+
+/* iOS tip overlay (no Fullscreen API on iPhone → Add to Home Screen) */
+#fstip {
+    position: fixed; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(8, 9, 11, .88); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+#fstip.show { display: flex; }
+#fstip .card {
+    max-width: 320px; text-align: center; line-height: 1.6;
+    background: #1c1f24; border: 1px solid #000; border-radius: 16px;
+    padding: 24px 22px; box-shadow: 0 16px 40px rgba(0,0,0,.6);
+}
+#fstip h2 { font-size: 15px; letter-spacing: 2px; color: var(--txt); font-weight: normal; margin-bottom: 12px; }
+#fstip p { font-size: 13px; color: var(--dim); }
+#fstip b { color: var(--accent); font-weight: normal; }
+#fstip .ok {
+    margin-top: 18px; display: inline-block; padding: 9px 22px; cursor: pointer;
+    font-size: 12px; letter-spacing: 1px; color: var(--txt);
+    background: #2a2e34; border: 1px solid #000; border-radius: 9px;
+}
+
+#help { max-width: 1200px; margin-top: 18px; font-size: 11px; color: var(--dim); line-height: 1.7; text-align: center; }
+#help b { color: var(--txt); font-weight: normal; }
+#help a { color: var(--accent); }
+
+/* the manual under the device (per firmware; hidden in compact mode) */
+#manual {
+    max-width: 1140px; width: 100%; margin-top: 34px;
+    font-family: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 14.5px; line-height: 1.7; color: #b7bdc6;
+    font-weight: 400;
+}
+body.compact #manual { display: none; }
+
+#manual h2 {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    font-size: 14px; letter-spacing: 4px; font-weight: normal; color: var(--accent);
+    display: flex; align-items: center; gap: 14px;
+    margin: 36px 0 18px;
+}
+#manual h2::before { content: ""; width: 26px; height: 2px; background: var(--accent); border-radius: 2px; }
+#manual h2::after { content: ""; flex: 1; height: 1px; background: #23262c; }
+
+#manual .lead {
+    font-size: 16px; line-height: 1.75; color: #ccd1d8; max-width: 72ch;
+    margin-bottom: 20px;
+}
+
+#manual .cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+    gap: 14px; margin-bottom: 14px;
+}
+#manual .card {
+    background: linear-gradient(170deg, #1c1f24, #171a1e);
+    border: 1px solid #0c0d0f; border-radius: 14px;
+    padding: 18px 20px 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+}
+#manual .card.wide { grid-column: 1 / -1; }
+#manual .card.note { border-left: 3px solid var(--accent); }
+#manual h3 {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 3px; font-weight: normal; color: #8d939c;
+    margin: 0 0 10px;
+}
+#manual p, #manual ul { margin-bottom: 10px; }
+#manual p:last-child, #manual ul:last-child { margin-bottom: 0; }
+#manual ul { padding-left: 0; list-style: none; }
+#manual li { margin-bottom: 8px; padding-left: 16px; position: relative; }
+#manual li::before { content: ""; position: absolute; left: 0; top: .62em; width: 5px; height: 5px; border-radius: 50%; background: #4a4f57; }
+#manual b, #manual strong { color: #eceef1; font-weight: 500; }
+#manual a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(232,184,75,.35); }
+#manual a:hover { border-bottom-color: var(--accent); }
+#manual .src { font-size: 12.5px; color: #80868f; margin-top: 16px; }
+
+#manual kbd {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    background: linear-gradient(#32363d, #24272c); border: 1px solid #000; border-radius: 5px;
+    padding: 1px 7px 2px; font-size: 11px; color: #e4e7eb;
+    box-shadow: 0 1px 0 rgba(255,255,255,.07) inset, 0 1px 2px rgba(0,0,0,.4);
+    white-space: nowrap;
+}
+#manual .chip {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    display: inline-block; min-width: 46px; text-align: center;
+    background: linear-gradient(#3b3526, #2b2820); border: 1px solid #000; border-radius: 6px;
+    padding: 3px 9px; font-size: 11px; letter-spacing: 1px; color: var(--accent);
+    box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+    white-space: nowrap;
+}
+#manual .kn {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    font-size: 11.5px; color: #9aa1ab; letter-spacing: .5px;
+}
+
+#manual table { border-collapse: collapse; width: 100%; }
+#manual th, #manual td { padding: 10px 12px; text-align: left; vertical-align: top; }
+#manual th {
+    font-family: "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+    font-size: 10px; letter-spacing: 2px; font-weight: normal; color: #80868f;
+    border-bottom: 1px solid #2a2e34; padding-top: 0;
+}
+#manual td { border-bottom: 1px solid #202329; color: #b7bdc6; }
+#manual tr:last-child td { border-bottom: none; }
+#manual td:first-child { white-space: nowrap; }
+</style>
 </head>
 <body>
-  <main id="dub-app">
-    <div class="shell nav">
-      <div class="brand"><span class="brand-mark">SD</span> SLOOP DUB <span style="color:var(--muted);font-weight:500">/ FM-1</span></div>
-      <span class="status" id="engine-status">MOTEUR DUB PRÊT</span>
-    </div>
-    <div class="shell">
-      <section class="hero">
-        <div>
-          <p class="eyebrow">SLOOP v2.8.5 · prototype reggae/dub</p>
-          <h1>Tourne le <span>Dub</span> dans la bonne direction.</h1>
-          <p class="lede">Une première surface de jeu pour le FM-1 : basses profondes, accords skank, sirène, séquenceur jusqu’à 64 pas et isolateur quatre bandes.</p>
-          <div class="hero-actions">
-            <button class="btn primary" id="play-toggle" aria-pressed="false">▶ Jouer la boucle</button>
-            <button class="btn ghost" id="audio-enable">Activer l’audio</button>
-            <a class="btn outline" href="../webapp/editor/" target="_blank" rel="noopener">Éditeur SLOOP complet ↗</a>
-          </div>
-          <p class="notice">Le lecteur embarqué est jouable dans le navigateur. Le moteur SLOOP/WASM est disponible pour les sons de base ; les nouveaux contrôles Dub sont pour l’instant prévisualisés par une couche audio navigateur dédiée, avant intégration finale et mesure CPU sur le FM-1.</p>
-        </div>
-        <div class="hardware" aria-label="Aperçu de l’état de la machine">
-          <div class="hardware-top"><span class="hardware-title">M-VAVE FM-1 · DUB PAGE</span><span class="label">44.1 kHz</span></div>
-          <div class="screen"><div class="screen-top"><span>DUB / PERFORMANCE</span><span id="bpm-readout">72 BPM</span></div><div id="preset-name">ROOTS BASS</div><div id="step-position">STEP 01 / 16</div><div class="meter"><span id="meter-bar"></span></div></div>
-          <div class="keys" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        </div>
-      </section>
+<h1 id="title"><b>SLOOP DUB</b> &middot; M-VAVE FM-1 &middot; vrai firmware dans le navigateur</h1>
 
-      <section id="performance">
-        <div class="section-head"><div><p class="eyebrow">01 — performance</p><h2>Le rythme, la basse et l’accord au même endroit.</h2></div><p>Les patterns utilisent des pas de 16, 32 ou 64 cases. Les accents sont inspirés du jeu one-drop / steppers et peuvent être modifiés pas par pas.</p></div>
-        <div class="console">
-          <article class="card">
-            <p class="label">DUB SEQUENCER</p><h3>Pattern basse / batterie</h3><p class="help">Clique les pas orange. Le playhead bleu suit la boucle.</p>
-            <div class="seq-controls" role="group" aria-label="Longueur de séquence"><button class="small-btn active" id="seq-length-16">16 PAS</button><button class="small-btn" id="seq-length-32">32 PAS</button><button class="small-btn" id="seq-length-64">64 PAS</button><button class="small-btn" id="pattern-clear">EFFACER</button></div>
-            <div class="step-grid" id="seq-grid" aria-label="Grille de séquence"></div>
-            <div class="transport"><span class="transport-output" id="pattern-info">ONE DROP · 16 PAS</span><label class="range">TEMPO <input id="tempo" type="range" min="60" max="140" value="72"></label></div>
-            <div class="skank"><div><p class="label">SKANK À UNE TOUCHE</p><h3 id="skank-name">C MINOR</h3><p id="skank-readout">C3 + D♯3 + G3</p></div><button class="btn primary" id="skank-pad">JOUER LE SKANK</button></div>
-          </article>
-          <aside>
-            <div class="siren"><p class="label">DUB SIREN</p><h3>Sirène modulée</h3><p class="help" style="color:rgba(247,246,244,.7);margin:8px 0 18px">Oscillateur et LFO pour les montées de tension.</p><button id="siren-trigger" aria-pressed="false">TENIR / LÂCHER LA SIRÈNE</button><div class="knob-row"><label class="range">FREQUENCY <input id="siren-freq" type="range" min="220" max="1200" value="740"></label><label class="range">LFO DEPTH <input id="siren-depth" type="range" min="0" max="100" value="65"></label></div></div>
-            <div class="preset-panel"><p class="label">PRESETS DUB</p><div class="presets" id="preset-grid"><button class="preset active" id="preset-roots">ROOTS<br>BASS</button><button class="preset" id="preset-skank">SKANK<br>CHORD</button><button class="preset" id="preset-siren">DUB<br>SIREN</button><button class="preset" id="preset-steppers">STEPPERS</button><button class="preset" id="preset-tape">TAPE<br>ECHO</button></div></div>
-          </aside>
-        </div>
-      </section>
+<button id="fs" aria-label="Toggle fullscreen" title="Fullscreen">&#x26F6;</button>
 
-      <section id="isolator">
-        <div class="isolator">
-          <div class="iso-top"><div><p class="eyebrow">02 — DUB ISOLATOR</p><h2>SUB / BASS / MIDS / TOPS</h2><p class="help" style="color:#b9d9ed;margin-top:10px">Quatre bandes, gains indépendants, mutes et correction paramétrique. Coupures de référence : 90 Hz / 420 Hz / 2.6 kHz.</p></div><button class="toggle" id="iso-toggle" aria-pressed="false">ISOLATOR OFF</button></div>
-          <div class="bands" id="bands">
-            <article class="band-card" id="band-sub"><h3>SUB</h3><p class="hz">20–90 Hz</p><label class="range">GAIN <input id="gain-sub" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-sub">0 dB · EQ 64</span><button class="mute" id="mute-sub" aria-pressed="false">MUTE</button></article>
-            <article class="band-card" id="band-bass"><h3>BASS</h3><p class="hz">90–420 Hz</p><label class="range">GAIN <input id="gain-bass" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-bass">0 dB · EQ 64</span><button class="mute" id="mute-bass" aria-pressed="false">MUTE</button></article>
-            <article class="band-card" id="band-mids"><h3>MIDS</h3><p class="hz">420 Hz–2.6 kHz</p><label class="range">GAIN <input id="gain-mids" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-mids">0 dB · EQ 64</span><button class="mute" id="mute-mids" aria-pressed="false">MUTE</button></article>
-            <article class="band-card" id="band-tops"><h3>TOPS</h3><p class="hz">2.6–18 kHz</p><label class="range">GAIN <input id="gain-tops" type="range" min="-24" max="12" value="0"></label><span class="band-readout" id="readout-tops">0 dB · EQ 64</span><button class="mute" id="mute-tops" aria-pressed="false">MUTE</button></article>
-          </div>
-        </div>
-      </section>
+<div id="firmware-badge" title="Firmware embarqué">SLOOP DUB · FIRMWARE RÉEL</div>
 
-      <section>
-        <div class="section-head"><div><p class="eyebrow">03 — fondations</p><h2>Construit sur SLOOP, pensé pour le dub.</h2></div><p>Cette livraison ne change pas le format des projets SLOOP. Le firmware et la surface web évoluent de manière contrôlée afin de préserver les sessions existantes.</p></div>
-        <div class="foundation"><article class="card"><p class="label">FIRMWARE</p><h3>Extension indépendante</h3><p>Le module Dub est ajouté après les effets wet dans le mixage global, avec bypass strict au démarrage.</p></article><article class="card"><p class="label">SÉQUENCE</p><h3>16 / 32 / 64 pas</h3><p>Une surcouche légère dédiée aux patterns reggae conserve le séquenceur SLOOP et son horloge commune.</p></article><article class="card"><p class="label">SÉCURITÉ</p><h3>À tester sur matériel</h3><p>La compilation finale et les mesures de charge demandent la toolchain JieLi et un FM-1 de développement.</p></article></div>
-      </section>
-    </div>
-  </main>
-  <footer><div class="shell">SLOOP Dub FM-1 · Prototype GPL-3.0-only · Basé sur <a href="https://github.com/isod89/sloop-fm1" target="_blank" rel="noopener">SLOOP</a> et <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>. M-VAVE et FM-1 sont des marques de leurs propriétaires.</div></footer>
-  <script>
-    const $ = (id) => document.getElementById(id);
-    const state = { length:16, playing:false, step:0, tempo:72, steps:new Set([0,3,6,10,12]), muted:{sub:false,bass:false,mids:false,tops:false}, iso:false, siren:false, preset:'ROOTS BASS' };
-    let audio, master, sirenOsc, sirenLfo, sirenGain, timer, nextBeat = 0, sloopPreview;
-    const presets = {
-      roots:{name:'ROOTS BASS',tempo:72,steps:[0,3,6,10,12],root:'C MINOR',iso:[2,0,-2,-5]},
-      skank:{name:'SKANK CHORD',tempo:76,steps:[2,6,10,14],root:'D MINOR',iso:[-12,0,3,1]},
-      siren:{name:'DUB SIREN',tempo:70,steps:[0,8],root:'A MINOR',iso:[0,-2,2,5]},
-      steppers:{name:'STEPPERS',tempo:138,steps:[0,4,8,12],root:'F MINOR',iso:[3,1,-2,0]},
-      tape:{name:'TAPE ECHO',tempo:68,steps:[0,5,10,15],root:'G MINOR',iso:[1,0,2,3]}
-    };
-    function buildGrid(){ const grid=$('seq-grid'); grid.innerHTML=''; for(let i=0;i<64;i++){ const b=document.createElement('button'); b.type='button'; b.dataset.step=i; b.textContent=String(i+1).padStart(2,'0'); b.setAttribute('aria-label','Pas '+(i+1)); b.setAttribute('aria-pressed',state.steps.has(i)?'true':'false'); b.classList.toggle('active',state.steps.has(i)); b.disabled=i>=state.length; b.addEventListener('click',()=>{ if(state.steps.has(i))state.steps.delete(i);else state.steps.add(i); renderGrid(); }); grid.appendChild(b); } }
-    function renderGrid(){ document.querySelectorAll('#seq-grid button').forEach(b=>{ const i=+b.dataset.step; b.disabled=i>=state.length; b.classList.toggle('active',state.steps.has(i)); b.classList.toggle('playhead',state.playing&&i===state.step); b.setAttribute('aria-pressed',String(state.steps.has(i))); }); $('pattern-info').textContent=(state.length===16?'ONE DROP':state.length===32?'DUB RUN':'EXTENDED DUB')+' · '+state.length+' PAS'; $('step-position').textContent='STEP '+String(state.step+1).padStart(2,'0')+' / '+state.length; }
-    async function enableAudio(){ if(!audio){ audio=new AudioContext(); master=audio.createGain(); master.gain.value=.25; master.connect(audio.destination); } await audio.resume(); $('engine-status').textContent='AUDIO NAVIGATEUR ACTIF'; $('audio-enable').textContent='Audio activé'; }
-    function envelope(freq,duration=.18,type='sine',level=.15,when=audio.currentTime){ if(!audio)return; const o=audio.createOscillator(),g=audio.createGain(); o.type=type;o.frequency.setValueAtTime(freq,when);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(level,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(g).connect(master);o.start(when);o.stop(when+duration+.02); }
-    function kick(when){ if(!audio)return; const o=audio.createOscillator(),g=audio.createGain(); o.frequency.setValueAtTime(120,when);o.frequency.exponentialRampToValueAtTime(43,when+.12);g.gain.setValueAtTime(.001,when);g.gain.exponentialRampToValueAtTime(.4,when+.01);g.gain.exponentialRampToValueAtTime(.001,when+.18);o.connect(g).connect(master);o.start(when);o.stop(when+.2); }
-    function bass(when){ const notes=[48,48,51,43,48,55,46,48]; envelope(440*Math.pow(2,(notes[state.step%notes.length]-69)/12),.28,'sawtooth',.08,when); }
-    function tick(){ if(!state.playing)return; const now=audio?audio.currentTime:0; const sec=60/state.tempo/4; while(audio&&nextBeat<now+.12){ if(state.steps.has(state.step)){ kick(nextBeat); bass(nextBeat); } state.step=(state.step+1)%state.length; nextBeat+=sec; } $('meter-bar').style.width=(18+(state.steps.has(state.step)?62:28))+'%'; renderGrid(); timer=requestAnimationFrame(tick); }
-    function setPlaying(on){ state.playing=on; $('play-toggle').setAttribute('aria-pressed',String(on)); $('play-toggle').textContent=on?'■ Stopper':'▶ Jouer la boucle'; if(on){ enableAudio().then(()=>{ nextBeat=audio.currentTime+.05; cancelAnimationFrame(timer); tick(); }); } else { cancelAnimationFrame(timer); state.step=0; renderGrid(); } }
-    function playSkank(){ enableAudio().then(()=>{ const notes=[60,63,67]; notes.forEach((n,i)=>envelope(440*Math.pow(2,(n-69)/12),.17,'triangle',.09,audio.currentTime+i*.018)); }); }
-    function setSiren(on){ state.siren=on; $('siren-trigger').setAttribute('aria-pressed',String(on)); if(on){ enableAudio().then(()=>{ sirenOsc=audio.createOscillator();sirenLfo=audio.createOscillator();sirenGain=audio.createGain();const lfoGain=audio.createGain();sirenOsc.type='square';sirenOsc.frequency.value=+$('siren-freq').value;sirenLfo.frequency.value=2;sirenGain.gain.value=.06;lfoGain.gain.value=+$('siren-depth').value*4;sirenLfo.connect(lfoGain).connect(sirenOsc.frequency);sirenOsc.connect(sirenGain).connect(master);sirenOsc.start();sirenLfo.start(); }); } else { sirenOsc?.stop();sirenLfo?.stop();sirenOsc=sirenLfo=null; } }
-    function setPreset(key){ const p=presets[key]; state.preset=p.name;state.tempo=p.tempo;state.steps=new Set(p.steps);$('tempo').value=p.tempo;$('bpm-readout').textContent=p.tempo+' BPM';$('preset-name').textContent=p.name;$('skank-name').textContent=p.root;['sub','bass','mids','tops'].forEach((band,i)=>{ $('gain-'+band).value=p.iso[i];updateBand(band); });document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.id==='preset-'+key)); renderGrid(); }
-    function updateBand(band){ const v=+$('gain-'+band).value; $('readout-'+band).textContent=(v>0?'+':'')+v+' dB · EQ 64'; }
-    function bind(){ $('play-toggle').addEventListener('click',()=>setPlaying(!state.playing));$('audio-enable').addEventListener('click',enableAudio); $('skank-pad').addEventListener('click',playSkank); $('siren-trigger').addEventListener('click',()=>setSiren(!state.siren)); $('tempo').addEventListener('input',e=>{state.tempo=+e.target.value;$('bpm-readout').textContent=state.tempo+' BPM';}); ['16','32','64'].forEach(n=>$('seq-length-'+n).addEventListener('click',()=>{state.length=+n;state.step=0;document.querySelectorAll('[id^="seq-length-"]').forEach(b=>b.classList.toggle('active',b.id==='seq-length-'+n));renderGrid();})); $('pattern-clear').addEventListener('click',()=>{state.steps.clear();renderGrid();}); Object.keys(presets).forEach(k=>$('preset-'+k).addEventListener('click',()=>setPreset(k))); $('iso-toggle').addEventListener('click',()=>{state.iso=!state.iso;$('iso-toggle').setAttribute('aria-pressed',String(state.iso));$('iso-toggle').textContent=state.iso?'ISOLATOR ON':'ISOLATOR OFF';}); ['sub','bass','mids','tops'].forEach(b=>{ $('gain-'+b).addEventListener('input',()=>updateBand(b));$('mute-'+b).addEventListener('click',()=>{state.muted[b]=!state.muted[b];$('mute-'+b).setAttribute('aria-pressed',String(state.muted[b]));$('band-'+b).classList.toggle('muted',state.muted[b]);});}); $('siren-freq').addEventListener('input',e=>{if(sirenOsc)sirenOsc.frequency.value=+e.target.value;}); }
-    async function prepareSloopEngine(){ try { const m=await import('../webapp/editor/preview.js'); sloopPreview=m.LocalPreview; $('engine-status').textContent='MOTEUR SLOOP/WASM DISPONIBLE'; } catch { $('engine-status').textContent='MOTEUR DUB PRÊT'; } }
-    buildGrid(); bind(); prepareSloopEngine();
-  </script>
+<div id="fstip"><div class="card">
+    <h2>FULLSCREEN</h2>
+    <p>iPhone browsers can't go fullscreen from a button. For the full-screen app, tap the <b>Share</b> icon, then <b>Add to Home Screen</b> — SLOOP opens with no browser bars.</p>
+    <span class="ok">GOT IT</span>
+</div></div>
+
+<div id="device">
+    <div id="power"><div class="ring">&#x23FB;</div><span>POWER ON</span><small>lance le vrai firmware SLOOP Dub, compilé en WebAssembly &middot; son activé</small></div>
+</div>
+
+<section id="manual">
+
+<div id="padmap" style="display:none">
+<h2>PROMICROPAD — HARDWARE CONTROL</h2>
+<p class="lead">A ProMicroPad is connected — its knobs and keys drive the faceplate over Web MIDI. <b>Hold the pad's back-left key (SHIFT)</b> for the second layer of everything.</p>
+<div class="cards">
+<div class="card">
+<h3>KNOBS 1–4</h3>
+<ul>
+<li><span class="kn">MASTER</span> · <span class="kn">SELECT</span> · <span class="kn">PRESETS</span> · <span class="kn">ALGORITHM</span></li>
+<li>with SHIFT: <span class="kn">KNOB1</span> · <span class="kn">KNOB2</span> · <span class="kn">KNOB3</span> · <span class="kn">KNOB4</span></li>
+</ul>
+</div>
+<div class="card">
+<h3>FUNCTION ROW</h3>
+<ul>
+<li>SHIFT (hold) · <kbd>OCT−</kbd> · <kbd>OCT+</kbd> · <kbd>PLAY</kbd></li>
+</ul>
+</div>
+<div class="card">
+<h3>12 KEYS</h3>
+<ul>
+<li>Keybed, chromatic from F3.</li>
+<li>with SHIFT: <kbd>FX</kbd> <kbd>SCL</kbd> <kbd>ENV</kbd> <kbd>LFO</kbd> &nbsp;/&nbsp; <kbd>HOME</kbd> <kbd>SAVE</kbd> <kbd>ARP</kbd> <kbd>SEQ</kbd> &nbsp;/&nbsp; <kbd>EDIT</kbd> <kbd>GLO</kbd> <kbd>REC</kbd></li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="man-sloop">
+<h2>SLOOP — HOW TO PLAY</h2>
+<p class="lead">SLOOP is a four-track groovebox: three synth tracks and a drum track, a 64-step sequencer, songs and punch-in effects. The golden rule: <b>hold a function button and the 16 white keys and four knobs change job</b> — the screen always shows what they do. Tap the same button instead to open its pages; hold a layer and tap <kbd>HOME</kbd> to lock it open.</p>
+
+<div class="cards">
+<div class="card">
+<h3>FIRST STEPS</h3>
+<ul>
+<li>Play the keys — the selected track's sound plays. <span class="kn">ALGORITHM</span> selects the track 1–4, <span class="kn">PRESETS</span> changes its sound, <span class="kn">SELECT</span> moves between pages.</li>
+<li><kbd>PLAY</kbd> starts the loop. <kbd>REC</kbd> while playing records on top (overdub), your timing preserved.</li>
+<li>Hold <kbd>REC</kbd> ~2&nbsp;s to clear the track; <kbd>EDIT</kbd>&nbsp;+&nbsp;<kbd>OCT−</kbd>/<kbd>OCT+</kbd> is undo / redo.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>RECORDING A FIRST LOOP</h3>
+<ul>
+<li>On an empty project, tap <kbd>REC</kbd> first: the REC screen appears.</li>
+<li><b>free</b> — no click: just play, and your playing sets the tempo and loop length.</li>
+<li><b>tempo</b> — record to the tempo you set; 1, 2 or 4 bars; optional one-bar count-in.</li>
+</ul>
+</div>
+
+<div class="card wide">
+<h3>THE LAYERS — HOLD A BUTTON</h3>
+<table>
+<tr><th>HOLD</th><th>THE 16 WHITE KEYS</th><th>KNOBS 1 · 2 · 3 · 4</th></tr>
+<tr><td><span class="chip">FX</span></td><td>16 punch-in effects on the whole mix — loops 1/4–1/32, stutter, reverse, tape stop, half speed, filter sweeps, phone, bit crush, alias, gate, echo, tape wobble</td><td><span class="kn">FILTER · DUST · DUCK</span></td></tr>
+<tr><td><span class="chip">EDIT</span></td><td>erase a sound or note as the loop plays (stopped: from the whole pattern)</td><td><span class="kn">SHIFT · LENGTH ×2/½ · TRANSPOSE</span></td></tr>
+<tr><td><span class="chip">ARP</span></td><td>note repeat on the grid, recorded as ratchets</td><td><span class="kn">RATE 1/8 … 1/64</span></td></tr>
+<tr><td><span class="chip">SEQ</span></td><td>the 16 steps of the page (black keys switch pages) — tap an empty step to set it, a set step clears when released; hold a step and turn a knob for its level or ratchet</td><td><span class="kn">SOUND/NOTE · DIV · SWING · LENGTH</span></td></tr>
+<tr><td><span class="chip">SCL</span></td><td>any key sets the key of the song</td><td><span class="kn">CHORD · SCALE · KEYS · TRANSPOSE</span></td></tr>
+<tr><td><span class="chip">GLO</span></td><td>keys 1–4 mute · 5–8 solo · key 16 tap tempo</td><td><span class="kn">LEVELS OF TRACKS 1–4</span></td></tr>
+<tr><td><span class="chip">SAVE</span></td><td>keys 1–4 play sections A–D on the next bar · 5–8 save the loop into them · 13 loop/song · 14 record the song · 16 the chain</td><td><span class="kn">—</span></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>DRUMS — TRACK 4</h3>
+<p><b>16 drum sounds on the white keys</b>, kick to cowbell; a black key doubles its left neighbour for fast rolls. Hold <kbd>OCT−</kbd>/<kbd>OCT+</kbd> while playing for ghost and hard hits. 37 kits on the <span class="kn">PRESETS</span> knob — a sampled acoustic kit and 32 synthesized styles: 808, 909, trap, house, jungle, chiptune and more.</p>
+</div>
+
+<div class="card">
+<h3>SOUNDS</h3>
+<p>Nine engines — analog, 4-op FM, phase distortion, trio, organ, voice, granular, lo-fi chip, sampler. 68 level-matched factory sounds browsed by kind, 32 user slots. One-key chords in SCL: TRIAD, 7TH, 9TH, SUS4, POWER. Envelope and LFO pages under <kbd>ENV</kbd> and <kbd>LFO</kbd>.</p>
+</div>
+
+<div class="card">
+<h3>SONGS</h3>
+<p>Save up to four sections A–D (<kbd>SAVE</kbd>&nbsp;+ keys 5–8), launch them live on the next bar (<kbd>SAVE</kbd>&nbsp;+ keys 1–4), and record the arrangement as you play it (<kbd>SAVE</kbd>&nbsp;+ key 14). In song mode, <kbd>PLAY</kbd> runs the whole chain.</p>
+</div>
+</div>
+
+<p class="src">Condensed from the project's own documentation — full manual: <a href="https://github.com/isod89/sloop-fm1" target="_blank" rel="noopener">SLOOP on GitHub</a> (README &amp; SLOOP.md).</p>
+</div>
+
+
+<h2>IN THIS EMULATOR</h2>
+<div class="cards">
+<div class="card note wide">
+<ul>
+<li><b>Hold</b> means click-and-hold or touch-and-hold a button — or hold its computer key (<kbd>1</kbd>–<kbd>0</kbd> for the function buttons; full map in the line below).</li>
+<li>Knobs turn by dragging vertically or scrolling; on a rotated phone, drag along the device's own up — toward its knobs.</li>
+<li>Your work autosaves to this browser. The first save lands ~20&nbsp;s after power-on at the earliest — the firmware's own pacing.</li>
+<li>Not available here: the USB web editor, sample upload, USB audio and firmware install — and avoid MENU&nbsp;&gt;&nbsp;HARDWARE&nbsp;CALIBRATION, which waits on the real key matrix.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<div id="help">
+    <b>keys:</b> middle row = white keys from C4, top row = black keys &middot; <b>Z/X</b> OCT&minus;/OCT+ &middot;
+    <b>1&ndash;0</b> FX SEL ENV LFO EDIT GLO HOME SAVE ARP SEQ &middot; <b>Space</b> PLAY &middot; <b>R</b> REC &middot;
+    <b>&uarr;&darr;</b> SELECT &middot; <b>&larr;&rarr;</b> ALGORITHM &middot; <b>[ \</b> PRESETS &middot;
+    knobs: drag or scroll (MASTER too) &middot; hold a function button to use its layer &middot; MIDI in supported<br>
+    SLOOP Dub est le seul firmware chargé ici : sources locales modifiées, compilées en WebAssembly et exécutées dans un AudioWorklet &middot; licence GPL-3.0 et crédits SLOOP conservés<br>
+    more FM-1 tools: <a href="https://quixotic7.github.io/MvaveFM1-Designer/" target="_blank" rel="noopener">ChoralRoot FM-1 designer</a> — paint LED states, relabel controls and mock up 240&times;240 screens for your own firmware layouts (by <a href="https://github.com/Quixotic7/MvaveFM1-Designer" target="_blank" rel="noopener">Quixotic7</a>, MIT)
+</div>
+
+<script src="emu.js"></script>
 </body>
 </html>

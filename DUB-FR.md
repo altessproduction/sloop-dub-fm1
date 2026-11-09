@@ -12,7 +12,7 @@ Le fork ajoute une extension DSP indépendante dans `firmware/src/dub.c` et `dub
 - **Presets** : cinq points de départ (`ROOTS BASS`, `SKANK CHORD`, `DUB SIREN`, `STEPPERS`, `TAPE ECHO`).
 - **DUB ISOLATOR** : quatre bandes `SUB`, `BASS`, `MIDS`, `TOPS`, croisements de séparation, gain, mute et correction paramétrique légère par bande.
 
-Le module est inclus selon la convention SLOOP d'unité de compilation unique. Il est initialisé dans le démarrage de l'application et placé dans `mix_block`, après les effets wet et avant le master. Il reste **désactivé par défaut** (`dub_enabled = 0`) tant que les pages et raccourcis UI ne sont pas câblés ; cette décision évite de modifier le son existant de SLOOP dès le premier démarrage.
+Le module est inclus selon la convention SLOOP d'unité de compilation unique. Il est initialisé dans le démarrage de l'application et placé dans `mix_block`, après les effets wet et avant le master. Il reste **désactivé par défaut** (`dub_enabled = 0`) jusqu'à activation par la page Dub ou par les contrôles firmware ; cette décision évite de modifier le son existant de SLOOP dès le premier démarrage.
 
 ## Tests et prévisualisation navigateur
 
@@ -44,7 +44,7 @@ La compilation et l’installation sur le matériel FM-1 nécessitent toujours l
 
 Une surface web jouable est publiée sous `docs/dub/` et déployée automatiquement sur GitHub Pages à chaque envoi vers `main`. Elle propose le séquenceur, les presets, le skank, la sirène et l’isolateur pour préparer le jeu et écouter une maquette navigateur.
 
-Le moteur SLOOP/WASM est distribué avec la page pour les sons de base. Les commandes spécifiques Dub de cette première version sont actuellement prévisualisées par une couche audio navigateur : elles décrivent et testent l’interaction, mais ne constituent pas encore l’intégration complète des nouveaux paramètres dans le protocole, les pages de l’écran FM-1 et le format de projet.
+Le moteur SLOOP/WASM est distribué avec la page et exécute le mixage firmware dans un `AudioWorklet` séparé. La page envoie l'état SLOOP, le transport, les notes, la sirène et les bandes de l'isolateur à l'adaptateur firmware ; elle n'utilise plus l'ancien oscillateur JavaScript de démonstration. Cette prévisualisation reste un adaptateur navigateur : elle ne remplace pas encore le flashage du FM-1, n'émule pas les entrées/sorties matérielles et ne persiste pas encore les nouveaux paramètres Dub dans le format de projet SLOOP.
 
 ## Installation de développement
 

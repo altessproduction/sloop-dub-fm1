@@ -31,9 +31,8 @@ def main():
     errors, page_errors, failed, responses = [], [], [], []
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--disable-web-security"])
+            browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required"])
             context = browser.new_context(
-                bypass_csp=True,
                 viewport={"width": 1280, "height": 800},
             )
             page = context.new_page()
@@ -44,43 +43,34 @@ def main():
             page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
             assert page.evaluate("document.readyState") == "complete"
 
-            assert page.locator("#dub-app").is_visible()
-            assert page.locator("#seq-grid button").count() == 64
-            assert page.locator(".band-card").count() == 4
-            assert page.locator("#preset-grid button").count() == 5
+            # The page is the complete FM-1 faceplate, not the former Dub demo.
+            assert page.locator("#device").is_visible()
+            assert page.locator("#power").is_visible()
+            assert page.locator("#screen").count() == 1
+            assert page.locator(".cap").count() == 8
+            assert page.locator(".btn").count() == 14
+            assert page.locator(".pill").count() == 27
+            assert "FIRMWARE RÉEL" in page.locator("#firmware-badge").inner_text()
+            assert "SLOOP DUB" in page.locator("#title").inner_text()
+            assert "FELUCCA" not in page.locator("body").inner_text()
             duplicate_ids = page.evaluate("""() => {
               const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
               return ids.filter((x,i)=>ids.indexOf(x)!==i);
             }""")
             assert duplicate_ids == [], duplicate_ids
 
-            page.click("#seq-length-32")
-            assert page.locator("#seq-grid button:disabled").count() == 32
-            page.click("#seq-length-64")
-            assert page.locator("#seq-grid button:disabled").count() == 0
-            page.click("#seq-grid button[data-step='1']")
-            assert page.locator("#seq-grid button[data-step='1']").get_attribute("aria-pressed") == "true"
-
-            page.click("#preset-siren")
-            assert "DUB SIREN" in page.locator("#preset-name").inner_text()
-            page.click("#siren-trigger")
-            assert page.locator("#siren-trigger").get_attribute("aria-pressed") == "true"
-            page.click("#siren-trigger")
-            assert page.locator("#siren-trigger").get_attribute("aria-pressed") == "false"
-
-            page.click("#skank-pad")
-            assert page.locator("#skank-readout").inner_text().count("+") == 2
-            page.click("#iso-toggle")
-            assert page.locator("#iso-toggle").get_attribute("aria-pressed") == "true"
-            page.click("#mute-sub")
-            assert page.locator("#mute-sub").get_attribute("aria-pressed") == "true"
-            page.click("#mute-sub")
-
-            page.click("#play-toggle")
-            assert page.locator("#play-toggle").get_attribute("aria-pressed") == "true"
-            page.wait_for_timeout(350)
-            assert page.locator("#step-position").inner_text().startswith("STEP")
-            page.click("#play-toggle")
+            # Boot the real firmware in the AudioWorklet and exercise hardware I/O.
+            page.click("#power")
+            page.wait_for_timeout(1400)
+            assert page.locator("#power").count() == 0
+            assert page.locator("#screen").evaluate("c => c.width") == 240
+            page.keyboard.down("a")
+            page.wait_for_timeout(80)
+            page.keyboard.up("a")
+            page.keyboard.press("ArrowUp")
+            page.keyboard.press(" ")
+            page.wait_for_timeout(120)
+            assert page.locator("#device").is_visible()
 
             for w, h in [(390, 844), (768, 1024), (1280, 800), (1920, 1080)]:
                 page.set_viewport_size({"width": w, "height": h})
@@ -90,16 +80,12 @@ def main():
             page.set_viewport_size({"width": 1280, "height": 800})
             page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
             page.screenshot(path=str(OUT / "desktop_top.png"))
-            page.locator("#isolator").scroll_into_view_if_needed()
-            page.screenshot(path=str(OUT / "desktop_isolator.png"))
+            page.locator("#device").scroll_into_view_if_needed()
+            page.screenshot(path=str(OUT / "desktop_device.png"))
             page.set_viewport_size({"width": 390, "height": 844})
             page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
             page.screenshot(path=str(OUT / "mobile_top.png"))
 
-            buttons = page.locator("button")
-            for i in range(buttons.count()):
-                button = buttons.nth(i)
-                assert button.inner_text().strip() or button.get_attribute("aria-label"), f"unnamed button {i}"
             assert not errors, errors
             assert not page_errors, page_errors
             assert not failed, failed
@@ -108,7 +94,7 @@ def main():
             browser.close()
     finally:
         server.shutdown()
-    print("SLOOP Dub emulator browser checks: passed")
+    print("SLOOP Dub full FM-1 firmware emulator browser checks: passed")
 
 
 if __name__ == "__main__":

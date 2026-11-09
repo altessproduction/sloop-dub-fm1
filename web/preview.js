@@ -60,6 +60,13 @@ export class LocalPreview {
   play(on) { this.node?.port.postMessage({ type: 'play', on }); }
   note(track, note, on) { this.node?.port.postMessage({ type: 'note', track, note, on }); }
   hit(kit, lane, velocity) { this.node?.port.postMessage({ type: 'hit', kit, lane, velocity }); }
+  dubEnable(on) { this.node?.port.postMessage({ type: 'dub-enable', on }); }
+  dubSiren(level, frequency = 740, depth = 96) {
+    this.node?.port.postMessage({ type: 'dub-siren', level, frequency, depth });
+  }
+  dubBand(band, gain, mute) {
+    this.node?.port.postMessage({ type: 'dub-band', band, gain, mute });
+  }
   panic() { this.node?.port.postMessage({ type: 'panic' }); }
   setVolume(value) {
     this.volume = value;

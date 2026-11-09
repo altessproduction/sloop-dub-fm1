@@ -80,6 +80,9 @@ if (typeof registerProcessor === 'function') {
           else if (data.type === 'play') this.dsp.w.preview_play(data.on ? 1 : 0);
           else if (data.type === 'panic') this.dsp.w.preview_panic();
           else if (data.type === 'hit') this.dsp.w.preview_hit(data.kit, data.lane, data.velocity);
+          else if (data.type === 'dub-enable') this.dsp.w.preview_dub_enable(data.on ? 1 : 0);
+          else if (data.type === 'dub-siren') this.dsp.w.preview_dub_siren(data.level, data.frequency, data.depth);
+          else if (data.type === 'dub-band') this.dsp.w.preview_dub_band(data.band, data.gain, data.mute ? 1 : 0);
         } catch (error) { this.port.postMessage({ error: error.message }); }
       };
     }

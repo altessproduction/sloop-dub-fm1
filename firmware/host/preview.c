@@ -151,6 +151,27 @@ void preview_note(uint32_t k, uint32_t note, uint32_t on)
     if (on) input_on(&trk[k], note, 100);
     else input_off(&trk[k], note);
 }
+void preview_dub_enable(uint32_t on)
+{
+    dub_enabled = on ? 1 : 0;
+    dub_isolator.enabled = dub_enabled;
+}
+void preview_dub_siren(uint32_t level, uint32_t frequency, uint32_t depth)
+{
+    uint32_t hz = (uint32_t)clamp((int32_t)frequency, 220, 1200);
+    dub_siren.phase_inc = dub_hz_inc(hz);
+    dub_siren.depth = (uint8_t)clamp((int32_t)depth, 0, 127);
+    dub_siren_trigger(&dub_siren, (uint8_t)clamp((int32_t)level, 0, 127));
+    if (level) dub_enabled = 1;
+}
+void preview_dub_band(uint32_t band, int32_t gain, uint32_t mute)
+{
+    if (band >= DUB_BANDS) return;
+    dub_band_param_t p = dub_isolator.p[band];
+    p.gain_db = (int8_t)(gain < -24 ? -24 : gain > 12 ? 12 : gain);
+    p.mute = mute ? 1 : 0;
+    dub_isolator_set_band(&dub_isolator, band, p);
+}
 void preview_play(uint32_t on) { transport_req = on ? 1 : 2; }
 int32_t preview_position(uint32_t k)
 {

@@ -31,13 +31,20 @@ l'installateur web sert ce paquet, l'émulateur navigateur est reconstruit sur l
 **Divers :**
 
 - Version affichée sur la machine : **SLOOP DUB 1.0** (splash et ABOUT).
+- **L'identité.** La tour sound-system remplace la voile partout : la carte du hub, la bannière
+  du dépôt (README, SLOOP, GUIDE, DÉMARRAGE RAPIDE), les icônes PWA — 192/512/maskable, plus
+  celles (manquantes) de l'émulateur dub et les apple-touch-icon —, l'installateur et l'éditeur
+  web, et le **splash d'allumage** : le même dessin quantifié en 16 couleurs RLE sur l'écran du
+  FM-1 (9 056 o contre 4 635). Les SVG de la voile sortent du dépôt ; le service worker retrouve
+  le bon nom de paquet (`sloop-dub-1.0.0.fwsc`) et un nouveau tampon de cache.
 - Le dépôt devient la distribution : l'installateur web sert **sloop-dub-1.0.0.fwsc**, la
   page d'accueil GitHub explique le fork au-dessus des fonctions SLOOP, les outils de
   développement (tests hôtes, sources de l'éditeur web) sortent du checkout — ils restent
   dans l'historique git et chez le développeur.
-- Empreinte mesurée (JieLi, ce dépôt) : **image flash 565 440 o / 581 052** (marge
-  15 612 o), `.data`+`.bss` 57 608 o, `.lowram` 22 772 o, pool 328 396 o — le varispeed et
-  l'isolateur coûtent ~400 o de flash et 8 o de RAM sur le 2.9.16.
+- Empreinte mesurée (JieLi, ce dépôt) : **image flash 569 888 o / 581 052** (marge
+  11 164 o, dont +4,4 Ko pour le splash de la tour), `.data`+`.bss` 57 608 o, `.lowram`
+  22 772 o, pool 328 396 o — le varispeed et l'isolateur coûtent ~400 o de flash et 8 o de
+  RAM sur le 2.9.16.
 - Tests : dub_test 200 contrôles (les bandes répondent vraiment, chaque mute coupe son
   sinus) ; ui_pages_test 513 ; stress_test 40 000 trames ; golden 182 rendus inchangés
   (DUB off passe bit à bit) ; smoke wasm AUDIO-PATH-OK avec la preuve des mutes sur le

@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/logo/sloop-logo.png" alt="SLOOP" width="360"></p>
+<p align="center"><img src="assets/logo/sloop-logo.png" alt="sloop-DUB" width="360"></p>
 
 # SLOOP 2.7 — démarrage rapide
 

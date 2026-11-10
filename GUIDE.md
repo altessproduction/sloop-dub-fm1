@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/logo/sloop-logo.png" alt="SLOOP" width="420"></p>
+<p align="center"><img src="assets/logo/sloop-logo.png" alt="sloop-DUB" width="420"></p>
 
 # SLOOP 2.8.5 — The Complete Guide
 

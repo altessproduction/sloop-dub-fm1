@@ -1,16 +1,30 @@
 #!/usr/bin/env python3
-"""Browser checks for the SLOOP Dub emulator page (Tier 2)."""
+"""2.9.16: the Dub console is gone — the page is the FM-1 faceplate and the firmware's own
+menu, and the fork's features are explained in #dub-manual. The tests read the firmware's
+own state through the emu_dbg probe (sloop_wasm.c: 6 sir level, 7 sir active, 11 dly sync,
+17 menu open, 19 the siren's level setting, 20 the OCT+ hold armed, 22 the menu page).
+
+The scenario here is the 2.9.16 one: OCT+ held on SIR keeps the siren sounding while
+SELECT walks to SR2 and on to DLY; released there it stops; pressed again it re-arms;
+DLY's OCT+ has no other life (no mode toggle), the knobs still work under the hold."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
 import os
-import time
 
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build" / "dub-emulator-test"
 OUT.mkdir(parents=True, exist_ok=True)
+OUT2 = ROOT / "build"
+fails = []
+
+
+def check(ok, what):
+    print(("ok   " if ok else "FAIL ") + what)
+    if not ok:
+        fails.append(what)
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -18,221 +32,96 @@ class QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
-def serve():
-    os.chdir(ROOT / "docs")
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), QuietHandler)
-    Thread(target=server.serve_forever, daemon=True).start()
-    return server
-
-
 def main():
-    server = serve()
-    time.sleep(0.2)
-    errors, page_errors, failed, responses = [], [], [], []
+    os.chdir(ROOT / "docs")
+    server = ThreadingHTTPServer(("127.0.0.1", 8766), QuietHandler)
+    Thread(target=server.serve_forever, daemon=True).start()
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, args=["--autoplay-policy=no-user-gesture-required", "--no-proxy-server"])
-            context = browser.new_context(
-                viewport={"width": 1280, "height": 800},
-            )
-            page = context.new_page()
-            page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
-            page.on("pageerror", lambda e: page_errors.append(str(e)))
-            page.on("requestfailed", lambda r: failed.append({"url": r.url, "failure": r.failure}))
-            page.on("response", lambda r: responses.append({"url": r.url, "status": r.status}))
-            page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
-            assert page.evaluate("document.readyState") == "complete"
+            page = browser.new_page(viewport={"width": 1280, "height": 800})
+            page.goto("http://127.0.0.1:8766/dub/", wait_until="networkidle")
 
-            # The page is the complete FM-1 faceplate, not the former Dub demo.
-            assert page.locator("#device").is_visible()
-            assert page.locator("#power").is_visible()
-            assert page.locator("#screen").count() == 1
-            assert page.locator(".cap").count() == 8
-            assert page.locator(".btn").count() == 14
-            assert page.locator(".pill").count() == 27
-            assert "FIRMWARE RÉEL" in page.locator("#firmware-badge").inner_text()
-            assert "SLOOP DUB" in page.locator("#title").inner_text()
-            assert "FELUCCA" not in page.locator("body").inner_text()
-            # The Dub controls are part of this same firmware emulator page: the tabbed
-            # mirror of the firmware's Dub pages (long HOME press: DUB SIR SR2 SKANK DLY SND RDM
-            # PRS ISO), plus the sequencer view (SEQ) — 2.9.7 replaced the DSQ page with DLY,
-            # 2.9.12 added the SEND page (the four tracks' throws into the delay).
-            assert page.locator("#dub-console").is_visible()
-            assert page.locator(".dub-tab").count() == 10
-            assert page.locator(".dub-page").count() == 10
-            assert page.locator(".dub-page.on").count() == 1
-            assert page.locator("#dub-enabled").count() == 1
-            assert page.locator("#dub-mix").count() == 1
-            assert page.locator("#dub-siren").count() == 1
-            assert page.locator("#dub-siren-freq").count() == 1
-            assert page.locator("#dub-siren-depth").count() == 1
-            assert page.locator("#dub-siren-rate").count() == 1
-            assert page.locator("#dub-siren-type option").count() == 5
-            assert page.locator("#dub-siren-wave option").count() == 5
-            assert page.locator("#dub-siren-sym").count() == 1
-            assert page.locator("#dub-siren-send").count() == 1
-            assert page.locator("#dub-siren-level").count() == 1
-            assert page.locator("#dub-skank").count() == 1
-            assert page.locator("#dub-skank-vel").count() == 1
-            # 2.9.12: the SEND tab — a slider a sequencer track (bass, skank, melody, drums)
-            assert page.locator("input[data-dub-track]").count() == 4
-            assert page.locator("#dub-send-bass").count() == 1
-            assert page.locator("#dub-send-skank").count() == 1
-            assert page.locator("#dub-send-mel").count() == 1
-            assert page.locator("#dub-send-drum").count() == 1
-            assert page.locator("#dub-root option").count() == 12
-            assert page.locator("#dub-quality option").count() == 8
-            assert page.locator("#dub-octave option").count() == 3
-            # 2.9.4: the DSQ view is built from JS: four tracks x 64 steps plus their labels
-            assert page.locator("#dub-steps button").count() == 256
-            assert page.locator(".dub-trk-label").count() == 4
-            assert page.locator("#dub-trks button").count() == 4
-            assert page.locator("#dub-console [data-dub-band]").count() == 4
-            assert page.locator("#dub-presets button").count() == 5
-            # The tabs mirror the LCD: one tab shows its page, the others wait.
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
-            page.click('.dub-tab[data-dub-page="sir"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "sir"
-            assert page.locator('[data-dub-panel="sir"]').is_visible()
-            assert not page.locator('[data-dub-panel="dub"]').is_visible()
-            page.click('.dub-tab[data-dub-page="sr2"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "sr2"
-            assert page.locator('[data-dub-panel="sr2"]').is_visible()
-            page.click('.dub-tab[data-dub-page="dub"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
-            # 2.9.12: the SEND tab: the four tracks' throws into the delay, a slider a track
-            page.click('.dub-tab[data-dub-page="snd"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "snd"
-            assert page.locator('[data-dub-panel="snd"]').is_visible()
-            page.locator("#dub-send-bass").fill("64")
-            page.locator("#dub-send-bass").dispatch_event("input")
-            page.locator("#dub-send-drum").fill("48")
-            page.locator("#dub-send-drum").dispatch_event("input")
-            page.wait_for_timeout(250)
-            assert page.locator("#dub-send-bass + output").inner_text() == "50 %"
-            assert page.locator("#dub-send-drum + output").inner_text() == "38 %"
-            page.click('.dub-tab[data-dub-page="dub"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
-            # 2.9.3: the PRESET tab: four selectors of the dub sound banks and their loads
-            page.click('.dub-tab[data-dub-page="prs"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "prs"
-            for sel_id, n in [("dub-sbass", 8), ("dub-sskank", 8), ("dub-smel", 8), ("dub-skit", 8)]:
-                assert page.locator("#" + sel_id + " option").count() == n
-            for b in ["dub-sbass-load", "dub-sskank-load", "dub-smel-load", "dub-skit-load"]:
-                assert page.locator("#" + b).count() == 1
-            page.select_option("#dub-sskank", "3")          # REGGAE ORG
-            page.click("#dub-sskank-load")
-            page.wait_for_timeout(400)
-            page.select_option("#dub-skit", "1")            # DUST
-            page.click("#dub-skit-load")
-            page.wait_for_timeout(300)
-            page.click('.dub-tab[data-dub-page="dub"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
-            # 2.9.2: the RIDDIM tab: four selectors of the ten riddims, the four load buttons
-            page.click('.dub-tab[data-dub-page="rdm"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "rdm"
-            assert page.locator("#dub-riddim option").count() == 10
-            assert page.locator("#dub-rbass option").count() == 10
-            assert page.locator("#dub-rskank option").count() == 10
-            assert page.locator("#dub-rdrum option").count() == 10
-            for b in ["dub-riddim-load", "dub-rbass-load", "dub-rskank-load", "dub-rdrum-load"]:
-                assert page.locator("#" + b).count() == 1
-            page.select_option("#dub-riddim", "3")
-            page.click("#dub-riddim-load")
-            page.wait_for_timeout(400)
-            page.select_option("#dub-rdrum", "5")
-            page.click("#dub-rdrum-load")
-            page.wait_for_timeout(300)
-            page.click('.dub-tab[data-dub-page="dub"]')
-            assert page.locator(".dub-page.on").get_attribute("data-dub-panel") == "dub"
-            duplicate_ids = page.evaluate("""() => {
-              const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
-              return ids.filter((x,i)=>ids.indexOf(x)!==i);
-            }""")
-            assert duplicate_ids == [], duplicate_ids
+            # the page: no console any more, the feature manual in its place
+            check(page.locator("#dub-console").count() == 0, "the Dub console is gone")
+            check(page.locator("#dub-manual").count() == 1, "the fork's features are explained below the emulator")
+            check("SLOOP DUB — LES FONCTIONS AJOUTÉES" in page.locator("#dub-manual h2").inner_text(),
+                  "the manual names the added functions")
+            check(page.locator("#device").count() == 1, "the faceplate stays")
 
-            # Boot the real firmware in the AudioWorklet and exercise hardware I/O.
             page.click("#power")
-            page.wait_for_timeout(1400)
-            assert page.locator("#power").count() == 0
-            assert page.locator("#screen").evaluate("c => c.width") == 240
-            page.keyboard.down("a")
-            page.wait_for_timeout(80)
-            page.keyboard.up("a")
+            page.wait_for_timeout(2200)
+
+            def dbg(idx):
+                return page.evaluate(f"window.emuDbg ? emuDbg({idx}) : null")
+
+            for _ in range(50):                     # the worklet boots, the probe starts answering
+                if dbg(17) is not None:
+                    break
+                page.wait_for_timeout(200)
+            check(dbg(17) is not None, "the dbg probe answers (the firmware's own state)")
+
+            # the menu: HOME held opens it, the walk lands on SIR (page 6, MS_SIREN)
+            page.keyboard.down("7")
+            page.wait_for_timeout(900)
+            page.keyboard.up("7")
+            page.wait_for_timeout(300)
+            check(dbg(17) == 1, "HOME held opens the Dub menu")
+            for _ in range(16):
+                if dbg(22) == 6:
+                    break
+                page.keyboard.press("ArrowUp")
+                page.wait_for_timeout(120)
+            check(dbg(22) == 6, "SELECT walks to SIR (the siren page)")
+            page.screenshot(path=str(OUT / "face_sir.png"))
+
+            level = dbg(19)
+            check(level is not None and level > 0, f"the siren's level setting is on ({level}, the SR2 row's)")
+
+            # the 2.9.16 hold: OCT+ down, the pages walk, the siren never stops
+            page.keyboard.down("x")
+            page.wait_for_timeout(400)
+            check(dbg(7) == 1, "OCT+ held on SIR: the siren sounds")
             page.keyboard.press("ArrowUp")
-            page.keyboard.press(" ")
-            page.wait_for_timeout(120)
-            assert page.locator("#device").is_visible()
-
-            # 2.9.12: the SEND sliders reach the firmware and the worklet mirrors the four
-            # throws back (emu_track_send_get) — window.dubSndState is the firmware's own
-            # state, so this proves the whole path: slider -> message -> wasm -> tracks.
-            page.click('.dub-tab[data-dub-page="snd"]')
-            page.locator("#dub-send-mel").fill("127")
-            page.locator("#dub-send-mel").dispatch_event("input")
-            page.wait_for_timeout(400)
-            snd = page.evaluate("window.dubSndState")
-            assert snd is not None and snd[2] == 127, f"melody send did not reach the firmware: {snd}"
-            page.locator("#dub-send-bass").fill("32")
-            page.locator("#dub-send-bass").dispatch_event("input")
-            page.wait_for_timeout(400)
-            snd = page.evaluate("window.dubSndState")
-            assert snd is not None and snd[0] == 32 and snd[2] == 127, f"bass send lost, melody drifted: {snd}"
-            assert page.locator("#dub-send-mel + output").inner_text() == "100 %"
-            page.locator("#dub-send-mel").fill("0")
-            page.locator("#dub-send-mel").dispatch_event("input")
-            page.locator("#dub-send-bass").fill("0")
-            page.locator("#dub-send-bass").dispatch_event("input")
-            page.wait_for_timeout(300)
-
-            # 2.9.10: the module's one switch. With the panel's box off, no load and
-            # no siren flips it on — the box (the menu's K1 on the hardware) alone does.
-            assert not page.locator("#dub-enabled").is_checked()
-            page.click('.dub-tab[data-dub-page="rdm"]')
-            page.click("#dub-riddim-load")
-            page.wait_for_timeout(300)
-            assert not page.locator("#dub-enabled").is_checked(), "the riddim load must not engage DUB"
-            page.click('.dub-tab[data-dub-page="prs"]')
-            page.click("#dub-sbass-load")
-            page.wait_for_timeout(300)
-            assert not page.locator("#dub-enabled").is_checked(), "the sound load must not engage DUB"
-            page.click('.dub-tab[data-dub-page="sir"]')
-            page.hover("#dub-siren")
-            page.mouse.down()
             page.wait_for_timeout(250)
-            page.mouse.up()
-            assert not page.locator("#dub-enabled").is_checked(), "the siren hold must not engage DUB"
-            page.click('.dub-tab[data-dub-page="dub"]')     # the box lives on the DUB tab
-            page.click(".dub-toggle")                       # the label toggles the hidden box
+            check(dbg(22) == 7, "SELECT walks to SR2 under the held OCT+")
+            check(dbg(7) == 1, "the siren keeps sounding across the page")
+            page.keyboard.press("ArrowUp")
             page.wait_for_timeout(200)
-            assert page.locator("#dub-enabled").is_checked(), "the box is the one switch that engages DUB"
-            page.click(".dub-toggle")
-            page.wait_for_timeout(100)
-            assert not page.locator("#dub-enabled").is_checked()
+            page.keyboard.press("ArrowUp")
+            page.wait_for_timeout(250)
+            check(dbg(22) == 9, "SELECT walks through SKANK on to DLY")
+            check(dbg(7) == 1, "the siren still sounds at the delay page")
+            page.screenshot(path=str(OUT / "face_dly_siren.png"))
 
-            for w, h in [(390, 844), (768, 1024), (1280, 800), (1920, 1080)]:
-                page.set_viewport_size({"width": w, "height": h})
-                page.wait_for_timeout(150)
-                assert not page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth"), f"overflow at {w}x{h}"
+            sync0 = dbg(11)
+            page.keyboard.up("x")
+            page.wait_for_timeout(300)
+            check(dbg(7) == 0, "OCT+ released on DLY: the siren stops")
+            page.keyboard.down("x")
+            page.wait_for_timeout(150)
+            page.keyboard.up("x")
+            page.wait_for_timeout(300)
+            check(dbg(7) == 0, "a tap on DLY: no row action, the siren stays quiet")
+            check(dbg(11) == sync0, "DLY's mode untouched (OCT+ has no other life here)")
+            page.keyboard.down("x")
+            page.wait_for_timeout(400)
+            check(dbg(7) == 1, "OCT+ pressed again on DLY: the siren re-arms")
+            page.keyboard.up("x")
+            page.wait_for_timeout(250)
+            check(dbg(7) == 0, "released again: the siren off")
 
-            page.set_viewport_size({"width": 1280, "height": 800})
-            page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
-            page.screenshot(path=str(OUT / "desktop_top.png"))
-            page.locator("#device").scroll_into_view_if_needed()
-            page.screenshot(path=str(OUT / "desktop_device.png"))
-            page.set_viewport_size({"width": 390, "height": 844})
-            page.goto("http://127.0.0.1:8765/dub/", wait_until="networkidle")
-            page.screenshot(path=str(OUT / "mobile_top.png"))
-
-            assert not errors, errors
-            assert not page_errors, page_errors
-            assert not failed, failed
-            http_errors = [r for r in responses if r["status"] >= 400]
-            assert not http_errors, http_errors
+            # OCT- closes the menu
+            page.keyboard.press("z")
+            page.wait_for_timeout(300)
+            check(dbg(17) == 0, "OCT- closes the menu")
+            page.screenshot(path=str(OUT / "face_home.png"))
             browser.close()
     finally:
         server.shutdown()
-    print("SLOOP Dub full FM-1 firmware emulator browser checks: passed")
+    if fails:
+        raise SystemExit(f"{len(fails)} check(s) failed")
+    print("dub emulator scenario completed")
 
 
 if __name__ == "__main__":

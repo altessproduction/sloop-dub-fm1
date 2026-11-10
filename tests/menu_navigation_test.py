@@ -42,7 +42,7 @@ def main():
                     page.wait_for_timeout(180)
                 page.screenshot(path=str(OUT / ("menu_" + name + ".png")))
             # Use K1 (not directly keyboard-mapped) through the browser-side encoder message.
-            page.evaluate("""() => { if (window.node) window.node.port.postMessage({t:'enc', e:2, steps:1}); }""")
+            page.evaluate("""() => { if (window.node) node.port.postMessage({t:'enc', e:2, steps:1}); }""")
             page.wait_for_timeout(180)
             browser.close()
     finally:

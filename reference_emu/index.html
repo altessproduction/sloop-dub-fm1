@@ -274,74 +274,6 @@ body.compact #manual { display: none; }
 #manual tr:last-child td { border-bottom: none; }
 #manual td:first-child { white-space: nowrap; }
 
-/* ---- Dub console: the firmware's Dub pages, mirrored as tabs ---- */
-#dub-console {
-    width: min(880px, 100%);
-    margin: 26px auto 0; padding: 22px 18px 26px;
-    background: #15171b; border: 1px solid #000; border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
-    -webkit-user-select: text; user-select: text;
-}
-#dub-console h2 { font-size: 13px; letter-spacing: 3px; color: var(--txt); font-weight: normal; }
-#dub-console .dub-lead { font-size: 12px; color: var(--dim); margin: 10px 0 16px; line-height: 1.6; }
-#dub-console .dub-lead b { color: var(--accent); font-weight: normal; }
-
-.dub-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.dub-tab {
-    font-family: inherit; font-size: 11px; letter-spacing: 2px; cursor: pointer;
-    color: var(--dim); background: #1c1f24; border: 1px solid #000; border-radius: 8px;
-    padding: 7px 14px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-}
-.dub-tab.on {
-    color: var(--txt); background: #2b2f36;
-    box-shadow: 0 0 0 1px var(--accent) inset;
-}
-
-.dub-page { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-.dub-page[hidden] { display: none; }
-.dub-card {
-    background: #191c21; border: 1px solid #000; border-radius: 12px; padding: 14px 14px 16px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
-}
-.dub-card h3 {
-    font-size: 10.5px; letter-spacing: 2px; font-weight: normal; color: var(--accent);
-    margin-bottom: 12px; display: flex; justify-content: space-between; gap: 8px;
-}
-.dub-card h3 small { color: var(--dim); letter-spacing: 1px; }
-#dub-console label { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--txt); margin: 10px 0 0; }
-#dub-console label input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
-#dub-console label output { min-width: 52px; text-align: right; color: var(--accent); font-size: 12px; }
-#dub-console .dub-toggle { justify-content: space-between; cursor: pointer; }
-#dub-console .dub-toggle input { accent-color: var(--accent); width: 18px; height: 18px; }
-#dub-console select {
-    font-family: inherit; font-size: 12px; color: var(--txt); background: #23262c;
-    border: 1px solid #000; border-radius: 7px; padding: 7px 8px;
-}
-#dub-console button {
-    font-family: inherit; font-size: 11px; letter-spacing: 1.5px; cursor: pointer;
-    color: var(--txt); background: #23262c; border: 1px solid #000; border-radius: 8px;
-    padding: 9px 12px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-}
-#dub-console button:active { background: #2d3138; }
-#dub-console button.active { color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-#dub-console .dub-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-#dub-console .dub-row select { flex: 0 1 auto; }
-#dub-console .dub-hint { margin: 12px 0 0; font-size: 11px; color: var(--muted, #8a919b); }
-#dub-console #dub-siren { flex: 1; color: var(--accent); }
-#dub-trks { display: flex; gap: 6px; margin-top: 12px; }
-#dub-trks button { flex: 1; font-size: 11px; padding: 6px 0; }
-#dub-steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; margin-top: 10px; }
-#dub-steps button { padding: 9px 0; font-size: 9px; }
-#dub-steps button.play { box-shadow: 0 0 0 1px var(--accent) inset; }
-#dub-steps button.bar { opacity: 0.55; }
-#dub-steps button.tie { opacity: 0.45; border-style: dashed; }
-#dub-steps .dub-trk-label { grid-column: 1 / -1; font-size: 10px; letter-spacing: 2px; color: var(--dim, #8a919b); margin-top: 6px; }
-.dub-band { display: flex; align-items: center; gap: 10px; margin: 10px 0 0; font-size: 12px; }
-.dub-band span { min-width: 42px; letter-spacing: 1px; color: var(--dim); }
-.dub-band input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
-.dub-band label { display: flex; align-items: center; gap: 5px; margin: 0; font-size: 11px; color: var(--dim); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -361,183 +293,116 @@ body.compact #manual { display: none; }
     <div id="power"><div class="ring">&#x23FB;</div><span>POWER ON</span><small>lance le vrai firmware SLOOP Dub, compilé en WebAssembly &middot; son activé</small></div>
 </div>
 
-<section id="dub-console" aria-label="Commandes SLOOP Dub">
-    <h2>SLOOP DUB · PAGES DUB DU MENU</h2>
-    <p class="dub-lead">Le miroir des pages Dub du firmware : sur le FM-1, un appui long sur <b>HOME</b> ouvre le menu, <b>SELECT</b> passe d'une page à l'autre. Chaque onglet pilote la page du même nom, directement dans le firmware réel du WASM.</p>
-    <div class="dub-tabs" role="tablist" aria-label="Pages Dub">
-        <button class="dub-tab on" data-dub-page="dub" role="tab" aria-selected="true" type="button">DUB</button>
-        <button class="dub-tab" data-dub-page="sir" role="tab" aria-selected="false" type="button">SIR</button>
-        <button class="dub-tab" data-dub-page="sr2" role="tab" aria-selected="false" type="button">SR2</button>
-        <button class="dub-tab" data-dub-page="skank" role="tab" aria-selected="false" type="button">SKANK</button>
-        <button class="dub-tab" data-dub-page="dly" role="tab" aria-selected="false" type="button">DLY</button>
-        <button class="dub-tab" data-dub-page="snd" role="tab" aria-selected="false" type="button">SND</button>
-        <button class="dub-tab" data-dub-page="dseq" role="tab" aria-selected="false" type="button">SEQ</button>
-        <button class="dub-tab" data-dub-page="rdm" role="tab" aria-selected="false" type="button">RDM</button>
-        <button class="dub-tab" data-dub-page="prs" role="tab" aria-selected="false" type="button">PRS</button>
-        <button class="dub-tab" data-dub-page="iso" role="tab" aria-selected="false" type="button">ISO</button>
-    </div>
+<section id="dub-manual" aria-label="Les fonctions SLOOP Dub">
 
-    <div class="dub-page on" data-dub-panel="dub" role="tabpanel">
-        <div class="dub-card">
-            <h3>DUB ENABLE</h3>
-            <label class="dub-toggle">Activer le traitement Dub <input id="dub-enabled" type="checkbox"></label>
-        </div>
-        <div class="dub-card">
-            <h3>DUB PRESET</h3>
-            <div id="dub-presets" class="dub-row"><button type="button">ROOTS BASS</button><button type="button">SKANK CHORD</button><button type="button">DUB SIREN</button><button type="button">STEPPERS</button><button type="button">TAPE ECHO</button></div>
-        </div>
-        <div class="dub-card">
-            <h3>DUB FILTER · DUB SEND <small>LP &larr; FLAT &rarr; HP</small></h3>
-            <label>Filtre <input id="dub-filter" type="range" min="0" max="127" value="64"><output>FLAT</output></label>
-            <label>Envoi delay <input id="dub-send" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-        </div>
-        <div class="dub-card">
-            <h3>DUB MIX · ISOLATOR <small>DRY &rarr; WET</small></h3>
-            <label>Mix <input id="dub-mix" type="range" min="0" max="127" value="127"><output>127</output></label>
-        </div>
-    </div>
+<h2>SLOOP DUB — LES FONCTIONS AJOUTÉES</h2>
+<p class="lead">Tout ce qui suit est le <b>vrai firmware</b>, le même que sur le FM-1 : un appui <b>long</b> sur <kbd>HOME</kbd> ouvre le menu Dub, <kbd>SELECT</kbd> passe d'une page à l'autre (les quatorze : <span class="kn">SCR · LGT · AUD · SEQ · SYS</span> puis <span class="kn">DUB · SIR · SR2 · SKK · DLY · SND · RDM · PRS · ISO</span>), <b>KNOB 1–4</b> règlent les lignes en potentiomètres (~300°), <kbd>OCT+</kbd> valide et joue, <kbd>OCT−</kbd> ferme.</p>
 
-    <div class="dub-page" data-dub-panel="dly" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>DLY TIME · DLY LEVEL</h3>
-            <label>Durée <input id="dub-dly-time" type="range" min="40" max="1400" step="8" value="400"><output>400 ms</output></label>
-            <label>Niveau <input id="dub-dly-mix" type="range" min="0" max="127" value="90"><output>90</output></label>
-        </div>
-        <div class="dub-card">
-            <h3>DLY FEEDBK · DLY MODE</h3>
-            <label>Feedback <input id="dub-dly-rel" type="range" min="0" max="120" value="60"><output>60</output></label>
-            <label>Mode <select id="dub-dly-mode" aria-label="Mode du delay : libre ou division"><option value="free" selected>FREE</option><option value="0">1/4</option><option value="1">1/8</option><option value="2">1/16</option><option value="3">1/32</option><option value="4">8T</option><option value="5">16T</option><option value="6">1/8D</option><option value="7">1/16D</option><option value="8">1/4D</option></select></label>
-        </div>
-        <p class="dub-hint">Le mode DUB fait tourner le delay en tape : la tête de lecture ondule (wow / flutter), les répétitions se saturent et le temps glisse vers le réglage. Mode FREE, la durée libre (ms) règle le temps ; une division, le temps suit le tempo du projet. Le feedback (K3) règle les répétitions, le niveau (K2) l'écho dans le mix. L'envoi du module DUB (onglet DUB, « Envoi delay ») nourrit ce bus.</p>
-    </div>
+<div class="cards">
+<div class="card wide">
+<h3>LA SIRÈNE MOMENTANÉE — OCT+ À TRAVERS LES PAGES</h3>
+<ul>
+<li><b>Tenez <kbd>OCT+</kbd></b> sur <b>SIR</b>, <b>SR2</b> ou <b>DLY</b> : la sirène sonne au niveau de la ligne <span class="kn">SIREN LEVEL</span> (0 reste silencieux). <b>Relâchez</b> : elle s'arrête. <b>Re-appuyez</b> : elle repart.</li>
+<li><b>La navigation ne la coupe plus</b> : OCT+ tenu, tournez <kbd>SELECT</kbd> pour aller de SIR vers SR2 puis jusqu'à la page DLY — la sirène continue de hurler pendant que les réglages défilent.</li>
+<li>Sur la page <b>DLY</b>, <kbd>OCT+</kbd> n'a plus <b>aucune</b> autre fonction que la sirène : plus de bascule de division — les knobs règlent tout.</li>
+<li>Sur les autres pages (SKANK, RDM, PRS, ISO…), OCT+ garde ses autres vies ; la sirène tournée reste à elle tant que le bouton est enfoncé.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="snd" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>BASS SEND · SKANK SEND <small>K1 · K2</small></h3>
-            <label>Basse <input id="dub-send-bass" data-dub-track="0" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-            <label>Skank <input id="dub-send-skank" data-dub-track="1" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-        </div>
-        <div class="dub-card">
-            <h3>MELODY SEND · DRUM SEND <small>K3 · K4</small></h3>
-            <label>Mélodie <input id="dub-send-mel" data-dub-track="2" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-            <label>Batterie <input id="dub-send-drum" data-dub-track="3" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-        </div>
-        <p class="dub-hint">La page SEND (2.9.12) règle l'envoi de chaque piste du séquenceur dans le delay : un potentiomètre par piste, K1 la basse, K2 le skank, K3 la mélodie, K4 la batterie (son DLY de GLO &gt; DRUMS). 0 % = sec (DRY), 100 % = la piste entière dans l'écho. Les envois suivent le projet.</p>
-    </div>
+<div class="card">
+<h3>DUB — LE MODULE</h3>
+<ul>
+<li><span class="kn">K1 DUB ENABLE</span> — <b>le seul interrupteur</b> du mode Dub : rien d'autre ne l'allume.</li>
+<li><span class="kn">K2 DUB FILTER</span> — filtre bipolaire, passe-bas à gauche, passe-haut à droite, au centre <b>FLAT : le signal intact</b>.</li>
+<li><span class="kn">K3 DUB MIX</span> — sec → wet. <span class="kn">K4 DUB SEND</span> — le <i>throw</i> vers le delay. <kbd>OCT+</kbd> applique le <b>DUB PRESET</b>.</li>
+<li>FLAT + ISO au neutre = le son <b>bit à bit celui de l'original</b>, stéréo comprise.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="sir" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>SIREN TYPE · SIREN WAVE</h3>
-            <div class="dub-row">
-                <select id="dub-siren-type" aria-label="Type de siren (courbe du LFO)"><option value="0" selected>WAIL</option><option value="1">HILO</option><option value="2">RAMP</option><option value="3">SWEEP</option><option value="4">SPACE</option></select>
-                <select id="dub-siren-wave" aria-label="Courbe de l'oscillateur"><option value="0" selected>SQR</option><option value="1">PLS</option><option value="2">SAW</option><option value="3">TRI</option><option value="4">SIN</option></select>
-            </div>
-        </div>
-        <div class="dub-card">
-            <h3>SIREN PITCH · SIREN LEVEL</h3>
-            <label>Pitch <input id="dub-siren-freq" type="range" min="220" max="1200" step="2" value="740"><output>740 Hz</output></label>
-            <label>Level <input id="dub-siren-level" type="range" min="0" max="127" value="88"><output>88</output></label>
-            <div class="dub-row"><button id="dub-siren" type="button">MAINTENIR · DUB SIREN</button></div>
-        </div>
-    </div>
+<div class="card">
+<h3>SIR — LA SIRÈNE (1/2)</h3>
+<ul>
+<li><span class="kn">K1 TYPE</span> WAIL · HILO · RAMP · SWEEP · SPACE — le balayage façon sound system.</li>
+<li><span class="kn">K2 WAVE</span> SQR · PLS · SAW · TRI · SIN. <span class="kn">K3 PITCH</span> 220–1200 Hz.</li>
+<li><span class="kn">K4 SEND</span> — l'envoi de la sirène dans le delay (0 = DRY). <i>(2.9.16 : SEND est venu de SR2.)</i></li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="sr2" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>SIREN RATE · SIREN DEPTH</h3>
-            <label>Rate <input id="dub-siren-rate" type="range" min="0" max="127" value="8"><output>2 Hz</output></label>
-            <label>Depth <input id="dub-siren-depth" type="range" min="0" max="127" value="96"><output>96</output></label>
-        </div>
-        <div class="dub-card">
-            <h3>SIREN SYM · SIREN SEND</h3>
-            <label>Sym <input id="dub-siren-sym" type="range" min="0" max="127" value="64"><output>64</output></label>
-            <label>Send <input id="dub-siren-send" type="range" min="0" max="127" value="0"><output>DRY</output></label>
-        </div>
-    </div>
+<div class="card">
+<h3>SR2 — LA SIRÈNE (2/2)</h3>
+<ul>
+<li><span class="kn">K1 RATE</span> 1–16 Hz. <span class="kn">K2 DEPTH</span> jusqu'à 2 octaves de balayage. <span class="kn">K3 SYM</span> la symétrie du LFO.</li>
+<li><span class="kn">K4 LEVEL</span> — le niveau, 0–127 : <b>ce que la ligne affiche, la sirène le sonne</b> (0 silencieux). <i>(2.9.16 : LEVEL est venu de SIR.)</i></li>
+<li>Le knob de niveau suit la sirène pendant qu'elle sonne (OCT+ tenu).</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="skank" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>SKANK · ONE KEY</h3>
-            <div class="dub-row">
-                <select id="dub-root" aria-label="Fondamentale"><option value="0" selected>C</option><option value="1">C#</option><option value="2">D</option><option value="3">D#</option><option value="4">E</option><option value="5">F</option><option value="6">F#</option><option value="7">G</option><option value="8">G#</option><option value="9">A</option><option value="10">A#</option><option value="11">B</option></select>
-                <select id="dub-quality" aria-label="Type d'accord"><option value="0" selected>MAJ</option><option value="1">MIN</option><option value="2">DIM</option><option value="3">AUG</option><option value="4">7TH</option><option value="5">MIN7</option><option value="6">9TH</option><option value="7">PWR</option></select>
-                <select id="dub-octave" aria-label="Octave"><option value="3" selected>OCT 3</option><option value="4">OCT 4</option><option value="5">OCT 5</option></select>
-                <button id="dub-skank" type="button">JOUER L’ACCORD</button>
-            </div>
-            <label>Vélocité <input id="dub-skank-vel" type="range" min="0" max="127" value="108"><output>108</output></label>
-        </div>
-    </div>
+<div class="card">
+<h3>DLY — LE TAPE DELAY</h3>
+<ul>
+<li><span class="kn">K1 TIME</span> 40–1400 ms en FREE. <span class="kn">K2 LEVEL</span> l'écho dans le mix. <span class="kn">K3 FEEDBK</span> les répétitions.</li>
+<li><span class="kn">K4 MODE</span> FREE puis les divisions tempo (1/4 … 1/4D) — les knobs cyclent tout.</li>
+<li>DUB on : bande magnétique (wow, flutter, saturation). DUB off : l'écho tempo du SLOOP, tel qu'il a toujours été.</li>
+<li><kbd>OCT+</kbd> ici = <b>la sirène uniquement</b>.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="dseq" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>SÉQUENCEUR · 4 PISTES</h3>
-            <label>Longueur <select id="dub-length"><option>16</option><option>32</option><option>64</option></select> pas</label>
-            <div id="dub-trks" role="group" aria-label="Piste éditée">
-                <button type="button" data-dub-trk="0" class="active">BASS</button>
-                <button type="button" data-dub-trk="1">SKNK</button>
-                <button type="button" data-dub-trk="2">MEL</button>
-                <button type="button" data-dub-trk="3">DRUM</button>
-            </div>
-            <div id="dub-steps" aria-label="Pas du séquenceur"></div>
-            <p class="dub-hint">La vue lit le séquenceur SLOOP : ce que OCT+ charge (page RIDDIM du firmware ou l'onglet RDM) atterrit dans les pistes 1–4 et reste éditable (touches SEQ, pages PATTERN et NOTES, page DSQ du menu). Un pointillé = le pas tenu (TIE) par la ligne chargée. Un clic pose ou efface le pas de la piste choisie.</p>
-        </div>
-    </div>
+<div class="card">
+<h3>SND — LES ENVOIS PAR PISTE</h3>
+<ul>
+<li>Un potentiomètre par piste du séquenceur : <span class="kn">K1 BASS · K2 SKANK · K3 MELODY · K4 DRUM</span> (0–100 %, DRY à zéro, OCT+ sec ↔ demi-envoi).</li>
+<li>Chaque piste dose son propre écho — le delay dubbed piste par piste, sauvegardé avec le projet.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="rdm" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>RIDDIM · 10 SÉQUENCES · 64 PAS · 4 PISTES</h3>
-            <div class="dub-row">
-                <select id="dub-riddim" aria-label="Riddim"></select>
-                <button id="dub-riddim-load" type="button">CHARGER TOUT · OCT+</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-rbass" aria-label="Motif de basse"></select>
-                <button id="dub-rbass-load" type="button">BASS · PISTE 1</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-rskank" aria-label="Motif skank"></select>
-                <button id="dub-rskank-load" type="button">SKANK · PISTE 2</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-rdrum" aria-label="Motif drum"></select>
-                <button id="dub-rdrum-load" type="button">DRUM · PISTE 4</button>
-            </div>
-            <p class="dub-hint">Piste 1 basse · 2 skanks · 3 mélodie · 4 drums. Après le chargement, lance PLAY : la séquence suit le transport.</p>
-            <p id="dub-riddim-status" class="dub-hint" aria-live="polite"></p>
-        </div>
-    </div>
+<div class="card">
+<h3>SKANK — L'ACCORD À UNE TOUCHE</h3>
+<ul>
+<li><span class="kn">K1 CHORD</span> MAJ · MIN · DIM · AUG · 7TH · MIN7 · 9TH · PWR, <span class="kn">K2 ROOT</span> chromatique, <span class="kn">K3 OCT</span> 3–5, <span class="kn">K4 VEL</span>.</li>
+<li><kbd>OCT+</kbd> sur n'importe quelle ligne joue l'accord sur la piste 1 — le contretemps instantané.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="prs" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>PRESETS REGGAE DUB · PAR PISTE</h3>
-            <div class="dub-row">
-                <select id="dub-sbass" aria-label="Preset de basse"></select>
-                <button id="dub-sbass-load" type="button">BASS · PISTE 1</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-sskank" aria-label="Son de skank"></select>
-                <button id="dub-sskank-load" type="button">SKANK · PISTE 2</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-smel" aria-label="Son de mélodie"></select>
-                <button id="dub-smel-load" type="button">MEL · PISTE 3</button>
-            </div>
-            <div class="dub-row">
-                <select id="dub-skit" aria-label="Kit drum reggae dub"></select>
-                <button id="dub-skit-load" type="button">KIT DRUM</button>
-            </div>
-            <p class="dub-hint">Chaque OCT+ charge le son dans la piste du riddim : basse (SUB BASS, REESE, WOBBLE…), skank (DUB CHORD, REGGAE ORG…), mélodie (PAN FLUTE, STEELPAN…) et kit (DEEP, DUST, DUBSTEP…).</p>
-        </div>
-    </div>
+<div class="card">
+<h3>RDM — LES DIX RIDDIMS</h3>
+<ul>
+<li><span class="kn">KN1</span> choisit (<b>ONE DROP</b>, <b>STEPPERS</b>, <b>ROCKERS</b>, <b>DUBWALK</b>, <b>DIGITAL</b>, <b>LOVERS</b>, <b>MEDITATE</b>, <b>SKANKIN</b>, <b>DUB CUT</b>, <b>ZION</b>), <kbd>OCT+</kbd> charge les <b>quatre pistes</b> dans le séquenceur SLOOP.</li>
+<li><span class="kn">KN2/3/4</span> + <kbd>OCT+</kbd> : la basse, les skanks ou les drums seuls — mixer un riddim avec les drums d'un autre est le geste classique du sound system. Chaque chargement s'affiche une seconde.</li>
+</ul>
+</div>
 
-    <div class="dub-page" data-dub-panel="iso" role="tabpanel" hidden>
-        <div class="dub-card">
-            <h3>DUB ISOLATOR · 4 BANDES</h3>
-            <div class="dub-band" data-dub-band="0"><span>SUB</span><input type="range" min="-24" max="12" value="0" aria-label="Gain SUB"><label><input type="checkbox" aria-label="Mute SUB"> MUTE</label></div>
-            <div class="dub-band" data-dub-band="1"><span>BASS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain BASS"><label><input type="checkbox" aria-label="Mute BASS"> MUTE</label></div>
-            <div class="dub-band" data-dub-band="2"><span>MIDS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain MIDS"><label><input type="checkbox" aria-label="Mute MIDS"> MUTE</label></div>
-            <div class="dub-band" data-dub-band="3"><span>TOPS</span><input type="range" min="-24" max="12" value="0" aria-label="Gain TOPS"><label><input type="checkbox" aria-label="Mute TOPS"> MUTE</label></div>
-        </div>
-    </div>
+<div class="card">
+<h3>PRS — LES SONS PAR PISTE</h3>
+<ul>
+<li><span class="kn">KN1</span> + <kbd>OCT+</kbd> la basse (SUB BASS, 808 BOOM, REESE, ACID 303…), <span class="kn">KN2</span> les skanks (DUB CHORD, REGGAE ORG…), <span class="kn">KN3</span> la mélodie (PAN FLUTE, STEELPAN…), <span class="kn">KN4</span> le kit de drums (DEEP, 808, DUBSTEP, AMAPIANO…).</li>
+<li>De vrais presets du moteur SLOOP — moteur, niveaux et patches FM6 compris.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>ISO — L'ISOLATEUR</h3>
+<ul>
+<li>Quatre bandes <span class="kn">SUB · BASS · MIDS · TOPS</span> (les quatre pages du menu, un knob par bande), <kbd>OCT+</kbd> mute la bande.</li>
+<li>Tout au neutre, l'isolateur <b>se retire</b> : le signal passe bit à bit.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>ACC · SLD — ACCENTS ET SLIDES</h3>
+<ul>
+<li>Deux pages de plus au bouton <kbd>SEQ</kbd> : une grille de pas sur les quatre pistes (une rangée B/S/M/D). <span class="kn">KN1</span> marche le pas, <span class="kn">KN2</span> saute la banque, l'encodeur <span class="kn">ALGORITHM</span> change de piste, <kbd>OCT+</kbd> bascule le drapeau.</li>
+<li>Un accent joue le pas à 127 ; un slide <b>glisse</b> la note vers la suivante au lieu de la re-attaquer.</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>LE SON, LA SIRÈNE, L'ÉCRAN</h3>
+<ul>
+<li><b>La sirène est indépendante</b> du module DUB : elle sonne DUB éteint, et ni l'ISO ni le DUB FILTER ne la colore jamais — elle rejoint le mix après le module, le filtre DJ du master (FILT) continue de la balayer.</li>
+<li><b>L'appui bref sur HOME</b> ouvre le visualiseur plein écran : <b>WIRES</b>, les quatre cordes qui vibrent avec les pistes (les autres styles ont été retirés pour la place — 7,6 Ko de flash et ~7 Ko de RAM rendus).</li>
+</ul>
+</div>
+</div>
 </section>
 
 <section id="manual">

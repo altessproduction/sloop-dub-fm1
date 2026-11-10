@@ -6,10 +6,12 @@
  * then one page per Dub function (2.9): DUB (DUB ENABLE, DUB FILTER (2.9.7: a bipolar filter, lowpass
  * left, highpass right, the center neutral), DUB MIX, DUB SEND (2.9.7: the throw into the delay),
  * DUB PRESET), SIREN (2.9.1, two pages:
- * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN LEVEL — and SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM,
- * SIREN SEND), SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
+ * SIR — SIREN TYPE, SIREN WAVE, SIREN PITCH, SIREN SEND (2.9.16: the throw moved here from SR2) — and
+ * SR2 — SIREN RATE, SIREN DEPTH, SIREN SYM, SIREN LEVEL (2.9.16: the level moved here from SIR)),
+ * SKANK (SKANK CHORD, SKANK ROOT, SKANK OCT, SKANK VEL; OCT+ plays the chord),
  * DLY (2.9.11: the tape delay — DLY TIME (the free ms when MODE is FREE), DLY LEVEL (the
- * echo's wet level), DLY FEEDBK (the repeats' feedback), DLY MODE (FREE, 1/4, 1/8, ...))
+ * echo's wet level), DLY FEEDBK (the repeats' feedback), DLY MODE (FREE, 1/4, 1/8, ...);
+ * 2.9.16: OCT+ is the momentary siren here, the rows' knobs do all the setting)
  * and SEND (2.9.12: the four tracks' throws into the delay — BASS SEND, SKANK SEND,
  * MELODY SEND, DRUM SEND; a knob a track, the drums' the GLO > DRUMS one),
  * RIDDIM (2.9.2:
@@ -32,8 +34,8 @@ enum { MI_COLOR, MI_ZOOM, MI_ACCEL, MI_LIGHTS, MI_KEYS, MI_NOTES, MI_LOWCUT, MI_
 #endif
        MI_RATE, MI_FRESO, MI_ADV, MI_DPREV, MI_CPU1, MI_PANEL, MI_LCLEAR, MI_ABOUT,
        MI_DUB_ON, MI_DUB_FLT, MI_DUB_MIX, MI_DUB_SEND, MI_DUB_PRESET,
-       MI_SIR_TYPE, MI_SIR_WAVE, MI_SIR_FRQ, MI_SIR_LVL,
-       MI_SIR_RATE, MI_SIR_DPT, MI_SIR_SYM, MI_SIR_SEND,
+       MI_SIR_TYPE, MI_SIR_WAVE, MI_SIR_FRQ, MI_SIR_SEND,
+       MI_SIR_RATE, MI_SIR_DPT, MI_SIR_SYM, MI_SIR_LVL,
        MI_SKANK_CHD, MI_SKANK_ROOT, MI_SKANK_OCT, MI_SKANK_VEL,
        MI_DLY_TIME, MI_DLY_LVL, MI_DLY_FDB, MI_DLY_MODE,
        MI_SD_BASS, MI_SD_SKANK, MI_SD_MEL, MI_SD_DRUM,
@@ -46,8 +48,8 @@ static const char *const MI_NAME[MI_COUNT] = {"COLOR", "ZOOM", "KNOB ACCEL", "LI
 #endif
                                               "USB RATE", "FILTER RESO", "STEP ADVANCE", "DRUM PREVIEW", "2ND CORE", "HARDWARE CALIBRATION", "MIDI LEARN CLEAR", "ABOUT",
                                               "DUB ENABLE", "DUB FILTER", "DUB MIX", "DUB SEND", "DUB PRESET",
-                                              "SIREN TYPE", "SIREN WAVE", "SIREN PITCH", "SIREN LEVEL",
-                                              "SIREN RATE", "SIREN DEPTH", "SIREN SYM", "SIREN SEND",
+                                              "SIREN TYPE", "SIREN WAVE", "SIREN PITCH", "SIREN SEND",
+                                              "SIREN RATE", "SIREN DEPTH", "SIREN SYM", "SIREN LEVEL",
                                               "SKANK CHORD", "SKANK ROOT", "SKANK OCT", "SKANK VEL",
                                               "DLY TIME", "DLY LEVEL", "DLY FEEDBK", "DLY MODE",
                                               "BASS SEND", "SKANK SEND", "MELODY SEND", "DRUM SEND",
@@ -807,45 +809,36 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
         break;
     case MI_DLY_TIME:                                  /* 2.9.7: the free ms when MODE is FREE (the
                                                         * division's ms shows dim when it is not);
-                                                        * 2.9.8: a pot, 40..1400 in some 300 degrees */
+                                                        * 2.9.8: a pot, 40..1400 in some 300 degrees;
+                                                        * 2.9.16: OCT+ is the siren here, no row action */
         if (!dub_dly_sync && s)
             dub_dly_set_ms((uint16_t)clamp((int32_t)dub_dly_ms + pot_s(s, 1360), 40, 1400));
-        else if (!s)
-            dub_dly_set_ms(400);                       /* OCT+ the usual echo, ready for when SYNC goes */
         break;
     case MI_DLY_LVL:                                   /* (2.9.11) the echo's wet level (the project's MIX),
-                                                        * a pot; OCT+ 90, the project's default */
+                                                        * a pot (2.9.16: OCT+ is the siren here) */
         if (s)
             song.g[G_DMIX] = (int16_t)clamp((int32_t)song.g[G_DMIX] + pot_s(s, 127), 0, 127);
-        else
-            song.g[G_DMIX] = 90;
         break;
     case MI_DLY_FDB:                                   /* (2.9.11) the repeats' feedback (the project's FDBK),
-                                                        * a pot; OCT+ 60, the project's default */
+                                                        * a pot (2.9.16: OCT+ is the siren here) */
         if (s)
             song.g[G_DFDBK] = (int16_t)clamp(song.g[G_DFDBK] + pot_s(s, 120), 0, 120);
-        else
-            song.g[G_DFDBK] = 60;
         break;
     case MI_DLY_MODE: {                                /* (2.9.11) the mode, round ten: FREE first, then the
-                                                        * divisions (1/4 .. 1/4D); OCT+ FREE <-> the last */
-        static uint8_t last = 2;                       /* the project's own default, 1/8 */
+                                                        * divisions (1/4 .. 1/4D); the knobs cycle it —
+                                                        * 2.9.16: OCT+ is the siren here, no row action */
         int32_t m = dub_dly_sync ? song.g[G_DTIME] + 1 : 0;
         if (s > 0)
             m = m >= 9 ? 0 : m + 1;
         else if (s < 0)
             m = m <= 0 ? 9 : m - 1;
-        else if (dub_dly_sync)
-            m = 0;                                     /* OCT+ out of a division: FREE */
         else
-            m = (int32_t)last;                         /* OCT+ out of FREE: the last division back */
+            break;                                     /* (OCT+: the siren's) */
         if (m) {
             dub_dly_set_sync(1);
             song.g[G_DTIME] = (int16_t)(m - 1);
-        } else {
-            last = (uint8_t)(song.g[G_DTIME] < 0 ? 0 : song.g[G_DTIME] > 8 ? 8 : song.g[G_DTIME]) + 1u;
-            dub_dly_set_sync(0);                       /* (leaving a division, any way: it is remembered) */
-        }
+        } else
+            dub_dly_set_sync(0);
         break;
     }
     case MI_SD_BASS:                                   /* (2.9.12) the four tracks' sends, one delay */
@@ -954,23 +947,24 @@ UI_SMALL static void menu_input(uint32_t pressed)
     uint32_t back = (pressed >> panel.btn[B_OCTDN]) & 1u;
     uint32_t sel = ui.menu_sel % MI_COUNT, sec = mi_sec(sel), n = MS_FIRST[sec + 1u] - MS_FIRST[sec];
     /* 2.9.8: the siren pages own OCT+: held, it sounds the siren at the SIREN LEVEL row's
-     * level (2.9.11: what the row says, 0 stays silent — the level knob rules); released,
-     * it stops. A tap fires no row action (a tap would reset values under a playing siren)
-     * — the rows' knobs do all the setting. Elsewhere (any other page, the menu shut) OCT+
-     * keeps its other lives and the siren stays quiet */
+     * level (2.9.11: what the row says, 0 stays silent — the level knob rules). 2.9.16:
+     * the hold survives the pages — SELECT from SIR to SR2 to DLY keeps it sounding while
+     * the button stays down; released, it stops, a new press re-arms. DLY joins the set
+     * and its OCT+ has no other life: the rows' knobs do all the setting there (a tap
+     * fires no row action anywhere on the three pages — the knobs rule) */
     {
         uint8_t held = (uint8_t)((fm1_in.buttons >> panel.btn[B_OCTUP]) & 1u);
-        if (sec == MS_SIREN || sec == MS_SIREN2) {
-            if (held && !dub_menu_siren_held) {
-                dub_siren_trigger(&dub_siren, dub_menu_siren);
-            } else if (!held && dub_menu_siren_held)
-                dub_siren_trigger(&dub_siren, 0);
-            dub_menu_siren_held = held;
+        uint8_t on_sir = (uint8_t)(sec == MS_SIREN || sec == MS_SIREN2 || sec == MS_DLY);
+        if (on_sir)
             ok = 0;
-        } else if (dub_menu_siren_held) {              /* the page walked away held: it stops */
+        if (on_sir && held && !dub_menu_siren_held)
+            dub_siren_trigger(&dub_siren, dub_menu_siren);
+        else if (!held && dub_menu_siren_held)
             dub_siren_trigger(&dub_siren, 0);
+        if (on_sir && held)
+            dub_menu_siren_held = 1;
+        else if (!held)
             dub_menu_siren_held = 0;
-        }
     }
     /* OCT- is the menu's universal escape.  Read the physical debounced
      * button as well as the edge mask: this keeps the escape reliable when

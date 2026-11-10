@@ -218,300 +218,6 @@ const KEYENC = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowRight: [1, 1], ArrowL
                  '[': [6, -1] };
 KEYENC['\\'] = [6, 1];
 
-/* -------------------------------------------------------------- Dub panel ---
- * The controls below send firmware commands into the same AudioWorklet as the
- * FM-1 faceplate. They never synthesize audio in JavaScript. */
-function dubMessage(message) { if (node) node.port.postMessage(message); }
-function dubEnable(on) { dubMessage({ t: 'dub-enable', on: !!on }); }
-function dubSync(on) {                 // (2.9.10) the checkbox mirrors the firmware: the menu's
-    if (on == null) return;            // K1 is the one switch, the panel's case shows its state
-    const cb = document.getElementById('dub-enabled');
-    if (cb) cb.checked = !!on;
-}
-function dubSirenLevel(level) {
-    const out = document.querySelector('#dub-siren-level + output');
-    if (out) out.textContent = String(level);   // (2.9.11) the value, always: 0 silent, like the FM-1's row
-    dubMessage({ t: 'dub-siren-level', level });
-}
-function dubSiren(held) {          // the hold button: the slider's level while held (0 stays silent), off on release
-    dubSirenLevel(held ? Number(document.getElementById('dub-siren-level')?.value || 0) : 0);
-}
-function dubBand(band) {
-    const row = document.querySelector('[data-dub-band="' + band + '"]');
-    if (!row) return;
-    dubMessage({ t: 'dub-band', band, gain: Number(row.querySelector('input[type=range]').value),
-        mute: row.querySelector('input[type=checkbox]').checked });
-}
-function dubMix(mix) {
-    const out = document.querySelector('#dub-mix + output');
-    if (out) out.textContent = String(mix);
-    dubMessage({ t: 'dub-mix', mix: Number(mix) });
-}
-function dubFilterHz(x) {              /* the same sweep the firmware's knob holds, for the label */
-    const d = x < 64 ? (63 - x) / 64 : (x - 64) / 63;
-    return Math.round(x < 64 ? 16000 * Math.pow(2, -7 * d) : 30 * Math.pow(2, 7 * d));
-}
-function dubFilter(v) {
-    const out = document.querySelector('#dub-filter + output'), x = Number(v);
-    if (out) out.textContent = x === 64 ? 'FLAT' : (x < 64 ? 'LP ' : 'HP ') + dubFilterHz(x) + ' Hz';
-    dubMessage({ t: 'dub-filter', v: x });
-}
-function dubSend(v) {
-    const out = document.querySelector('#dub-send + output');
-    if (out) out.textContent = Number(v) ? String(v) : 'DRY';
-    dubMessage({ t: 'dub-send', v: Number(v) });
-}
-function dubTrackSend(track, v) {      /* (2.9.12) the SEND page: a track's throw into the delay */
-    const input = document.querySelector('input[data-dub-track="' + track + '"]');
-    const out = input ? document.querySelector('#' + input.id + ' + output') : null;
-    const x = Math.max(0, Math.min(127, Number(v) || 0));
-    if (input && Number(input.value) !== x) input.value = String(x);
-    if (out) out.textContent = x ? Math.round(x * 100 / 127) + ' %' : 'DRY';
-    dubMessage({ t: 'dub-track-send', track, v: x });
-}
-function dubSndSync(snd) {             /* (2.9.12) the firmware's four throws, mirrored back:
-                                        * the sliders show the state the firmware holds */
-    if (snd == null) return;
-    window.dubSndState = snd;
-    document.querySelectorAll('input[data-dub-track]').forEach(input => {
-        if (input === document.activeElement) return;   // the user is turning that one
-        const x = snd[Number(input.dataset.dubTrack)] || 0;
-        if (Number(input.value) !== x) input.value = String(x);
-        const out = document.querySelector('#' + input.id + ' + output');
-        if (out) out.textContent = x ? Math.round(x * 100 / 127) + ' %' : 'DRY';
-    });
-}
-function dubDly(part, v) {             /* part: time (ms) / mix / rel / mode ('free' or a division) — one bus, four rows */
-    const m = { t: 'dub-dly' };
-    if (part === 'mode') {             /* (2.9.11) the firmware's KNOB 4: FREE or a division */
-        if (v === 'free') m.sync = 0;
-        else { m.sync = 1; m.div = Number(v); }
-    } else {
-        m[part] = v;
-        const out = document.querySelector('#dub-dly-' + part + ' + output');
-        if (out) out.textContent = part === 'time' ? v + ' ms' : String(v);
-    }
-    dubMessage(m);
-}
-function dubSkank() {
-    dubMessage({ t: 'dub-skank', root: Number(document.getElementById('dub-root').value),
-        quality: Number(document.getElementById('dub-quality').value),
-        octave: Number(document.getElementById('dub-octave').value),
-        velocity: Number(document.getElementById('dub-skank-vel')?.value || 108) });
-}
-function dubPreset(index) {
-    dubMessage({ t: 'dub-preset', index });
-    document.querySelectorAll('#dub-presets button').forEach((b, i) => b.classList.toggle('active', i === index));
-}
-function dubSeqLength(length) {
-    dubMessage({ t: 'dub-seq-length', length: Number(length) });
-    dubSeqRefresh();
-}
-/* (2.9.4) the DSQ view: four tracks x 64 steps showing what the sequence really holds
- * (the RDM tab's loads and the firmware's OCT+ both land here), the playhead column while
- * PLAY runs, and the chosen track's steps editable. The dump comes from the worklet. */
-const DUB_SEQ_TRACKS = ['BASS', 'SKNK', 'MEL', 'DRUM'];
-const DUB_SEQ_NOTE = [st => 36 + st % 12, () => 45, st => 60 + st % 12,
-                      st => [36, 42, 38, 39][st % 4]];       // kick hat snare clap
-let dubSeqLen = 16, dubSeqNotes = null, dubSeqPos = -1, dubSeqPlaying = false;
-
-function dubSeqBuild() {
-    const grid = document.getElementById('dub-steps');
-    if (!grid || grid.childElementCount) return;
-    DUB_SEQ_TRACKS.forEach((name, tr) => {
-        const label = document.createElement('span');
-        label.className = 'dub-trk-label';
-        label.textContent = name;
-        grid.appendChild(label);
-        for (let st = 0; st < 64; st++) {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.dataset.trk = String(tr);
-            b.dataset.step = String(st);
-            b.textContent = String(st + 1);
-            b.addEventListener('click', () => dubSeqToggle(tr, st, b));
-            grid.appendChild(b);
-        }
-    });
-}
-function dubSeqToggle(tr, st, b) {
-    const on = !b.classList.contains('active');
-    b.classList.toggle('active', on);
-    dubMessage({ t: 'dub-seq-step', track: tr, step: st,
-                 note: on ? DUB_SEQ_NOTE[tr](st) : 0, velocity: on ? 104 : 0 });
-    dubSeqRefresh();
-}
-function dubSeqRefresh() { if (node) node.port.postMessage({ t: 'dub-seq-dump' }); }
-let dubSeqLens = null;
-function dubSeqApply(m) {
-    dubSeqLen = m.len || 0;
-    dubSeqLens = m.lens ? Array.from(m.lens) : null;
-    dubSeqNotes = m.notes ? Array.from(m.notes) : null;
-    const sel = document.getElementById('dub-length');
-    if (sel && dubSeqLen && sel.value !== String(dubSeqLen)) sel.value = String(dubSeqLen);
-    if (!dubSeqNotes) return;
-    document.querySelectorAll('#dub-steps button').forEach(b => {
-        const tr = Number(b.dataset.trk), st = Number(b.dataset.step);
-        const v = dubSeqNotes[tr * 64 + st];
-        const rowLen = dubSeqLens ? (dubSeqLens[tr] || 0) : dubSeqLen;
-        b.classList.toggle('active', v !== 255 && v !== 254);   // a hit; a TIE (254) is the hold, not a hit
-        b.classList.toggle('tie', v === 254);                   // the load's held note going on
-        b.classList.toggle('bar', rowLen && st >= rowLen);      // beyond that track's own LEN
-    });
-}
-function dubSeqPlayhead(seq) {           // the frame / leds messages' seq: {len, pos, playing}
-    if (!seq) return;
-    const moved = seq.pos !== dubSeqPos || !!seq.playing !== dubSeqPlaying;
-    dubSeqPos = seq.playing ? seq.pos : -1;
-    dubSeqPlaying = !!seq.playing;
-    if (!moved) return;
-    document.querySelectorAll('#dub-steps button.play').forEach(b => b.classList.remove('play'));
-    if (dubSeqPos >= 0)
-        document.querySelectorAll(`#dub-steps button[data-step="${dubSeqPos}"]`)
-            .forEach(b => b.classList.add('play'));
-}
-function dubStatus(text) {
-    const el = document.getElementById('dub-riddim-status');
-    if (el) el.textContent = text;
-}
-/* the RIDDIM page: the ten riddims tools/gen_riddims.py composed, four tracks each
- * (1 bass, 2 skanks, 3 melody, 4 drums). The load buttons mirror the firmware's OCT+. */
-const DUB_RIDDIM_NAMES = ['ONE DROP', 'STEPPERS', 'ROCKERS', 'DUBWALK', 'DIGITAL', 'LOVERS', 'MEDITATE', 'SKANKIN', 'DUB CUT', 'ZION'];
-function dubFillRiddims() {
-    for (const id of ['dub-riddim', 'dub-rbass', 'dub-rskank', 'dub-rdrum']) {
-        const sel = document.getElementById(id);
-        if (!sel || sel.options.length) continue;
-        DUB_RIDDIM_NAMES.forEach((n, i) => {
-            const o = document.createElement('option');
-            o.value = String(i);
-            o.textContent = n;
-            sel.appendChild(o);
-        });
-    }
-}
-function dubRiddim(selId, track) {
-    const name = DUB_RIDDIM_NAMES[Number(document.getElementById(selId).value || 0)] || '?';
-    const m = track == null ? { t: 'dub-riddim', riddim: Number(document.getElementById(selId).value || 0) }
-                            : { t: 'dub-riddim-track', riddim: Number(document.getElementById(selId).value || 0), track };
-    dubMessage(m);
-    dubStatus(track == null ? `CHARGÉ · ${name} · 4 PISTES · 64 PAS`
-                            : `CHARGÉ · PISTE ${track + 1} · ${name}`);   // (2.9.4) the load is told
-    dubSeqRefresh();
-}
-/* the PRESET page: the dub sound banks, a list per riddim track (bass, skank, melody) and
- * the drum kits. The load buttons mirror the firmware's OCT+ (the same WASM exports). */
-const DUB_SOUND_NAMES = {
-    bass: ['SUB BASS', '808 BOOM', 'FAT BASS', 'REESE', 'WOBBLE', 'ACID 303', 'CZ BASS', 'NES BASS'],
-    skank: ['DUB CHORD', 'MIN STAB', 'MIN7 STAB', 'REGGAE ORG', 'DIRTY B3', 'SOUL ORGAN', 'AFRO KEYS', 'CHIP CHORD'],
-    mel: ['PAN FLUTE', 'STEELPAN', 'STEEL DRUM', 'KALIMBA', 'SQR LEAD', 'SYNC LEAD', 'FAT LEAD', 'CZ LEAD'],
-    kit: ['DEEP', 'DUST', 'VINTAGE', '808', 'DUBSTEP', 'DEMBOW', 'AMAPIANO', 'AFRO'],
-};
-function dubFillSounds() {
-    const lists = { 'dub-sbass': 'bass', 'dub-sskank': 'skank', 'dub-smel': 'mel', 'dub-skit': 'kit' };
-    for (const [id, key] of Object.entries(lists)) {
-        const sel = document.getElementById(id);
-        if (!sel || sel.options.length) continue;
-        DUB_SOUND_NAMES[key].forEach((n, i) => {
-            const o = document.createElement('option');
-            o.value = String(i);
-            o.textContent = n;
-            sel.appendChild(o);
-        });
-    }
-}
-function dubSound(selId, role) {
-    dubMessage({ t: 'dub-sound', role, index: Number(document.getElementById(selId).value || 0) });
-}
-/* the tab strip mirrors the firmware's Dub pages: one tab, one LCD page */
-function dubPage(name) {
-    document.querySelectorAll('.dub-tab').forEach(tab => {
-        const on = tab.dataset.dubPage === name;
-        tab.classList.toggle('on', on);
-        tab.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    document.querySelectorAll('.dub-page').forEach(panel => {
-        const on = panel.dataset.dubPanel === name;
-        panel.classList.toggle('on', on);
-        panel.hidden = !on;
-    });
-    if (name === 'dseq') dubSeqRefresh();   // (2.9.4) the view follows the sequence
-}
-function setupDubPanel() {
-    document.querySelectorAll('.dub-tab').forEach(tab =>
-        tab.addEventListener('click', () => dubPage(tab.dataset.dubPage)));
-    const enabled = document.getElementById('dub-enabled');
-    enabled?.addEventListener('change', () => dubEnable(enabled.checked));
-    document.getElementById('dub-siren')?.addEventListener('pointerdown', () => dubSiren(true));
-    document.getElementById('dub-siren')?.addEventListener('pointerup', () => dubSiren(false));
-    document.getElementById('dub-siren')?.addEventListener('pointercancel', () => dubSiren(false));
-    document.getElementById('dub-siren-freq')?.addEventListener('input', () => {
-        const v = Number(document.getElementById('dub-siren-freq').value);
-        const out = document.querySelector('#dub-siren-freq + output');
-        if (out) out.textContent = v + ' Hz';
-        dubMessage({ t: 'dub-siren-freq', frequency: v });
-    });
-    document.getElementById('dub-siren-depth')?.addEventListener('input', ev => {
-        const out = document.querySelector('#dub-siren-depth + output');
-        if (out) out.textContent = String(ev.target.value);
-        dubMessage({ t: 'dub-siren-depth', depth: Number(ev.target.value) });
-    });
-    document.getElementById('dub-siren-rate')?.addEventListener('input', () => {
-        const rate = Number(document.getElementById('dub-siren-rate').value);
-        const out = document.querySelector('#dub-siren-rate + output');
-        if (out) out.textContent = (1 + Math.round(rate * 15 / 127)) + ' Hz';   // dub.c dub_siren_rate_hz
-        dubMessage({ t: 'dub-siren-rate', rate });
-    });
-    document.getElementById('dub-siren-type')?.addEventListener('change', ev =>
-        dubMessage({ t: 'dub-siren-type', type: Number(ev.target.value) }));
-    document.getElementById('dub-siren-wave')?.addEventListener('change', ev =>
-        dubMessage({ t: 'dub-siren-wave', wave: Number(ev.target.value) }));
-    document.getElementById('dub-siren-sym')?.addEventListener('input', ev => {
-        const out = document.querySelector('#dub-siren-sym + output');
-        if (out) out.textContent = String(ev.target.value);
-        dubMessage({ t: 'dub-siren-sym', sym: Number(ev.target.value) });
-    });
-    document.getElementById('dub-siren-send')?.addEventListener('input', ev => {
-        const out = document.querySelector('#dub-siren-send + output');
-        if (out) out.textContent = Number(ev.target.value) ? String(ev.target.value) : 'DRY';
-        dubMessage({ t: 'dub-siren-send', send: Number(ev.target.value) });
-    });
-    document.getElementById('dub-siren-level')?.addEventListener('input', ev =>
-        dubSirenLevel(Number(ev.target.value)));
-    document.getElementById('dub-mix')?.addEventListener('input', ev => dubMix(ev.target.value));
-    document.getElementById('dub-filter')?.addEventListener('input', ev => dubFilter(ev.target.value));
-    document.getElementById('dub-send')?.addEventListener('input', ev => dubSend(ev.target.value));
-    document.querySelectorAll('input[data-dub-track]').forEach(input =>
-        input.addEventListener('input', () => dubTrackSend(Number(input.dataset.dubTrack), input.value)));
-    document.getElementById('dub-dly-time')?.addEventListener('input', ev => dubDly('time', Number(ev.target.value)));
-    document.getElementById('dub-dly-mix')?.addEventListener('input', ev => dubDly('mix', Number(ev.target.value)));
-    document.getElementById('dub-dly-rel')?.addEventListener('input', ev => dubDly('rel', Number(ev.target.value)));
-    document.getElementById('dub-dly-mode')?.addEventListener('change', ev => dubDly('mode', ev.target.value));
-    document.querySelectorAll('[data-dub-band]').forEach(row => {
-        row.querySelectorAll('input').forEach(input => input.addEventListener('input', () => dubBand(row.dataset.dubBand)));
-    });
-    document.getElementById('dub-skank')?.addEventListener('click', dubSkank);
-    document.getElementById('dub-length')?.addEventListener('change', ev => dubSeqLength(ev.target.value));
-    dubSeqBuild();
-    document.querySelectorAll('#dub-trks button').forEach(b =>
-        b.addEventListener('click', () =>
-            document.querySelectorAll('#dub-trks button').forEach(x => {
-                const on = x === b;
-                x.classList.toggle('active', on);
-                x.setAttribute('aria-pressed', on ? 'true' : 'false');
-            })));
-    dubFillRiddims();
-    document.getElementById('dub-riddim-load')?.addEventListener('click', () => dubRiddim('dub-riddim', null));
-    document.getElementById('dub-rbass-load')?.addEventListener('click', () => dubRiddim('dub-rbass', 0));
-    document.getElementById('dub-rskank-load')?.addEventListener('click', () => dubRiddim('dub-rskank', 1));
-    document.getElementById('dub-rdrum-load')?.addEventListener('click', () => dubRiddim('dub-rdrum', 3));
-    dubFillSounds();
-    document.getElementById('dub-sbass-load')?.addEventListener('click', () => dubSound('dub-sbass', 0));
-    document.getElementById('dub-sskank-load')?.addEventListener('click', () => dubSound('dub-sskank', 1));
-    document.getElementById('dub-smel-load')?.addEventListener('click', () => dubSound('dub-smel', 2));
-    document.getElementById('dub-skit-load')?.addEventListener('click', () => dubSound('dub-skit', 3));
-    document.querySelectorAll('#dub-presets button').forEach((button, index) => button.addEventListener('click', () => dubPreset(index)));
-}
-
 const heldKeys = new Set();
 window.addEventListener('keydown', ev => {
     if (ev.repeat) { if (ev.key in KEYENC && KEYENC[ev.key]) { enc(...KEYENC[ev.key]); } ev.preventDefault(); return; }
@@ -526,6 +232,28 @@ window.addEventListener('keyup', ev => {
     else if (k in KEYBTNS && heldKeys.delete(k)) { btnUp(BTN[KEYBTNS[k]]); btnEls[BTN[KEYBTNS[k]]]?.classList.remove('down'); }
 });
 window.addEventListener('blur', () => { heldKeys.clear(); notesMask = 0; buttonsMask = 0; sendInput(); });
+
+/* --------------------------------------------------- firmware state probe ---
+ * The page never mirrors the firmware any more: the tests (and the curious) read the
+ * firmware's own state through emu_dbg — 0 playing, 2 bpm, 3 dly div, 6 sir level,
+ * 7 sir active, 8 sir send, 9 dub send, 11 dly sync, 12 dub on, 17 menu open,
+ * 18 menu row, 19 the siren's level setting, 20 the OCT+ hold armed, 21 a hash of
+ * the tracks' first steps (sloop_wasm.c emu_dbg). */
+const dbgPending = new Map();
+let dbgSeq = 0;
+function emuDbg(idx) {
+    return new Promise(res => {
+        if (!node) return res(null);
+        const id = ++dbgSeq;
+        dbgPending.set(id, res);
+        node.port.postMessage({ t: 'dbg', idx, id });
+        setTimeout(() => { if (dbgPending.has(id)) { dbgPending.delete(id); res(null); } }, 2000);
+    });
+}
+function dbgReply(m) {
+    const res = dbgPending.get(m.id);
+    if (res) { dbgPending.delete(m.id); res(m.v); }
+}
 
 /* ------------------------------------------------------------- screen --- */
 let c2d = null, img = null;
@@ -612,16 +340,15 @@ async function powerOn() {
     });
     node.port.onmessage = ev => {
         const m = ev.data;
-        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); dubSndSync(m.snd); }
-        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); dubSeqPlayhead(m.seq); dubSync(m.dub); dubSndSync(m.snd); }
-        else if (m.t === 'dub-seq-dump') dubSeqApply(m);   // (2.9.4) the DSQ view's readback
+        if (m.t === 'frame') { drawFB(m.fb); applyLeds(m.leds, m.dims); }
+        else if (m.t === 'leds') { applyLeds(m.leds, m.dims); }
+        else if (m.t === 'dbg') dbgReply(m);               // the tests' state probe answers
         else if (m.t === 'flash') saveFlash(m.data);
     };
     node.connect(ctx.destination);
     await ctx.resume();
     sendMaster();
     setTimeout(() => node.port.postMessage({ t: 'start' }), 900);   // splash dwell, as fm1_main
-    setTimeout(dubSeqRefresh, 1400);                                // (2.9.4) the DSQ view's first read
     initMidi();
 }
 document.getElementById('power').addEventListener('click', powerOn, { once: true });
@@ -813,7 +540,6 @@ for (const t of [150, 500, 1200, 2500])
 buildKnobs();
 buildButtons();
 buildKeyboard();
-setupDubPanel();
 const screenCanvas = buildScreen();
 c2d = screenCanvas.getContext('2d');
 img = c2d.createImageData(240, 240);

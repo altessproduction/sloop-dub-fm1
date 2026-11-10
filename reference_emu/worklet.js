@@ -29,6 +29,10 @@ class SloopProcessor extends AudioWorkletProcessor {
             else if (m.t === 'start') this.e.emu_start();
             else if (m.t === 'adc') this.e.emu_adc_set(m.ch, m.v);
             else if (m.t === 'midi') this.e.emu_midi(m.p);
+            else if (m.t === 'dbg') {          // the tests' state probe: emu_dbg(idx), the firmware's own state
+                const v = typeof this.e.emu_dbg === 'function' ? this.e.emu_dbg(m.idx | 0) : null;
+                this.port.postMessage({ t: 'dbg', idx: m.idx, id: m.id, v });
+            }
             else if (m.t === 'dub-enable') this.e.emu_dub_enable(m.on ? 1 : 0);
             else if (m.t === 'dub-siren') {
                 this.e.emu_dub_siren(m.level || 0, m.frequency || 740, m.depth || 96);

@@ -1265,12 +1265,15 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K2], 1);
         check(ui.menu_sel == MI_SIR_WAVE && dub_siren.wave == DUB_SIW_PLS,
               "menu SIR: KNOB 2 right: SIREN WAVE SQR -> PLS");
-        press(B_OCTUP);                                /* (2.9.8) the momentary siren; (2.9.11) the level pot rules */
-        check(dub_siren.active == 0u, "menu SIR: OCT+ at level 0: silent (2.9.11: the level knob rules)");
-        turns(panel.enc[EN_K4], 3);                    /* the level, raised while it sounds (the pot's
-                                                        * 7 a detent; the preset left the row at 0) */
-        check(dub_siren.active == 1u && dub_siren.level == 21u,
-              "menu SIR: KNOB 4 right: SIREN LEVEL up to 21, the sounding siren follows");
+        turns(panel.enc[EN_K4], 3);
+        check(ui.menu_sel == MI_SIR_SEND && dub_siren.send == 49u,
+              "menu SIR: KNOB 4 right: SIREN SEND 28 -> 49 (2.9.16: the throw lives on SIR)");
+        press(B_OCTUP);                                /* (2.9.8) the momentary siren at the level row's
+                                                        * level — 0 here (2.9.11: the level rules); the
+                                                        * level itself lives on SR2 since 2.9.16 */
+        check(dub_siren.active == 0u, "menu SIR: OCT+ at level 0: silent (the LEVEL row moved to SR2)");
+        turns(panel.enc[EN_K4], 1);
+        check(dub_siren.send == 56u, "menu SIR: the throw's knob works under the held OCT+ (only the knobs set)");
         release(B_OCTUP);                              /* up it stops */
         check(dub_siren.active == 0u, "menu SIR: OCT+ up stops the siren");
         turns(panel.enc[EN_K3], 1);
@@ -1293,28 +1296,55 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K3], -4);
         check(ui.menu_sel == MI_SIR_SYM && dub_siren.sym == 36u,
               "menu SR2: KNOB 3 left: SIREN SYM down (the pot's 7 a detent)");
-        turns(panel.enc[EN_K4], 1);
-        check(ui.menu_sel == MI_SIR_SEND && dub_siren.send == 35u,
-              "menu SR2: KNOB 4 right: SIREN SEND up (the SKANK CHORD preset left 28, the pot's 7)");
+        turns(panel.enc[EN_K4], 3);                    /* the level, from the preset's 0 (the pot's
+                                                        * 7 a detent) — 2.9.16: the LEVEL row lives here */
+        check(ui.menu_sel == MI_SIR_LVL && dub_menu_siren == 21u && dub_siren.active == 0u,
+              "menu SR2: KNOB 4 right: SIREN LEVEL up to 21, silent while OCT+ is up");
+        press(B_OCTUP);
+        check(dub_siren.active == 1u && dub_siren.level == 21u,
+              "menu SR2: OCT+ held: the siren sounds at the level the row says (21)");
+        turns(panel.enc[EN_K4], 2);
+        check(dub_siren.active == 1u && dub_siren.level == 35u,
+              "menu SR2: the level knob up while held: the siren follows to 35");
+        check(!strcmp(mi_value(MI_SIR_LVL, &(uint16_t){0}), "35"),
+              "menu SR2: the LEVEL row shows the setting, 35 (2.9.11: never OFF)");
+        release(B_OCTUP);
+        check(dub_siren.active == 0u && dub_siren.level == 0u, "menu SR2: OCT+ up: the siren off");
 
         turns(panel.enc[EN_SELECT], -1);
         check(mi_sec(ui.menu_sel) == MS_SIREN && ui.menu_sel == MI_SIR_TYPE,
               "menu: SELECT left: back to SIR");
         turns(panel.enc[EN_K4], -16);
-        check(dub_menu_siren == 0u, "menu SIR: KNOB 4 left: the level down to 0 (the pot clamps)");
-        press(B_OCTUP);
-        check(dub_siren.active == 0u, "menu SIR: OCT+ at level 0: silent (2.9.11, the level knob rules)");
-        turns(panel.enc[EN_K4], 5);
-        check(dub_siren.active == 1u && dub_siren.level == 35u,
-              "menu SIR: the level knob up while held: the siren sounds at 35");
-        check(!strcmp(mi_value(MI_SIR_LVL, &(uint16_t){0}), "35"),
-              "menu SIR: the LEVEL row shows the setting, 35 (2.9.11: never OFF)");
-        release(B_OCTUP);
-        check(dub_siren.active == 0u && dub_siren.level == 0u, "menu SIR: OCT+ up: the siren off");
+        check(dub_siren.send == 0u, "menu SIR: KNOB 4 left: SIREN SEND back to DRY (the pot clamps)");
+        {   /* 2.9.16: the hold survives the pages — SIR -> SR2 -> through SKANK -> DLY, sounding
+               all the way; released on DLY it stops; a new press there re-arms (OCT+ has no
+               other life on the delay page), the knobs still work under the hold */
+            uint32_t sync0 = dub_dly_sync;
+            press(B_OCTUP);
+            check(dub_siren.active == 1u && dub_siren.level == 35u,
+                  "menu SIR: OCT+ held sounds the siren at the level SR2 set (35)");
+            turns(panel.enc[EN_SELECT], 1);
+            check(mi_sec(ui.menu_sel) == MS_SIREN2, "menu: SELECT right to SR2 under the held OCT+");
+            check(dub_siren.active == 1u, "menu SR2: the siren keeps sounding, the page walked");
+            turns(panel.enc[EN_SELECT], 1);
+            turns(panel.enc[EN_SELECT], 1);            /* through SKANK, on to DLY */
+            check(mi_sec(ui.menu_sel) == MS_DLY, "menu: SELECT right to DLY under the held OCT+");
+            check(dub_siren.active == 1u, "menu DLY: the siren still sounds at the delay page");
+            turns(panel.enc[EN_K4], 1);
+            check(dub_siren.active == 1u, "menu DLY: a knob turns under the hold, the siren keeps on");
+            release(B_OCTUP);
+            check(dub_siren.active == 0u, "menu DLY: OCT+ released stops the siren");
+            tap(B_OCTUP);
+            check(dub_siren.active == 0u, "menu DLY: a tap fires no row action, the siren stays quiet");
+            press(B_OCTUP);
+            check(dub_siren.active == 1u, "menu DLY: OCT+ pressed again: the siren re-arms");
+            release(B_OCTUP);
+            check(dub_siren.active == 0u && dub_dly_sync == sync0, "menu DLY: released, the siren off, the mode untouched");
+        }
 
-        turns(panel.enc[EN_SELECT], 2);
+        turns(panel.enc[EN_SELECT], -1);
         check(mi_sec(ui.menu_sel) == MS_SKANK && ui.menu_sel == MI_SKANK_CHD,
-              "menu: SELECT right: SKANK (through SR2), the cursor on its first row");
+              "menu: SELECT left: SKANK back from DLY, the cursor on its first row");
         ui.force = 1; frame(); ppm("menu-skank");
         turns(panel.enc[EN_K1], 3);                    /* the preset applied left MIN: three on to 7TH */
         check(ui.menu_sel == MI_SKANK_CHD && (dub_menu_chord & 7u) == 4u, "menu SKANK: KNOB 1 right: SKANK CHORD 7TH");
@@ -1345,12 +1375,14 @@ int main(int argc, char **argv)
             check(ui.menu_sel == MI_DLY_LVL && song.g[G_DMIX] == mix0 + 21,
                   "menu DLY: KNOB 2 right three: DLY LEVEL up (the pot's 7 a detent)");
             tap(B_OCTUP);
-            check(song.g[G_DMIX] == 90u, "menu DLY: OCT+ on DLY LEVEL: the project's default 90");
+            check(song.g[G_DMIX] == mix0 + 21,
+                  "menu DLY: OCT+ on DLY LEVEL: no row action (2.9.16: the siren's), the knob's value stays");
             turns(panel.enc[EN_K3], 2);
             check(ui.menu_sel == MI_DLY_FDB && song.g[G_DFDBK] == fdbk0 + 12,
                   "menu DLY: KNOB 3 right two: DLY FEEDBK up (the pot's 6 a detent)");
             tap(B_OCTUP);
-            check(song.g[G_DFDBK] == 60u, "menu DLY: OCT+ on DLY FEEDBK: the project's default");
+            check(song.g[G_DFDBK] == fdbk0 + 12,
+                  "menu DLY: OCT+ on DLY FEEDBK: no row action, the knob's value stays");
             turns(panel.enc[EN_K4], 1);
             check(ui.menu_sel == MI_DLY_MODE && dub_dly_sync == 1u && song.g[G_DTIME] == dt0 + 1,
                   "menu DLY: KNOB 4 right: DLY MODE the next division");
@@ -1361,10 +1393,11 @@ int main(int argc, char **argv)
             check(dub_dly_ms == 536u, "menu DLY: KNOB 1 right two: the free time 400 -> 536 MS (the pot's 68 a detent)");
             turns(panel.enc[EN_K4], -1);               /* the cursor back on MODE, left from FREE: 1/4D */
             check(dub_dly_sync == 1u && song.g[G_DTIME] == 8, "menu DLY: KNOB 4 left from FREE: 1/4D back");
-            tap(B_OCTUP);
-            check(dub_dly_sync == 0u, "menu DLY: OCT+ on DLY MODE: FREE");
-            tap(B_OCTUP);
-            check(dub_dly_sync == 1u && song.g[G_DTIME] == 8, "menu DLY: OCT+ on DLY MODE: the last division back");
+            press(B_OCTUP);
+            check(dub_siren.active == 1u && dub_dly_sync == 1u && song.g[G_DTIME] == 8,
+                  "menu DLY: OCT+ held: the siren (2.9.16), the mode untouched");
+            release(B_OCTUP);
+            check(dub_dly_sync == 1u && song.g[G_DTIME] == 8, "menu DLY: OCT+ up: the mode still 1/4D, no toggle");
             dub_dly_set_sync(1);                       /* back to the tempo, the state the walk came with */
             song.g[G_DTIME] = dt0;
         }
@@ -2502,7 +2535,7 @@ int main(int argc, char **argv)
         turns(panel.enc[EN_K1], 2);                    /* SIREN TYPE */
         turns(panel.enc[EN_K2], 2);                    /* SIREN WAVE */
         turns(panel.enc[EN_K3], 2);                    /* SIREN PITCH */
-        turns(panel.enc[EN_K4], 2);                    /* SIREN LEVEL */
+        turns(panel.enc[EN_K4], 2);                    /* SIREN SEND */
         press(B_OCTUP);                                /* the momentary siren: it sounds now (2.9.13:
                                                         * the siren renders whatever DUB does), the
                                                         * module itself stays shut */

@@ -402,7 +402,11 @@ WASM_EXPORT("emu_dbg") uint32_t emu_dbg(uint32_t idx)
 {   /* the console's state probe for the tests: 0 playing, 1 tick, 2 bpm, 3 dly div,
      * 4 dly fdbk, 5 dly mix, 6 sir level, 7 sir active, 8 sir send, 9 dub send,
      * 10 dly ms, 11 dly sync, 12 dub module on, 13..16 the tracks' sends (2.9.12:
-     * 13 bass, 14 skank, 15 melody, 16 drums) */
+     * 13 bass, 14 skank, 15 melody, 16 drums), 17 the menu open (2.9.16: the web
+     * page reads the firmware's own state instead of mirroring it), 18 the menu's
+     * row cursor, 19 the siren's level setting (the SR2 row's), 20 the OCT+ hold
+     * armed (the momentary's state), 21 a 24-bit hash of the tracks' first steps,
+     * 22 the menu page the cursor stands on (0..13, ui_menu.c MS_*) */
     switch (idx) {
     case 0: return song.playing;
     case 1: return song.tick;
@@ -420,6 +424,18 @@ WASM_EXPORT("emu_dbg") uint32_t emu_dbg(uint32_t idx)
     case 14: return (uint32_t)trk[1].p[P_DLY];
     case 15: return (uint32_t)trk[2].p[P_DLY];
     case 16: return (uint32_t)song.g[G_DRDLY];
+    case 17: return ui.menu;
+    case 18: return ui.menu_sel;
+    case 19: return dub_menu_siren;
+    case 20: return dub_menu_siren_held;
+    case 21: {
+        uint32_t t, i, h = 0;
+        for (t = 0; t < 4u; t++)
+            for (i = 0; i < 16u; i++)
+                h = h * 131u + (trk[t].step[i].n ? trk[t].step[i].note[0] : 255u);
+        return h & 0xFFFFFFu;
+    }
+    case 22: return mi_sec(ui.menu_sel % MI_COUNT);
     default: return (uint32_t)dub_enabled;
     }
 }

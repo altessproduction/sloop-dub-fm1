@@ -42,6 +42,19 @@ l'installateur web sert ce paquet, l'émulateur navigateur est reconstruit sur l
   sinus) ; ui_pages_test 513 ; stress_test 40 000 trames ; golden 182 rendus inchangés
   (DUB off passe bit à bit) ; smoke wasm AUDIO-PATH-OK avec la preuve des mutes sur le
   binaire réel.
+- La **2.9.17** (publiée entre-temps, une première passe des mêmes corrections) est ici
+  reprise et approfondie : l'isolateur passe en échelle **stéréo** sans fuite de phase
+  (un mute ne laisse plus filtrer la moitié du grave par les bandes du dessus), les gains
+  glissent anti-clic et se calculent une fois par bloc, la tête du tape parcourt chaque
+  bloc régulièrement ; les tests hôtes sont portés sur cette implémentation. Le correctif
+  UBSan d'`eng_analog` (le décalage signé devenu multiplication) est gardé — le binaire
+  reconstruit est identique à l'octet près.
+
+## 2.9.17 — la première passe des corrections (supersédée par la 1.0)
+
+- Le coefficient du crossover corrigé (2π au lieu de 2100), la signature de redraw
+  complétée, la tête du delay mue par échantillon — la même intention, résolue alors en
+  échelle mono à épaules 6 dB/oct. La 1.0 la remplace (voir plus haut).
 
 ## 2.9.16 — la sirène remappée, tenue à travers les pages
 

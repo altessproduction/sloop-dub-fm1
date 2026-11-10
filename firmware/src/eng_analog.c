@@ -99,7 +99,8 @@ static inline __attribute__((always_inline)) void analog_body(track_t *t, voice_
                 a = 16000 + (softclip((a - 16000) * 2) >> 1);
                 y = y < 0 ? -a : a;
             }
-            s = y << 1;
+            s = y * 2;                                 /* y is signed: the shift is the multiply's
+                                                        * work anyway (2.9.17, UBsan) */
         }
         out[i] += mulq15(mulq15(s, amp_at(m, i)), VOICE_FS) << 1;
     }

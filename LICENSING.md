@@ -1,4 +1,8 @@
-# Felucca licensing
+# sloop-DUB licensing
+
+sloop-DUB (<https://github.com/altessproduction/sloop-dub-fm1>) is a fork of Felucca:
+the terms below are Felucca's, still governing everything inherited from it, with
+sloop-DUB's own additions in the last section.
 
 Felucca is free software. Its **code** is licensed under the GNU General Public License,
 version 3 only (`GPL-3.0-only`, full text in `LICENSE`). Its **assets** are not part of
@@ -45,6 +49,7 @@ assets, is entirely governed by the GPL.
 | What | Licence | Where |
 | --- | --- | --- |
 | Instrument and drum samples (Versilian Studios VSCO-2 CE, VCSL; Sonic Pi: SCRCH) | CC0 1.0 | `assets/samples-cc0/`, provenance in `ATTRIBUTION.txt` there |
+| sloop-DUB Hip-Hop Pack, the free sounds of the user sample slots USR1..USR3 (Wurlitzer EP200 samples by Greg Sullivan; VSCO-2 CE, VCSL; Sonic Pi) | CC0 1.0, the E.PIANO set CC BY 3.0 | `assets/hiphop-pack/`, provenance in `CREDITS.txt` there |
 | Terminus font 8x16: the FM-1's screen (Terminus Bold, ter-u16b, SLOOP 2.6), and the web editor's font (the regular ter-u16n; `tools/gen_webfont.py` makes it a TrueType font inlined in `web/editor.html`) | SIL OFL 1.1 | `assets/fonts/ter-u16b.bdf`, `assets/fonts/ter-u16n.bdf`, `assets/fonts/Terminus-LICENSE.txt` |
 | Fukiai icon font (Hügelton Instruments), web editor only | MIT | `web/fukiai.ttf`, `web/FUKIAI-LICENSE.txt` |
 | CrispyZebra by Leo Kuroshita (<https://github.com/hugelton/CrispyZebra>): the PHASE engine's waveforms are a C port of its oscillator | GPL-3.0 | `firmware/src/eng_phase.c` |
@@ -52,6 +57,25 @@ assets, is entirely governed by the GPL.
 | msfa by Google Inc. and Pascal Gauthier, from Dexed (<https://github.com/asb2m10/dexed>): the FM6 engine's synthesis (SLOOP 2.4), ported to integer C for Felucca 1.0 by Leo Kuroshita (Dexed itself is GPL-3.0; only msfa is used; the FM6 factory patches are Felucca's own) | Apache-2.0 | `firmware/src/fm6_core.c`, `LICENSES/Apache-2.0-msfa.txt` |
 | DaisySP (Electrosmith, Emilie Gillet) and Rings' sympathetic strings (Emilie Gillet): the PHYS engine's models (SLOOP 2.5, from Felucca 1.0, ported to fixed point by Leo Kuroshita) | MIT | `firmware/src/phys_dsp.c`, `firmware/src/phys_symp.c` (the notice is in each file) |
 | JieLi AC79 SDK: `uboot.boot`, `cfg_tool.bin`, `eq_cfg_hw.bin` are read from your SDK checkout at build time and placed in the package; no SDK files are in this tree | Apache-2.0 | <https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK> |
+
+## sloop-DUB additions
+
+The fork's firmware code — the three-band isolator with mute bands, the DJ filter, the
+per-track echo throws, the tape echo, the siren, the skank and accent engines, the FM-1
+splash screen — is GPL-3.0-only like the rest of the code.
+
+The **Hip-Hop Pack** (`assets/hiphop-pack/`) is the fork's own sample pack for the user
+sample slots, made by `tools/gen_hiphop_pack.py`: retuned, cut and processed from
+- VSCO-2 Community Edition and VCSL (Versilian Studios): BASS, HORNS, STRINGS, VIBES,
+  UPRIGHT — CC0 1.0;
+- Sonic Pi's sample set: SCRATCH — CC0 1.0;
+- Greg Sullivan's Wurlitzer EP200 samples (mapped by kinwie,
+  <https://github.com/sfzinstruments/GregSullivan.E-Pianos>): E.PIANO — CC BY 3.0.
+  Keep his credit when you share the samples themselves; music you make with any of
+  them is yours.
+
+No sound in the pack comes from a commercial record. `CREDITS.txt` in the pack lists
+every source, and each sound carries its licence in `pack.json`.
 
 ## Contributions
 

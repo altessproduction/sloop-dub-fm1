@@ -31,6 +31,14 @@ l'installateur web sert ce paquet, l'émulateur navigateur est reconstruit sur l
 **Divers :**
 
 - Version affichée sur la machine : **SLOOP DUB 1.0** (splash et ABOUT).
+- Identité de paquet : **FM-1_234**, propre au fork et stable d'une version à l'autre —
+  le schéma hérité `FM-1_9XY` donnait `FM-1_910` en 1.0, un numéro déjà pris sur
+  thefirmwarehub.com par Felucca et trois autres forks. L'installateur web vérifie la
+  nouvelle identité et le sha256 du paquet reconstruit ; le chargeur de mise à jour
+  reste celui de Felucca (`ota-FM-1_900`, reconnu tel quel).
+- Licences du Hip-Hop Pack : `LICENSING.md` porte le nom du fork et déclare le pack —
+  CC0 partout, l'E.PIANO CC BY 3.0 (Greg Sullivan) — dans sa table tierce-partie et une
+  section « sloop-DUB additions ».
 - **L'identité.** La tour sound-system remplace la voile partout : la carte du hub, la bannière
   du dépôt (README, SLOOP, GUIDE, DÉMARRAGE RAPIDE), les icônes PWA — 192/512/maskable, plus
   celles (manquantes) de l'émulateur dub et les apple-touch-icon —, l'installateur et l'éditeur

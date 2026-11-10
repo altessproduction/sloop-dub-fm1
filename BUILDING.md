@@ -42,7 +42,9 @@ On Linux x86-64 the toolchain runs natively and Docker is not needed.
 (`~/.jieli/toolchain`, `~/fw-AC79_AIoT_SDK`).
 
 `./build.sh --release 0.9-beta` makes a release build: the package identity becomes
-`FM-1_909` and the version string `0.9-BETA`; the package is `build/felucca-0.9-beta.fwsc`.
+`FM-1_234` — sloop-DUB's own, stable across releases (the fork's old `FM-1_9XY` numbers
+belong to Felucca) — and the version string `0.9-BETA`; the package is
+`build/sloop-dub-0.9-beta.fwsc`.
 
 Build options (environment, `0` or `1`; defaults in `firmware/src/felucca.c`):
 

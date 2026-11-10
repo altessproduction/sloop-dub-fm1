@@ -204,27 +204,47 @@ static uint32_t delay_samples(void)
  * its target (the DLY page's KNOB 1 free ms when SYNC is off, else the project's
  * division), the read head wanders (wow 0.7 Hz deep, flutter 6.3 Hz shallow, ramped
  * across the block like the chorus's LFO) and the repeats pass a soft clip (the tape's
- * warm-up). DUB off: the plain tempo delay, as the base SLOOP's echo always was. */
+ * warm-up). DUB off: the plain tempo delay, as the base SLOOP's echo always was.
+ * (1.0) the glide is a tape's: the head walks at half the tape's speed at most and
+ * evenly across each block, so a loop in the delay speeds up or slows down as the
+ * TIME knob turns — the bend a real tape echo makes — instead of the old (target-
+ * cur)>>4-a-block sweep that threw the head across the loop in ~12 ms. */
 #define DUB_WOW_INC 2179696u    /* 0.7 Hz, a phase step a CTL block */
 #define DUB_FLT_INC 19617261u   /* 6.3 Hz */
 #define DUB_WOW_DEP (20 << 8)   /* +- 0.45 ms, Q8 samples */
 #define DUB_FLT_DEP (4 << 8)    /* +- 0.09 ms */
+#define DUB_TAPE_SLEW (FS / 2)  /* the head's move: half the tape a second (the bend
+                                 * rides to half or one and a half, held while it walks) */
 static int32_t dly_cur;         /* the gliding read time, samples */
+static int32_t dly_a, dly_b;    /* the block's read time at its first and last sample:
+                                 * the head travels evenly between the two (1.0) */
 static uint32_t tape_wow, tape_fl;
 
-static void tape_time(int32_t *w0, int32_t *w1)   /* the read time and the offset ramp */
+static void tape_time(int32_t *w0, int32_t *w1, uint32_t n)   /* the read time and the offset ramp */
 {
     int32_t dl_t = (int32_t)delay_samples();
     if (dub_enabled) {
+        int32_t step;
         if (!dub_dly_sync)                          /* SYNC off: the free ms rules */
             dl_t = (int32_t)(((int64_t)dub_dly_ms * FS) / 1000);
         if (dl_t < 64)
             dl_t = 64;                              /* the wow needs room behind the head */
         if (!dly_cur)                               /* DUB just on: it starts there, no glide from 0 */
             dly_cur = dl_t;
-        dly_cur += (dl_t - dly_cur) >> 4;           /* the tape's sag: the time glides */
-        if (dly_cur > dl_t - 8 && dly_cur < dl_t + 8)
-            dly_cur = dl_t;
+        dly_a = dly_cur;                            /* the block reads from where the head sits */
+        step = (int32_t)(((int64_t)n * DUB_TAPE_SLEW) / FS);   /* the head's move this block */
+        if (step < 1)
+            step = 1;
+        if (dly_cur < dl_t) {
+            dly_cur += step;
+            if (dly_cur > dl_t)
+                dly_cur = dl_t;
+        } else if (dly_cur > dl_t) {
+            dly_cur -= step;
+            if (dly_cur < dl_t)
+                dly_cur = dl_t;
+        }
+        dly_b = dly_cur;
         *w0 = ((osc_sine(tape_wow) * DUB_WOW_DEP) >> 15) + ((osc_sine(tape_fl) * DUB_FLT_DEP) >> 15);
         tape_wow += DUB_WOW_INC;                    /* one step a block, as the chorus's LFO:
                                                      * w1 is the next block's start */
@@ -232,12 +252,21 @@ static void tape_time(int32_t *w0, int32_t *w1)   /* the read time and the offse
         *w1 = ((osc_sine(tape_wow) * DUB_WOW_DEP) >> 15) + ((osc_sine(tape_fl) * DUB_FLT_DEP) >> 15);
     } else {
         dly_cur = dl_t;
+        dly_a = dly_b = dl_t;                       /* no tape: the time sits, bit for bit */
         *w0 = *w1 = 0;
     }
     if (dly_cur < 16)
         dly_cur = 16;
     if (dly_cur >= (int32_t)DLY_LEN)
         dly_cur = (int32_t)DLY_LEN - 1;
+    if (dly_a < 16)
+        dly_a = 16;
+    if (dly_a >= (int32_t)DLY_LEN)
+        dly_a = (int32_t)DLY_LEN - 1;
+    if (dly_b < 16)
+        dly_b = 16;
+    if (dly_b >= (int32_t)DLY_LEN)
+        dly_b = (int32_t)DLY_LEN - 1;
 }
 
 /* process the three buses for one block; sends in, wet out (stereo). The LFOs (chorus, reverb line)
@@ -247,9 +276,10 @@ static void fx_buses(const int32_t *cho_in, const int32_t *dly_in, const int32_t
                      int32_t *wet_r, uint32_t n)
 {
     uint32_t i, k;
-    int32_t dl, w0, w1, dw, tape;
-    tape_time(&w0, &w1);
-    dl = dly_cur;                                      /* the clamped read time tape_time left */
+    int32_t dl, w0, w1, dw, dr, tape;
+    tape_time(&w0, &w1, n);
+    dl = dly_a;                                        /* the block reads from the head's first sample */
+    dr = ((dly_b - dl) << 8) / (int32_t)n;             /* the head's walk, Q8 a sample (1.0) */
     dw = (w1 - w0) >> CTL_LOG2;                        /* the offset's ramp across the block */
     tape = dub_enabled;                                /* the tape's coloring follows the module */
     int32_t fb = song.g[G_DFDBK] * 230, col = 2000 + song.g[G_DCOLOR] * 240;
@@ -289,7 +319,7 @@ static void fx_buses(const int32_t *cho_in, const int32_t *dly_in, const int32_t
         /* delay with a low-passed feedback (in the middle); the read is fractional (the
          * chorus's way): the tape's wow rides the offset's fraction, DUB off it is still */
         {
-            int32_t ro = (dl << 8) + w0 + dw * (int32_t)i, s0, s1;
+            int32_t ro = (dl << 8) + w0 + (dw + dr) * (int32_t)i, s0, s1;   /* the head walks through the block */
             uint32_t i0 = (uint32_t)ro >> 8;
             s0 = dly_buf[(fx.dly_w - i0) & (DLY_LEN - 1u)];
             s1 = dly_buf[(fx.dly_w - i0 - 1u) & (DLY_LEN - 1u)];

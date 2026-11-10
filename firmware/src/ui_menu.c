@@ -428,6 +428,7 @@ UI_SMALL static void draw_menu(void)
                    dub_menu_chord * 6700463u + dub_menu_preset * 6700467u + dub_filter_get() * 6700471u +
                    dub_send * 6700483u + dub_dly_ms * 6700487u + dub_dly_sync * 6700491u +
                    song.g[G_DFDBK] * 6700529u + song.g[G_DTIME] * 6700537u +
+                   song.g[G_DMIX] * 6700609u + song.g[G_BPM] * 6700651u + dub_menu_siren * 6700621u +
                    dub_menu_root * 6700499u + dub_menu_oct * 6700503u + dub_menu_vel * 6700509u +
                    dub_menu_riddim * 6700541u + dub_menu_rbass * 6700547u +
                    dub_menu_rskank * 6700551u + dub_menu_rdrum * 6700557u + dub_sequence.length * 6700563u +

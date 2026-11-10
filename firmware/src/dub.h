@@ -16,20 +16,15 @@ enum {
 };
 
 typedef struct {
-    int16_t cutoff_hz;
-    int8_t gain_db;
-    int8_t eq_freq;
-    uint8_t eq_q;
-    int8_t eq_db;
-    uint8_t mute;
+    int8_t gain_db;                               /* -24 .. +12 dB, the ISO page's knob */
+    uint8_t mute;                                 /* OCT+ on the band's row: the band out (its gain kept) */
 } dub_band_param_t;
 
 typedef struct {
     dub_band_param_t p[DUB_BANDS];
     int32_t xover[3];
-    int32_t eq_fast[DUB_BANDS];
-    int32_t eq_slow[DUB_BANDS];
-    int32_t lp[DUB_BANDS];
+    int32_t lp[12];            /* (1.0) the ladder: three crossovers, two poles each, both channels */
+    int32_t g_cur[DUB_BANDS];  /* the gains as they glide — a mute or a knob move takes ~12 ms, no click */
     uint8_t enabled;
     uint8_t mix;
 } dub_isolator_t;

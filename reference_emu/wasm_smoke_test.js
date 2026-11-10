@@ -62,6 +62,30 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     for (let i = 0; i < 8; i++) render(256);
     const rWet = rms(render(256));
 
+    /* (1.0) the band mutes cut the frequencies they own: the note at 262 Hz lives in
+     * BASS — muting it silences the note (the ladder's leaks stay, small), keeping it
+     * while the other three bands mute keeps the note. Before, the crossover's
+     * coefficients sat ~100x low and only TOPS ever carried the sound. */
+    e.emu_dub_siren_level(0);
+    e.emu_dub_band(0, 0, 0);
+    e.emu_dub_band(1, 0, 0);
+    e.emu_dub_band(2, 0, 0);
+    e.emu_dub_band(3, 0, 0);
+    for (let i = 0; i < 16; i++) render(256);      /* the gains glide, the filters settle */
+    const rAll = rmsN(8);
+    e.emu_dub_band(1, 0, 1);                        /* BASS out: the note goes */
+    for (let i = 0; i < 8; i++) render(256);
+    const rNoBass = rmsN(8);
+    e.emu_dub_band(1, 0, 0);
+    e.emu_dub_band(0, 0, 1);
+    e.emu_dub_band(2, 0, 1);
+    e.emu_dub_band(3, 0, 1);
+    for (let i = 0; i < 8; i++) render(256);
+    const rOnlyBass = rmsN(8);
+    if (!(rNoBass < rAll * 0.5)) throw new Error('BASS mute does not cut: ' + rNoBass + ' vs ' + rAll);
+    if (!(rOnlyBass > rAll * 0.6)) throw new Error('BASS alone does not keep the note: ' + rOnlyBass + ' vs ' + rAll);
+    console.log('band mutes cut ..... OK (all ' + rAll.toFixed(4) + ', BASS out ' + rNoBass.toFixed(4) + ', only BASS ' + rOnlyBass.toFixed(4) + ')');
+
     /* siren only, as the NJD boxes play it: square wave, exponential wail, into the delay */
     e.emu_midi(NOFF(60));
     e.emu_dub_siren_type(0);           /* WAIL */

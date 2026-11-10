@@ -42,22 +42,18 @@ static uint32_t dub_hz_inc(uint32_t hz)
 void dub_isolator_init(dub_isolator_t *d)
 {
     static const int32_t xo[3] = {90, 420, 2600};
-    static const int16_t cuts[4] = {90, 180, 1000, 4200};
     uint32_t i;
     d->enabled = 0;
     d->mix = 127;
     for (i = 0; i < 3; i++)
         d->xover[i] = xo[i];
     for (i = 0; i < DUB_BANDS; i++) {
-        d->p[i].cutoff_hz = cuts[i];
         d->p[i].gain_db = 0;
-        d->p[i].eq_freq = 64;
-        d->p[i].eq_q = 64;
-        d->p[i].eq_db = 0;
         d->p[i].mute = 0;
-        d->eq_fast[i] = d->eq_slow[i] = 0;
-        d->lp[i] = 0;
+        d->g_cur[i] = 0;
     }
+    for (i = 0; i < 12; i++)
+        d->lp[i] = 0;
 }
 
 void dub_isolator_set_band(dub_isolator_t *d, uint32_t band, dub_band_param_t p)
@@ -66,8 +62,6 @@ void dub_isolator_set_band(dub_isolator_t *d, uint32_t band, dub_band_param_t p)
         return;
     d->p[band] = p;
     d->p[band].gain_db = (int8_t)dub_clamp(d->p[band].gain_db, -24, 12);
-    d->p[band].eq_db = (int8_t)dub_clamp(d->p[band].eq_db, -12, 12);
-    d->p[band].eq_q = (uint8_t)dub_clamp(d->p[band].eq_q, 1, 127);
 }
 
 static int32_t dub_gain(int8_t db)
@@ -83,54 +77,74 @@ static int32_t dub_gain(int8_t db)
     return g;
 }
 
-static int32_t dub_lowpass(int32_t x, int32_t *state, int32_t hz)
-{
-    int32_t a = dub_clamp((hz * 2100) / (int32_t)FS, 1, 32700);
-    *state += dub_mul15(x - *state, a);
-    return *state;
-}
-
+/* (1.0) the isolator, whole and stereo. What was wrong: the crossover's one-pole
+ * coefficient sat ~100x too low (hz*2100/FS gives 4 of 32767 at 90 Hz), so SUB, BASS
+ * and MIDS came out near silence and TOPS, the unfiltered rest, carried the whole
+ * signal — turning one knob or muting a band only ever did what TOPS does, which is
+ * what the user heard. Now: a ladder of one-pole stages a channel, three crossovers
+ * at 90, 420 and 2600 Hz — SUB below 90, BASS 90..420, MIDS 420..2600, TOPS above —
+ * each crossover lowpassing twice, the highpass the input minus its lowpass (a true
+ * zero at DC, no phase leak between the bands), so a mute really cuts the band's
+ * frequencies. The gains are found once a block and glide (~12 ms) so a mute or a
+ * knob move never clicks; the EQ's dead weight (never reachable from any page) is
+ * gone from the struct and the loop. */
 void dub_isolator_process(dub_isolator_t *d, int32_t *left, int32_t *right, uint32_t n)
 {
-    uint32_t i, b, live = 0;
+    uint32_t i, b, ch, live = 0;
+    int32_t gains[DUB_BANDS], k[3];
     if (!d->enabled || !d->mix)
         return;
-    for (b = 0; b < DUB_BANDS; b++)                /* (2.9.11) every knob at rest: the module stands
-                                                    * aside and the original passes bit for bit —
-                                                    * the stereo kept, no smoother's colour */
-        if (d->p[b].gain_db || d->p[b].eq_db || d->p[b].mute) {
+    for (b = 0; b < DUB_BANDS; b++)
+        if (d->p[b].gain_db || d->p[b].mute) {
             live = 1;
             break;
         }
     if (!live)
-        return;
+        return;                              /* (2.9.11) every knob at rest: the original passes
+                                              * bit for bit, the stereo kept */
+    for (b = 0; b < DUB_BANDS; b++) {        /* the gains once a block, gliding to their target */
+        int32_t g = d->p[b].mute ? 0 : dub_gain(d->p[b].gain_db);
+        int32_t cur = d->g_cur[b], st = (g - cur) >> 3;
+        if (!st)
+            st = g > cur ? 1 : g < cur ? -1 : 0;
+        d->g_cur[b] = cur + st;
+        gains[b] = d->g_cur[b];
+    }
+    for (b = 0; b < 3; b++) {                /* the crossover's a, Q15 ~ 2*pi*fc/fs */
+        int32_t a = (int32_t)(((int64_t)d->xover[b] * 205887) / (int32_t)FS);
+        if (a < 1)
+            a = 1;
+        if (a > 16000)
+            a = 16000;
+        k[b] = a;
+    }
     for (i = 0; i < n; i++) {
         int32_t in_l = left[i], in_r = right[i];
-        int32_t mono = (in_l + in_r) >> 1;
-        int32_t low = dub_lowpass(mono, &d->lp[DUB_SUB], d->xover[0]);
-        int32_t low_mid = dub_lowpass(mono - low, &d->lp[DUB_BASS], d->xover[1]);
-        int32_t mid = dub_lowpass(mono - low - low_mid, &d->lp[DUB_MIDS], d->xover[2]);
-        int32_t bands[DUB_BANDS];
-        int32_t wet_l = 0, wet_r = 0;
-        bands[DUB_SUB] = low;
-        bands[DUB_BASS] = low_mid;
-        bands[DUB_MIDS] = mid;
-        bands[DUB_TOPS] = mono - low - low_mid - mid;
-        for (b = 0; b < DUB_BANDS; b++) {
-            int32_t out = bands[b];                /* (2.9.11) the band out: itself, or its EQ laid on
-                                                    * once — the smoothers shape the EQ's reference
-                                                    * only, they never filter the sound again */
-            int32_t q = d->p[b].eq_q + 1;
-            d->eq_fast[b] += (bands[b] - d->eq_fast[b]) / q;
-            d->eq_slow[b] += (d->eq_fast[b] - d->eq_slow[b]) >> 4;
-            if (d->p[b].eq_db)
-                out += (bands[b] - d->eq_slow[b]) * d->p[b].eq_db / 24;
-            if (!d->p[b].mute)
-                wet_l += dub_mul15(out, dub_gain(d->p[b].gain_db));
+        int32_t wet;
+        for (ch = 0; ch < 2u; ch++) {
+            int32_t x = ch ? in_r : in_l;
+            int32_t *st = &d->lp[ch * 6];
+            int32_t h1, h3, band[DUB_BANDS];
+            st[0] += dub_mul15(x - st[0], k[0]);
+            h1 = x - st[0];                          /* above 90 Hz, one pole */
+            st[1] += dub_mul15(st[0] - st[1], k[0]);
+            band[DUB_SUB] = st[1];                   /* below 90 Hz, two poles */
+            st[2] += dub_mul15(h1 - st[2], k[1]);
+            h3 = h1 - st[2];                         /* above 420 Hz, two poles on */
+            st[3] += dub_mul15(st[2] - st[3], k[1]);
+            band[DUB_BASS] = st[3];                  /* 90..420 */
+            st[4] += dub_mul15(h3 - st[4], k[2]);
+            band[DUB_TOPS] = h3 - st[4];             /* above 2600 Hz, three poles on */
+            st[5] += dub_mul15(st[4] - st[5], k[2]);
+            band[DUB_MIDS] = st[5];                  /* 420..2600 */
+            wet = 0;
+            for (b = 0; b < DUB_BANDS; b++)
+                wet += dub_mul15(band[b], gains[b]);
+            if (ch)
+                right[i] = in_r + ((wet - in_r) * d->mix >> 7);
+            else
+                left[i] = in_l + ((wet - in_l) * d->mix >> 7);
         }
-        wet_r = wet_l;
-        left[i] = in_l + ((wet_l - in_l) * d->mix >> 7);
-        right[i] = in_r + ((wet_r - in_r) * d->mix >> 7);
     }
 }
 

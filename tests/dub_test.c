@@ -20,7 +20,7 @@ int main(void)
     dub_siren_t siren;
     dub_seq_t seq;
     dub_skank_t skank = {0, 0, 4, 100};
-    dub_band_param_t band = {180, 6, 64, 32, 6, 0};
+    dub_band_param_t band = {6, 0};
     uint8_t notes[DUB_SKANK_MAX_NOTES];
     int32_t left[256], right[256];
     uint32_t i;
@@ -31,8 +31,7 @@ int main(void)
           "isolator crossover defaults");
     check(iso.mix == 127, "isolator wet mix defaults to full");
     dub_isolator_set_band(&iso, DUB_BASS, band);
-    check(iso.p[DUB_BASS].gain_db == 6 && iso.p[DUB_BASS].eq_db == 6,
-          "band gain and parametric values");
+    check(iso.p[DUB_BASS].gain_db == 6, "band gain kept (clamped by set_band)");
     memset(left, 0, sizeof left);
     memset(right, 0, sizeof right);
     for (i = 0; i < 256; i++)
@@ -60,6 +59,71 @@ int main(void)
     dub_isolator_process(&iso, left, right, 256);
     check(left[255] == 255 * 80 && right[0] == 255 * 80,
           "isolator at rest: the untouched stereo passes, no hidden filter");
+
+    {   /* (1.0) each band really carries its frequencies: a sine deep in a band, muted,
+         * leaves less than half the sound. The old crossover's coefficients sat ~100x
+         * too low: SUB, BASS and MIDS came out near silence and TOPS carried everything
+         * — the knobs and the mutes seemed dead. The gains glide per block, so the test
+         * feeds blocks like the audio path does, and measures after the settle. */
+        static int32_t l[128], r[128];
+        static const uint32_t f[4] = {40, 200, 1200, 8000};   /* a sine deep in each band */
+        uint32_t band;
+        for (band = 0; band < DUB_BANDS; band++) {
+            uint64_t full = 0, cut = 0;
+            uint32_t ph = 0, inc = dub_hz_inc(f[band]), n, k;
+            dub_isolator_init(&iso);
+            iso.enabled = 1;                                  /* the band on, the others at rest */
+            for (k = 0; k < 64u; k++) {                       /* 64 blocks, the glide settles */
+                for (n = 0; n < 128u; n++) {
+                    int32_t s = dub_sine(ph);
+                    ph += inc;
+                    l[n] = r[n] = s;
+                }
+                dub_isolator_process(&iso, l, r, 128);
+                if (k >= 32u)                                 /* 4096 samples: 3.7 periods of 40 Hz */
+                    for (n = 0; n < 128u; n++)
+                        full += (uint32_t)(l[n] < 0 ? -l[n] : l[n]);
+            }
+            iso.p[band].mute = 1;                             /* the mute: the band out */
+            for (k = 0; k < 64u; k++) {
+                for (n = 0; n < 128u; n++) {
+                    int32_t s = dub_sine(ph);
+                    ph += inc;
+                    l[n] = r[n] = s;
+                }
+                dub_isolator_process(&iso, l, r, 128);
+                if (k >= 32u)
+                    for (n = 0; n < 128u; n++)
+                        cut += (uint32_t)(l[n] < 0 ? -l[n] : l[n]);
+            }
+            check(cut * 2 < full, "isolator: the band's mute cuts its sine");
+        }
+        {   /* and with the knobs engaged but all at 0 dB, a sine deep in its band passes
+             * at ~unity (the series crossovers ripple a little around 90/420/2600, so
+             * the sines sit well inside their bands) */
+            static const uint32_t fc[4] = {40, 200, 1200, 8000};
+            uint32_t ph = 0, b2;
+            for (b2 = 0; b2 < DUB_BANDS; b2++) {
+                uint32_t mx = 0, n, k;
+                dub_isolator_init(&iso);
+                iso.enabled = 1;
+                for (k = 0; k < 128u; k++) {
+                    for (n = 0; n < 64u; n++) {
+                        int32_t s = dub_sine(ph);
+                        ph += dub_hz_inc(fc[b2]);
+                        l[n] = r[n] = s;
+                    }
+                    dub_isolator_process(&iso, l, r, 64);
+                    if (k >= 96u)                       /* two periods of 40 Hz: the peak seen */
+                        for (n = 0; n < 64u; n++)
+                            if ((uint32_t)(l[n] < 0 ? -l[n] : l[n]) > mx)
+                                mx = (uint32_t)(l[n] < 0 ? -l[n] : l[n]);
+                }
+                check(mx * 20u > 65534u * 13u && mx * 20u < 65534u * 25u,
+                      "isolator: the band's sine passes, the knobs at 0 dB");
+            }
+        }
+    }
 
     dub_siren_init(&siren);
     check(siren.freq_hz == 740 && siren.depth == 96 && siren.rate == 8,

@@ -1,0 +1,9 @@
+{
+  "what": "The SLOOP groovebox for the M-VAVE FM-1, forked for dub: a three-band isolator with mute bands, a bipolar DJ filter, per-track echo throws, a tape echo with free time or synced divisions, an independent siren voice, skank, accents and slides — over the base SLOOP engines, kits and FM6.",
+  "author": "altessproduction",
+  "kinds": ["groove"],
+  "play": "https://altessproduction.github.io/sloop-dub-fm1/dub/",
+  "editor": "https://altessproduction.github.io/sloop-dub-fm1/webapp/editor/",
+  "image": "assets/hub-card.png",
+  "color": "#1ECC70"
+}

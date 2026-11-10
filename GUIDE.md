@@ -85,9 +85,9 @@ Everything from 2.7 is unchanged and still here. Projects, autosaves and backups
 
 ## 1. Install and update
 
-**From the browser (recommended).** Open the [installer page](https://isod89.github.io/sloop-fm1/) in **Chrome or Edge**, connect the FM-1 by USB (a data cable, plugged straight in, no hub), press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP logo.
+**From the browser (recommended).** Open the [installer page](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/) in **Chrome or Edge**, connect the FM-1 by USB (a data cable, plugged straight in, no hub), press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub logo.
 
-**From the source folder (Windows).** Double-click **`INSTALL-SLOOP.bat`**: it builds the firmware and opens the installer at `http://localhost:8766/webapp/installer/`. Keep the black window open until the install is done. **`OPEN-EDITOR.bat`** opens the web editor.
+**From the source folder.** Build with `./build.sh` (see [BUILDING.md](BUILDING.md)) — the installer page serves the ready-made package, so building is only for development.
 
 **Updating** keeps your projects, presets, samples, kits and settings. The installer checks the package (SHA-256), SLOOP's update loader checks it again (CRC) before it starts the new firmware, and a damaged package is refused before anything is written.
 
@@ -1234,7 +1234,7 @@ Every change goes to the FM-1 at once, and the grid shows the same steps.
 
 **Import MIDI** reads a MIDI file into the selected track, at its DIV. First a preview: the file's track to take, how many notes and steps, and what changes on the way: notes off the grid moved to the nearest step, more than 4 notes on a step (the loudest kept), a note cut short by the next one, notes past step 64. **Import** replaces the track's pattern (and, ticked, sets its length); **Cancel** leaves it as it was. On the drum track, the GM notes go to the lanes (36 kick, 38 snare, 42 hat…) and the velocity to the levels, ghost to hard.
 
-The editor writes presets, the FM6 bank and backups to flash only while the song is stopped, as the FM-1 does (it asks you to stop first). Try it without hardware: add `?mock=1` to the editor's address. The protocol is documented in [web/EDITOR_PROTOCOL.md](web/EDITOR_PROTOCOL.md).
+The editor writes presets, the FM6 bank and backups to flash only while the song is stopped, as the FM-1 does (it asks you to stop first). Try it without hardware: add `?mock=1` to the editor's address. 
 
 ---
 

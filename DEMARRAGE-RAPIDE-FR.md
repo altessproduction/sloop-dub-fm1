@@ -18,7 +18,7 @@ Le guide complet, chaque bouton, combinaison et page, avec un aide-mémoire d'un
 
 ## Installer
 
-1. Double-clique **`INSTALL-SLOOP.bat`** dans le dossier SLOOP : il compile le firmware et ouvre l'installateur sur `http://localhost:8766/webapp/installer/`.
+1. Ouvre **[la page d'installation](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/)** (elle sert le paquet SLOOP Dub ; celle du SLOOP de base est [celle d'isod89](https://isod89.github.io/sloop-fm1/)).
 2. Dans **Chrome ou Edge**, branche le FM-1 en USB (câble de données, directement, sans hub).
 3. **INSTALL**, autorise le MIDI, attends *Done*. Garde la fenêtre noire ouverte jusque-là.
 

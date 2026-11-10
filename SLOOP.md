@@ -202,7 +202,7 @@ Projects, autosaves and backups from 2.4 load as they are. Going back to 2.4: a 
 
 ## Install
 
-1. Double-click **`INSTALL-SLOOP.bat`** in the SLOOP folder. It builds the firmware and opens the installer at `http://localhost:8766/webapp/installer/`.
+1. Open **[the installer page](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/)** (it serves the SLOOP Dub package; the base SLOOP's is [isod89's](https://isod89.github.io/sloop-fm1/)). To build from source, see [BUILDING.md](BUILDING.md).
 2. In **Chrome or Edge**, connect the FM-1 to the computer by USB (a data cable, directly — no hub).
 3. Press **INSTALL**, allow MIDI access, and wait for *Done*. Keep the black window open until then.
 
@@ -533,7 +533,7 @@ It looks like the FM-1 (its black screen, the four track colours, its own Termin
 - **Library**, **Samples** (with CHOP), **Drum kit** (your own kits, [above](#your-own-drum-kits-kit-usr1usr4-usr34)), **Projects**, **Settings** (GLOBAL, **MASTER**: DUST, DUCK, FILT, ROLL; DRUMS).
 - **Backup** (Projects tab): **Save a backup** writes everything on the FM-1 to one file (SLOOP-backup-DATE.json): the music you are working on, the sections A–D, the 32 user presets, the FM6 bank, the samples USR1–USR4 (your drum kits with them) and the settings (colours, calibration, the song order, the lights, SYNC, MIDI OUT). **Restore from a file** puts it all back — what is on the FM-1 is replaced. A damaged file is refused before anything is written, every object is checked as a load checks it, and each one is written as a save writes it (a cut-off restore never leaves half an object). Stop the song (PLAY) before restoring.
 
-The protocol is documented in [web/EDITOR_PROTOCOL.md](web/EDITOR_PROTOCOL.md) (v9). The editor writes presets and the FM6 bank to flash only while the song is stopped, as the FM-1 does.
+The editor writes presets and the FM6 bank to flash only while the song is stopped, as the FM-1 does.
 
 ## Sound design pages
 

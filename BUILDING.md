@@ -1,4 +1,4 @@
-# Building SLOOP
+# Building SLOOP Dub
 
 The build makes three files in `build/`:
 
@@ -7,14 +7,6 @@ The build makes three files in `build/`:
 | `felucca.bin` | the firmware app |
 | `loader/ota.bin` | the update loader |
 | `felucca.fwsc` | the installable package (app + loader) |
-
-## Windows (WSL)
-
-`INSTALL-SLOOP.bat` builds in a WSL distribution and opens the installer on
-`http://localhost:8766/webapp/installer/`. It needs Python 3 with Pillow on Windows, a WSL
-distribution with the JieLi toolchain, and the three SDK files (below) in `build/deps/ac79`.
-Set `SLOOP_WSL_DISTRO` (default `Ubuntu`) and `SLOOP_TOOLCHAIN` (a Linux path, default
-`/root/.jieli/toolchain`) if yours differ.
 
 ## Prerequisites (macOS)
 
@@ -69,71 +61,28 @@ The CC0 instrument samples that the SAMPLE engine uses are in `assets/samples-cc
 again from the source repositories. Without that folder the build still works and the
 SAMPLE engine has only the generated drum kit.
 
-## Tests
+## The browser emulator
 
-```
-tests/run_tests.sh
-```
-
-Runs the host tests (flash storage, user presets, MIDI parser, update entry, update
-loader, a DSP render, the 4-track mix, project formats, the SLICER, the regression suite,
-the command-line installer) and, with Node.js, the web page tests. Run it after `./build.sh`
-(it uses `build/` and needs `AC79_SDK` set as for the build).
-
-The regression suite (`tests/regress.c`) renders every engine and preset and compares a
-hash of each render with `tests/golden.txt`; it also checks levels, voices and the CPU
-cost (`tests/cpu_baseline.txt`, `tests/target_budget.txt`). The host CPU cost is relative
-to the idle + drums mix, counted by the kernel on macOS and under callgrind on Linux when
-valgrind is installed (exact, about 45 s more); without either it is timed, a rough check.
-After an intended change of the sound, `GOLDEN_UPDATE=1 sh tests/run_tests.sh` rewrites
-the hashes; `BUDGET_UPDATE=1` does the same for the cost files.
-
-## Browser audio preview
-
-The browser preview uses the firmware's DSP and sequencer with RAM-backed user samples.
-It requires Python 3, a host C compiler, Node.js for tests, and Emscripten (`brew install emscripten` on macOS).
-It does not need the JieLi toolchain, AC79 SDK, Docker, or an FM-1.
+The playable web emulator (the real firmware compiled to WebAssembly) is rebuilt with:
 
 ```sh
-python3 tools/build_preview.py
-tests/run_preview_tests.sh
+sh reference_emu/build.sh          # clang + lld wasm32, no emscripten
+node reference_emu/wasm_smoke_test.js docs/dub/sloop.wasm
 ```
 
-The build produces `build/preview/sloop-preview.wasm`. The tests compare all twelve engines sample by sample
-against the same adapter compiled for the host and verify sequencing, live mixer changes, stop, and user samples.
-`web/make_site.py` includes the preview and caches it for the site app when the WASM build is present:
-
-```sh
-# Use a release package downloaded from isod89/sloop-fm1, or your own firmware build.
-python3 web/make_site.py build/releases/sloop-2.6.fwsc 2.6 build/site
-python3 -m http.server 8766 --bind 127.0.0.1 --directory build/site
-```
-
-Open `http://localhost:8766/webapp/editor/?mock=1`, **Connect**, then **Play loop** to hear all four tracks.
-**Show preview** opens the piano/pads, volume and editable sequence; **Hide preview** folds them while
-playback continues. The piano keys and labeled computer keys audition the selected track.
-The audio controls are available only in simulated mode. The physical-device editor continues to use Web MIDI.
-The standalone downloaded HTML editor does not include the WASM asset.
+It refreshes `docs/dub/` (the GitHub Pages copy) with the new binary and page.
+The smoke test is the shipped check: exports, the dub audio path, the band mutes,
+the riddim bank and a real transport play.
 
 ## Install
 
-On Windows, `INSTALL-SLOOP.bat` builds and opens the web installer (Chrome or Edge). The
-`.fwsc` of each release is on the GitHub releases page.
+The `.fwsc` of each release is on the GitHub releases page and in `docs/firmware/`.
 
 From the command line (needs `pip3 install mido python-rtmidi`):
 
 ```
 python3 tools/fm1_install.py build/felucca.fwsc
 python3 tools/fm1_install.py --info          # identity of the connected FM-1
-```
-
-Or, to install your own build from the web installer, make a local copy of the site and open it from `localhost`
-(Web MIDI needs a secure context):
-
-```
-python3 web/make_site.py build/felucca.fwsc dev /tmp/felucca-site
-cd /tmp/felucca-site && python3 -m http.server 8000
-# open http://localhost:8000/webapp/installer/
 ```
 
 Installing firmware is at your own risk. If an install fails and the FM-1 no longer

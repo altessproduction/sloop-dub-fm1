@@ -31,7 +31,9 @@ static int32_t dub_sine(uint32_t phase)
         y = 32767 - y;
     if (q & 2u)
         y = -y;
-    return y << 1;
+    return (int32_t)((uint32_t)y << 1);            /* the shift unsigned: y is negative half
+                                                    * the time and a signed left shift is
+                                                    * none of the standard's business */
 }
 
 static uint32_t dub_hz_inc(uint32_t hz)
@@ -85,7 +87,11 @@ static int32_t dub_gain(int8_t db)
 
 static int32_t dub_lowpass(int32_t x, int32_t *state, int32_t hz)
 {
-    int32_t a = dub_clamp((hz * 2100) / (int32_t)FS, 1, 32700);
+    int32_t a = dub_clamp((hz * 205887) / (int32_t)FS, 1, 32700);   /* 2 pi in Q15 a hertz: 90/420/2600 Hz
+                                                                     * land where the crossovers say (2.9.17:
+                                                                     * 2100 put them a hundred times lower,
+                                                                     * the SUB BASS MIDS bands stood empty
+                                                                     * and TOPS carried the whole signal) */
     *state += dub_mul15(x - *state, a);
     return *state;
 }
@@ -281,7 +287,9 @@ static const int32_t DUB_EXP2[32] = {
 static int32_t dub_exp2(int32_t x)
 {
     int32_t i = x >> 15;                           /* arithmetic shift: the floor, also for x < 0 */
-    uint32_t f = (uint32_t)(x - (i << 15)) >> 10;  /* the fraction, 0..31 */
+    uint32_t f = ((uint32_t)x & 0x7FFFu) >> 10;    /* the fraction, 0..31: x - floor(x) is x's
+                                                    * low fifteen bits, so no shift of a
+                                                    * negative i (2.9.17: the UBsan saw one) */
     return i >= 0 ? (int32_t)DUB_EXP2[f] << i : (int32_t)DUB_EXP2[f] >> -i;
 }
 

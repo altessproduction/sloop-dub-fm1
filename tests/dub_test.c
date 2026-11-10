@@ -14,6 +14,33 @@ static void check(int ok, const char *name)
         fails++;
 }
 
+/* the settled amplitude a sine keeps when only the bands the mask does not mute come
+ * back (the rest of the bands muted, every gain at 0, the mix full): the split's own
+ * fingerprint, probed low and high (2.9.17's crossover regression) */
+static double iso_band_ratio(uint32_t mask, uint32_t hz)
+{
+    int32_t left[1024], right[1024];
+    dub_isolator_t iso;
+    uint32_t ph = 0, i, b;
+    double outamp = 0;
+    dub_isolator_init(&iso);
+    iso.enabled = 1;
+    for (b = 0; b < DUB_BANDS; b++)
+        iso.p[b].mute = (uint8_t)((mask >> b) & 1u);
+    for (i = 0; i < 1024; i++) {
+        int32_t s = dub_sine(ph);                  /* dub_sine's peak is 65534 */
+        ph += dub_hz_inc(hz);
+        left[i] = right[i] = s;
+    }
+    dub_isolator_process(&iso, left, right, 1024);
+    for (i = 512; i < 1024; i++) {                 /* the last half: the filters settled */
+        double a = left[i] < 0 ? -(double)left[i] : (double)left[i];
+        if (a > outamp)
+            outamp = a;
+    }
+    return outamp / 65534.0;
+}
+
 int main(void)
 {
     dub_isolator_t iso;
@@ -60,6 +87,16 @@ int main(void)
     dub_isolator_process(&iso, left, right, 256);
     check(left[255] == 255 * 80 && right[0] == 255 * 80,
           "isolator at rest: the untouched stereo passes, no hidden filter");
+
+    /* (2.9.17) the crossovers land where the panel says — the 1-pole split's coefficient
+     * was a hundred times low, so SUB BASS MIDS stood empty and TOPS carried the whole
+     * signal (muting cut nothing, the knobs moved nothing, TOPS moved everything).
+     * The mask's bit b mutes band b (DUB_SUB..DUB_TOPS); the ratio is the settled
+     * amplitude a sine keeps when only the un-muted bands come back (mix full). */
+    check(iso_band_ratio(0b1110, 45) > 0.5, "isolator: SUB alone keeps the bass (45 Hz)");
+    check(iso_band_ratio(0b0111, 30) < 0.2, "isolator: TOPS alone lacks the bass (30 Hz)");
+    check(iso_band_ratio(0b0111, 5000) > 0.3, "isolator: TOPS alone keeps the highs (5 kHz)");
+    check(iso_band_ratio(0b1110, 5000) < 0.1, "isolator: SUB alone lacks the highs (5 kHz)");
 
     dub_siren_init(&siren);
     check(siren.freq_hz == 740 && siren.depth == 96 && siren.rate == 8,

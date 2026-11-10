@@ -118,6 +118,15 @@ static void ppm(const char *name) {
     for(unsigned i=0;i<240*240;i++) { uint16_t p=swap16(screen[i]); uint8_t rgb[3]={(p>>11)*255/31,((p>>5)&63)*255/63,(p&31)*255/31}; fwrite(rgb,1,3,f); }
     fclose(f);
 }
+static uint32_t screen_hash(void)                /* whether the LCD actually changed its pixels */
+{
+    uint32_t i, h = 2166136261u;
+    for (i = 0; i < 240u * 240u; i++) {
+        h ^= screen[i];
+        h *= 16777619u;
+    }
+    return h;
+}
 /* one UI frame (~16 ms): the audio between (as the ISR does), then input, LEDs, draw */
 static void frame(void)
 {
@@ -134,6 +143,28 @@ static void frame(void)
     ui_input(); ui_leds(); ui_draw(); fm1_ms += 16;
 }
 static void frames(uint32_t n) { while (n--) frame(); }
+/* the left mix's zero crossings over nfr frames: the echo's pitch, read off the mix.
+ * The tape test runs it with the tracks' sends dry and the siren off, so what sounds
+ * is the delay's circulating loop alone */
+static int32_t echo_crossings(uint32_t nfr)
+{
+    static int32_t o[CTL * 2];
+    uint32_t q, k;
+    int32_t c = 0, prev = 0, first = 1;
+    for (q = 0; q < nfr; q++)
+        for (k = 0; k < 22u; k++) {
+            uint32_t s;
+            mix_block(o, CTL);
+            for (s = 0; s < CTL; s++) {
+                int32_t v = o[2 * s];
+                if (!first && ((prev <= 0) != (v <= 0)))
+                    c++;
+                prev = v;
+                first = 0;
+            }
+        }
+    return c;
+}
 static uint32_t BT(uint32_t b) { return 1u << panel.btn[b]; }
 static void press(uint32_t b) { edges_btn |= BT(b); fm1_in.buttons |= BT(b); frame(); }
 static void release(uint32_t b) { fm1_in.buttons &= ~BT(b); frame(); }
@@ -1400,6 +1431,87 @@ int main(int argc, char **argv)
             check(dub_dly_sync == 1u && song.g[G_DTIME] == 8, "menu DLY: OCT+ up: the mode still 1/4D, no toggle");
             dub_dly_set_sync(1);                       /* back to the tempo, the state the walk came with */
             song.g[G_DTIME] = dt0;
+        }
+        {   /* 2.9.17: the menu's value follows the knob — DLY LEVEL and SIREN LEVEL live
+               in the redraw signature now: a turn redraws the row even with the siren
+               down (before, the number sat wherever the last redraw had left it) */
+            uint32_t h0, h1;
+            ui.menu_sel = MI_DLY_LVL; ui.force = 1; frame();
+            h0 = screen_hash();
+            turns(panel.enc[EN_K1 + mi_row(ui.menu_sel)], 1);
+            h1 = screen_hash();
+            check(h1 != h0, "menu DLY: turning DLY LEVEL redraws its value (the display follows)");
+            ui.menu_sel = MI_SIR_LVL; ui.force = 1; frame();
+            h0 = screen_hash();
+            turns(panel.enc[EN_K1 + mi_row(ui.menu_sel)], 1);
+            h1 = screen_hash();
+            check(h1 != h0, "menu SR2: turning SIREN LEVEL redraws its value (OCT+ up, the display follows)");
+            ui.menu_sel = MI_DLY_TIME; ui.force = 1; frame();
+        }
+        {   /* 2.9.17: the tape's head — with a loop circulating in the delay, turning TIME
+               bends the loop's speed the tape's way: lengthen it and the echo drags (a
+               big pull stalls the tape dead), shorten it and it picks up (the 2x top);
+               parked, it plays straight again. The siren fills the loop: a steady 740 Hz
+               sine at full send, then off — what circulates is the echo alone */
+            uint8_t sv_dpt = dub_siren.depth, sv_wav = dub_siren.wave, sv_snd = dub_siren.send;
+            uint8_t sv_flt = (uint8_t)dub_filter_get(), sv_sy = dub_dly_sync;
+            uint16_t sv_frq = dub_siren.freq_hz, sv_ms = dub_dly_ms;
+            int16_t sv_fb = song.g[G_DFDBK], sv_mx = song.g[G_DMIX], sv_col = song.g[G_DCOLOR];
+            int16_t sd0 = trk[0].p[P_DLY], sd1 = trk[1].p[P_DLY], sd2 = trk[2].p[P_DLY], sd3 = trk[3].p[P_DLY];
+            int16_t sv_dr = song.g[G_DRDLY];
+            double pr, sr, fr, br;
+            int32_t park, stall, fast, back;
+            dub_enabled = 1;
+            dub_filter_set(64);                        /* the module neutral: the loop stays a plain sine */
+            for (i = 0; i < 4u; i++)
+                trk[i].p[P_DLY] = 0;                   /* the tracks stay out of the delay */
+            song.g[G_DRDLY] = 0;
+            dub_dly_set_sync(0);
+            dub_dly_set_ms(400);
+            song.g[G_DFDBK] = 120;                     /* the repeats hold: a loud loop to grab */
+            song.g[G_DMIX] = 127;
+            song.g[G_DCOLOR] = 100;                    /* the feedback bright: 740 Hz survives the round trips */
+            dub_siren_set_wave(&dub_siren, DUB_SIW_SIN);
+            dub_siren.depth = 0;                       /* a steady tone, no sweep */
+            dub_siren_set_freq(&dub_siren, 740);
+            dub_siren_set_send(&dub_siren, 127);
+            dub_siren_trigger(&dub_siren, 100);
+            frames(100);                               /* the loop circulates loud (1.6 s, four passes) */
+            dub_siren_trigger(&dub_siren, 0);          /* the voice off: its echo keeps looping */
+            frames(20);
+            park = echo_crossings(30);                 /* parked: 740 Hz twice over (~0.48 s) */
+            pr = park / 30.0;
+            check(pr > 10.0, "tape: a 740 Hz loop circulates in the delay (the park's crossings count)");
+            dub_dly_set_ms(1400);                      /* the big pull: the head can only crawl, the tape stalls */
+            stall = echo_crossings(10);
+            sr = stall / 10.0;
+            check(sr < pr * 0.25, "tape: 400 -> 1400 MS stalls the loop (the echo's pitch held, speed 0)");
+            frames(56);                                /* the glide ends (~1.0 s), the head resumes */
+            back = echo_crossings(10);                 /* inside the 400 ms of loop still ahead of it */
+            br = back / 10.0;
+            check(br > pr * 0.5 && br < pr * 1.8, "tape: parked at 1400 MS the loop plays straight again");
+            dub_siren_trigger(&dub_siren, 100);        /* the stall wiped what lay ahead of the head:
+                                                        * the siren fills a fresh loop where it is */
+            frames(100);
+            dub_siren_trigger(&dub_siren, 0);
+            frames(10);
+            park = echo_crossings(20);
+            pr = park / 20.0;
+            check(pr > 10.0, "tape: a fresh loop fills where the head stands (1400 MS)");
+            dub_dly_set_ms(100);                       /* the grab the other way: the tape's top speed */
+            fast = echo_crossings(10);                 /* wholly inside the 2x glide (81 frames long) */
+            fr = fast / 10.0;
+            check(fr > pr * 1.4, "tape: 1400 -> 100 MS picks the loop up (speed 2, the pitch sweeps up)");
+            dub_dly_set_ms(sv_ms);
+            dub_dly_set_sync(sv_sy);
+            song.g[G_DFDBK] = sv_fb; song.g[G_DMIX] = sv_mx; song.g[G_DCOLOR] = sv_col;
+            song.g[G_DRDLY] = sv_dr;
+            trk[0].p[P_DLY] = sd0; trk[1].p[P_DLY] = sd1; trk[2].p[P_DLY] = sd2; trk[3].p[P_DLY] = sd3;
+            dub_filter_set(sv_flt);
+            dub_siren.depth = sv_dpt; dub_siren.wave = sv_wav;
+            dub_siren_set_freq(&dub_siren, sv_frq);
+            dub_siren_set_send(&dub_siren, sv_snd);
+            dub_siren_trigger(&dub_siren, 0);
         }
 
         turns(panel.enc[EN_SELECT], 1);

@@ -853,7 +853,7 @@ UI_SMALL static void mi_set(uint32_t i, int32_t s)
             *v = (int16_t)(*v ? 0 : 64);
         break;
     }
-    case MI_RD_SEL:                                    /* the ten riddims, round; OCT+ loads the whole */
+    case MI_RD_SEL:                                    /* the twenty-two riddims, round; OCT+ loads the whole */
         if (s > 0)
             dub_menu_riddim = (uint8_t)((dub_menu_riddim + 1u) % DUB_RIDDIM_COUNT);
         else if (s < 0)

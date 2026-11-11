@@ -68,8 +68,8 @@ typedef struct {
     uint8_t velocity[DUB_TRK_N][64];
 } dub_seq_t;
 
-/* the riddim bank (dub_riddim.h, tools/gen_riddims.py): ten 64-step sequences, four
- * tracks each. A step's note DUB_SEQ_REST (255) is a rest. The RIDDIM page loads a
+/* the riddim bank (dub_riddim.h, tools/gen_riddims.py): twenty-two 64-step sequences,
+ * four tracks each. A step's note DUB_SEQ_REST (255) is a rest. The RIDDIM page loads a
  * whole riddim (OCT+ on KNOB 1) or one track's motif (OCT+ on KNOB 2..4) into the
  * dub sequence; seq.c plays it on the transport's sixteenths. */
 #define DUB_SEQ_REST 255u

@@ -3,6 +3,37 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.3 — novembre 2026
+
+**Les riddims suivent le sound system.** La banque passe de dix à **vingt-deux
+riddims** de 64 pas × 4 pistes (`tools/gen_riddims.py` → `dub_riddim.h`, ~11 Ko en
+ROM), organisée par genre — chaque riddim apporte ses **quatre patterns associés**
+(ligne de basse, skanks, mélodie, drums), chargeables séparément sur la page RDM.
+
+- **Ska** : `SKA` 88 bpm (la marche de basse en noires, le rim sec sur les
+  contretemps), `TWO TONE` 92 (les pompes d'octaves), `ROCKSTDY` 76 (le rebond).
+- **Dancehall** : `DANCEHALL` 95 (le clap 3+3+2, les stabs poussés, la fanfare),
+  `DEMBOW` 100 (le boom-ch-boom-chick strict, la sub qui répond).
+- **Bass music UK** : `UK STEPPA` 84 (le kick au temps, le drone, les rims),
+  `DNB STEP` 174 (le two-step, les ghost snares, la sub qui roule), `JUNGLE` 172
+  (le break haché et ses ghosts, la sub qui répond), `RAGGA JGL` 170 (break +
+  clap ragga, stabs fanfare), `DUBSTEP` 140 (le half-time, la sub wobblée, une
+  seule stab sombre), `UK 2STEP` 134 (la syncope garage), `BASSLINE` 132 (le
+  kick au temps, la basse en contretemps, les claps décalés).
+- **Les dix riddims reggae / dub d'origine jouent enfin leur groove entier** :
+  la tenue à une note par pas du séquenceur faisait qu'un kick posé sur le pas
+  d'une snare (ou d'un charley) était écrasé par elle — le one-drop n'avait
+  **aucun kick** (la snare gagnait le pas 8), le steppers perdait la moitié de
+  son four-on-the-floor, le meditate ne sonnait que ses charleys. Corrigé dans
+  le générateur : le one-drop pose son kick une double-croche avant sa snare
+  (le pickup des roots), le steppers emporte son kick aux quatre temps, le
+  meditate redevient un vrai one-drop ; `check_bank()` refuse désormais tout
+  hit écrasé (vérification AST des `D(...)` du générateur).
+- Le drum track note ses hits en General MIDI : 36 kick, 37 rim, 38 caisse
+  claire (les ghosts à faible vélocité), 39 clap, 42 charley fermé, 46 ouvert.
+- Docs suivent (DUB-FR.md, README.md, la page de l'émulateur web) avec le
+  tempo conseillé de chaque riddim.
+
 ## 1.2 — novembre 2026
 
 **Les kits de batterie suivent la banque sound-system.** 37 kits toujours, mais

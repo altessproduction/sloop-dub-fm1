@@ -60,7 +60,7 @@ assets, is entirely governed by the GPL.
 
 ## sloop-DUB additions
 
-The fork's firmware code — the three-band isolator with mute bands, the DJ filter, the
+The fork's firmware code — the four-band isolator with mute bands, the DJ filter, the
 per-track echo throws, the tape echo, the siren, the skank and accent engines, the FM-1
 splash screen — is GPL-3.0-only like the rest of the code.
 

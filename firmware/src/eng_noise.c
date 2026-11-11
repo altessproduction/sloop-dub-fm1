@@ -66,7 +66,7 @@ static uint32_t noise_inc(int32_t p)
 /* (after 2.8.3) the same, unbounded (Q32: 2^32 = one clock a sample). LFSR: a clock past the sample rate steps the
  * register more than once a sample (the sequence read further on, as the register would be at that time): its pitch
  * goes on rising with the keys. It used to stop at one step a sample, so every note above it played the same pitch
- * (NZ ARCADE: TONE +84 semitones, the whole upper half of the keyboard; clipper-fm1 #10) */
+ * (an arcade-chip patch: TONE +84 semitones, the whole upper half of the keyboard; clipper-fm1 #10) */
 static uint64_t noise_inc64(int32_t p)
 {
     uint32_t sh = 0;

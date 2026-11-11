@@ -8,10 +8,11 @@ cd "$(dirname "$0")"
 SLOOP=${SLOOP:-$(cd .. && pwd)}
 FELUCCA=${FELUCCA:-$HOME/Projects/Felucca}
 
-CFLAGS="--target=wasm32 -O2 -fno-builtin -ffreestanding -nostdlib \
-    -Wall -Wno-unused-function -Wno-unused-variable"
-LDFLAGS="-Wl,--no-entry -Wl,--export-memory \
-    -Wl,-z,stack-size=1048576 -Wl,--global-base=1048576"
+CC=${CC:-clang}   # another wasm32-capable driver works, e.g. `python3 -m ziglang cc`
+CFLAGS=${CFLAGS:---target=wasm32 -O2 -fno-builtin -ffreestanding -nostdlib \
+    -Wall -Wno-unused-function -Wno-unused-variable}
+LDFLAGS=${LDFLAGS:--Wl,--no-entry -Wl,--export-memory \
+    -Wl,-z,stack-size=1048576 -Wl,--global-base=1048576}
 
 test -f "$SLOOP/build/gen/felucca_tables.h" || {
     echo "SLOOP generated headers missing; run the gen_*.py tools in $SLOOP first" >&2
@@ -19,11 +20,11 @@ test -f "$SLOOP/build/gen/felucca_tables.h" || {
 }
 
 mkdir -p dist
-clang $CFLAGS -I "$SLOOP/build/gen" -I "$SLOOP/firmware/src" -I "$SLOOP/firmware/hal" \
+$CC $CFLAGS -I "$SLOOP/build/gen" -I "$SLOOP/firmware/src" -I "$SLOOP/firmware/hal" \
     $LDFLAGS -o dist/sloop.wasm sloop_wasm.c
 
 if [ -f "$FELUCCA/build/gen/felucca_tables.h" ] && [ -f "felucca_wasm.c" ]; then
-    clang $CFLAGS -I "$FELUCCA/build/gen" -I "$FELUCCA/firmware/src" \
+    $CC $CFLAGS -I "$FELUCCA/build/gen" -I "$FELUCCA/firmware/src" \
         $LDFLAGS -o dist/felucca.wasm felucca_wasm.c
 else
     echo "note: Felucca generated headers or source missing; skipping felucca.wasm" >&2

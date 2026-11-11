@@ -634,7 +634,7 @@ UI_SMALL static void project_erase(uint32_t slot)
 
 /* (2.8.4) a part whose sound is on an engine this firmware does not have (a project Clipper wrote: HYBRID,
  * FMX, VECTOR...; left in the flash when SLOOP is installed after Clipper): proj_apply wrapped the engine number round
- * onto another engine with the other one's values (Clipper's HYBRID played as 808 BOOM without its TRN -24: two
+ * onto another engine with the other one's values (Clipper's HYBRID played as an 808 bass without its TRN -24: two
  * octaves high, until another sound was chosen). The part's default sound instead; its pattern and mix stay */
 UI_SMALL static void proj_foreign_parts(const project_t *p)
 {

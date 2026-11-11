@@ -600,9 +600,9 @@ UI_SMALL static int param_kept(uint32_t i)
  * audio ISR never sees them change) and the notes it holds (seq.c arp_keep_req: the panic of this track leaves them).
  * With the arp OFF, or the arp the old sound brought (2.7.1), a preset brings its own arp, as before */
 UI_SMALL static int arp_param(uint32_t i) { return i >= P_AMODE && i <= P_AORDER; }
-/* 2.7.1: is the arp that runs the sound's own, as the sound brought it (8BIT ARP, a user preset with an arp)? Then the
+/* 2.7.1: is the arp that runs the sound's own, as the sound brought it (a preset that brings its own arp)? Then the
  * next sound replaces it with its own (most often OFF), as up to 2.6: only an arp you turned on or changed goes on.
- * (2.7 kept any running arp: after 8BIT ARP, every sound arpeggiated.) The sound loaded: t->engine (not eng_req,
+ * (2.7 kept any running arp: after an arpeggiated preset, every sound arpeggiated.) The sound loaded: t->engine (not eng_req,
  * already the new one when the ENGINE changes), t->preset, or user_of(t) */
 UI_SMALL static int arp_is_sounds(const track_t *t)
 {

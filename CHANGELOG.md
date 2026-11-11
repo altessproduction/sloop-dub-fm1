@@ -33,6 +33,16 @@ ROM), organisée par genre — chaque riddim apporte ses **quatre patterns assoc
   claire (les ghosts à faible vélocité), 39 clap, 42 charley fermé, 46 ouvert.
 - Docs suivent (DUB-FR.md, README.md, la page de l'émulateur web) avec le
   tempo conseillé de chaque riddim.
+- **Le site suit la banque jusqu'au dernier nom** : les deux pages de l'éditeur
+  web (`index.html` servi en ligne et `sloop-editor.html` hors-ligne) servent
+  les 154 presets des douze moteurs, les 32 kits synthétisés et l'enum KIT des
+  37 kits — `update_editor_presets.py` et `update_editor_kits.py` synchronisent
+  maintenant les deux pages ; les exemples (slots démo, mock, tuto, PRS) citent
+  les sons nouveaux. Les deux wasm (émulateur `docs/dub/sloop.wasm` et aperçu
+  `sloop-preview.wasm`) sont recompilés depuis ces sources — l'ancienne banque
+  d'origine n'y vit plus ; `wasm_smoke_test.js` attend les 22 riddims et les
+  listes PRS nouvelles (bass 10, skanks / mélodie / kits 8) et passe.
+  `build.sh` accepte un autre driver wasm32 (`CC=`/`CFLAGS=`).
 
 ## 1.2 — novembre 2026
 

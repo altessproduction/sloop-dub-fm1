@@ -3224,12 +3224,12 @@ function makeMockDevice(opt = {}) {
   const clearSteps = () => { st.step.forEach((s) => Object.assign(s, { n: 0, notes: [0, 0, 0, 0], time: 2, flags: 0, vel: 0, lvl: 0, rat: 0 })); st.tracks[st.sel].micro.fill(0); st.tracks[st.sel].locks.length = 0; st.tracks[st.sel].fill.fill(0); };
   const snapshot = (name) => ({ engine: st.engine, name, p: st.p.slice(), pattern: patternFromSteps(st.step) });
   /* a few user presets to start with */
-  [[0, 0, 0, "MY LEAD"], [1, 1, 1, "GLASS BELL"], [2, 2, 3, "PHASE RESO"], [5, 3, 2, "8BIT ARP"]].forEach(([slot, e, p, name]) => {
+  [[0, 0, 14, "MY LEAD"], [1, 1, 0, "DX SKANK"], [2, 2, 7, "CZ SUB"], [5, 4, 0, "SKANK PNO"]].forEach(([slot, e, p, name]) => {
     setEngine(e); clearSteps(); applyPreset(p, true);
     st.bank[slot] = snapshot(name);
     clearSteps();
   });
-  [[1, 1, 5], [2, 3, 0]].forEach(([i, e, p]) => { st.sel = i; setEngine(e); applyPreset(p); clearSteps(); });   /* MUSIC BOX, GAME LEAD */
+  [[1, 6, 2], [2, 10, 8]].forEach(([i, e, p]) => { st.sel = i; setEngine(e); applyPreset(p); clearSteps(); });   /* DUB CHORD, STEEL PAN */
   st.fm6bank[0] = FM6.pack(FM6.setName(FM6.factory(0), "MY TINES"));   /* B1: a stored patch to look at */
   /* a mix to look at: pads left, lead right, and a GM drum pattern on track 4 */
   st.tracks[1].p[39] = -24; st.tracks[2].p[39] = 20; st.tracks[2].p[0] = 92; st.tracks[TRK_DRUM].p[39] = 0;
@@ -7000,7 +7000,7 @@ function thDraw() {
   g.fillStyle = BG; g.fillRect(0, 0, 240, 240);
   g.textBaseline = "top";
   g.font = "bold 12px ui-monospace, monospace";
-  g.fillStyle = P[4]; g.fillText("ANALOG1 SOFT PAD", 4, 4);
+  g.fillStyle = P[4]; g.fillText("ANALOG1 SKANK SUB", 4, 4);
   g.fillStyle = col(sel); g.fillRect(168, 2, 12, 16);
   g.fillStyle = P[2]; g.fillText("FLT 1/3", 186, 4);
   g.fillStyle = P[0]; g.fillRect(0, 21, 240, 1);

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-"""Syncs docs/webapp/editor/sloop-editor.html with the firmware's factory preset tables:
-the web editor holds a JS mirror (P(name, e[8], env, mono, pat) per engine, FACTORY_PK for FM6).
+"""Syncs the web editors with the firmware's factory preset tables: each page holds a
+JS mirror (P(name, e[8], env, mono, pat) per engine, FACTORY_PK for FM6) — both the
+served page (index.html) and the offline one (sloop-editor.html).
   python3 scripts/update_editor_presets.py
 Parses the C tables (eng_*.c, the generated SMP_PRESET_TABLE, FM6_PRESETS), regenerates
 FACTORY_PK with tools/gen_fm6_patches.py --js, and rewrites the HTML blocks in place.
@@ -12,7 +13,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-HTML = ROOT / "docs/webapp/editor/sloop-editor.html"
+HTMLS = [ROOT / "docs/webapp/editor/sloop-editor.html",
+         ROOT / "docs/webapp/editor/index.html"]
 
 # engine display name in the HTML -> (c file, table name); None = the generated SMP table
 ENGINES = {
@@ -125,34 +127,36 @@ def replace_presets(html, engine, new_body):
 
 
 def main():
-    html = HTML.read_text()
     gen = ROOT / "build/gen/felucca_samples.h"
     src_m = (ROOT / "tools/gen_samples.py").stat().st_mtime
     if not gen.exists() or gen.stat().st_mtime < src_m:
         subprocess.run([sys.executable, str(ROOT / "tools/gen_samples.py"), str(gen)], cwd=ROOT, check=True)
     sample_table = read_table(gen.read_text(), "SMP_PRESET_TABLE")
 
+    tables = {}
     for name, src in ENGINES.items():
         if name == "SAMPLE":
-            entries = sample_table
+            tables[name] = sample_table
         else:
-            entries = read_table((ROOT / "firmware/src" / src[0]).read_text(), src[1])
-        html = replace_presets(html, name, js_list(entries))
-        print(f"{name}: {len(entries)} presets")
+            tables[name] = read_table((ROOT / "firmware/src" / src[0]).read_text(), src[1])
 
-    # FACTORY_PK: the packed FM6 voices, as gen_fm6_patches.py --js prints them
     js = subprocess.run([sys.executable, str(ROOT / "tools/gen_fm6_patches.py"), "--js"], cwd=ROOT,
                         capture_output=True, text=True, check=True).stdout
     rows = [ln.strip() for ln in js.splitlines() if ln.strip().startswith("[")]
-    body = "\n".join("    " + ln for ln in rows)
-    i = html.find("const FACTORY_PK = [")
-    j = html.find("];", i)
-    if i < 0 or j < 0:
-        raise SystemExit("no FACTORY_PK block")
-    html = html[:i] + "const FACTORY_PK = [\n" + body + "\n" + html[j:]
-    print("FACTORY_PK regenerated")
-    HTML.write_text(html)
-    print(f"-> {HTML}")
+    pk_body = "\n".join("    " + ln for ln in rows)
+
+    for HTML in HTMLS:
+        html = HTML.read_text()
+        for name in ENGINES:
+            html = replace_presets(html, name, js_list(tables[name]))
+        i = html.find("const FACTORY_PK = [")
+        j = html.find("];", i)
+        if i < 0 or j < 0:
+            raise SystemExit(f"no FACTORY_PK block in {HTML.name}")
+        html = html[:i] + "const FACTORY_PK = [\n" + pk_body + "\n" + html[j:]
+        HTML.write_text(html)
+        print(f"{HTML.name}: " + ", ".join(f"{n} {len(tables[n])}" for n in ENGINES) + ", FACTORY_PK regenerated")
+    print(f"-> {', '.join(p.name for p in HTMLS)}")
 
 
 if __name__ == "__main__":

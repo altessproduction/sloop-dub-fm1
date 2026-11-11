@@ -428,7 +428,7 @@ KITS = [
 # a phone or earbuds play nothing below ~100 Hz, so only the click was left ("a crackle, very quiet"). The
 # sine and triangle kicks get the drive for harmonics up there (100 .. 300 Hz), a pitch sweep at least
 # 18 semitones over 34 ms for the attack's body, a softer click; level_drumkits.py lets them peak as the
-# sampled kits do and 2.5 dB louder. The 808 BOOM under it all is the same note
+# sampled kits do and 2.5 dB louder. It is the same note an 808 bass plays under it all
 PUNCH_DRIVE, PUNCH_BEND, PUNCH_BT, PUNCH_CLICK = 36, 18, 34, 0.6
 
 

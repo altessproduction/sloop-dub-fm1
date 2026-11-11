@@ -45,7 +45,7 @@
 #define GR_RB 128                /* reverse window, source samples */
 #define GR_LOAD_MAX (8u << 16)   /* decodes per output sample of all a part's grains (a reverse grain counts twice) */
 #define GR_STEP_MAX GR_LOAD_MAX  /* grain rate cap: as much as the part's load allows (it was 2 source samples an output
-                                  * sample: a source went flat 2.5 octaves over its root, LOFI CLOUD above C7) */
+                                  * sample: a source went flat 2.5 octaves over its root, a granular patch above C7) */
 
 /* sin^2(pi i / 256), Q15: the grain window */
 static const int16_t GR_HANN[257] = {
@@ -217,7 +217,7 @@ static void gr_fill(const gr_part_t *P, gr_grain_t *g, int16_t *rb, uint32_t zl,
 
 /* (after 2.8.3) a held note's grain refused for the part's load: the released notes start none until one of the
  * held notes' grains starts (their grains end on their own): a note played in the release of the note before was
- * starved of grains (PNO FREEZE 88 -> 90: -35 dB) while the fading one kept the load */
+ * starved of grains (a frozen-piano patch: 88 -> 90, -35 dB) while the fading one kept the load */
 static uint8_t gr_wait[NPART];
 
 /* start a grain of voice vi (zone zl) */

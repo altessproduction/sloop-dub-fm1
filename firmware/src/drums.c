@@ -26,15 +26,15 @@
 #define DRUM_PAIR (DRUM_USR + SMP_USER_SLOTS)   /* USR3+4: one kit in two slots (the editor splits it), ~15 s */
 #define DRUM_SYN (DRUM_PAIR + 1u)                /* SLOOP 2.5: SYN1..SYN4, your synthesised kits (drum_synth.c dsu) */
 #define DRUM_KITS (DRUM_SYN + DSU_N)
-static const char *const DRUM_KIT_NAMES[] = {"ACOUSTIC", "DEEP", "TIGHT", "BRIGHT", "DUST", DS_KIT_NAME_LIST,
+static const char *const DRUM_KIT_NAMES[] = {"ONE DROP", "STEPPERS", "SKA", "ROCKERS", "DUB", DS_KIT_NAME_LIST,
                                              "USR1", "USR2", "USR3", "USR4", "USR3+4",
                                              "SYN1", "SYN2", "SYN3", "SYN4"};
-static const char *const DRUM_KIT_STYLES[] = {"STUDIO", "SOFT", "PUNCHY", "BRIGHT", "DUSTY", DS_KIT_STYLE_LIST,
+static const char *const DRUM_KIT_STYLES[] = {"REGGAE", "STEPPERS", "SKA", "ROCKERS", "DUB", DS_KIT_STYLE_LIST,
                                               "YOUR KIT", "YOUR KIT", "YOUR KIT", "YOUR KIT", "BIG KIT",
                                               "YOUR SYNTH", "YOUR SYNTH", "YOUR SYNTH", "YOUR SYNTH"};
 _Static_assert(sizeof(DRUM_KIT_NAMES) / sizeof(DRUM_KIT_NAMES[0]) == DRUM_KITS, "a name per kit");
 static uint32_t drum_kit(void) { return (uint32_t)clamp(TDRUM->p[P_E0], 0, DRUM_KITS - 1); }
-#define DRUM_DEFAULT_KIT DRUM_SAMPLED   /* power-on: 808 */
+#define DRUM_DEFAULT_KIT DRUM_SAMPLED   /* power-on: ONE DROP, the sampled kit */
 
 static struct {
     voice_t v[NDRUM];
@@ -105,6 +105,26 @@ static const uint8_t LANE_OF_GM[81 - 35 + 1] = {
 #define DRUM_DEC_MAX 3
 static int8_t drum_tune[DRUM_LANES], drum_dec[DRUM_LANES];
 static const uint8_t DK_SMP[4] = {47, 60, 74, 87};   /* a sample's DECAY -4 .. -1: -60 dB in 60, 120, 250, 500 ms */
+/* SLOOP DUB: the sampled kit and its four genre treatments — the same CC0 acoustic kit, each lane
+ * pitched (semitones) and faded (a DK_SMP index, 0 = as recorded) to the sound system's plays:
+ * ONE DROP (the kick round, the rimshot up front), STEPPERS (everything down, the kick deep),
+ * SKA (the upstroke: light kick, a dry loud rim), ROCKERS (up and punchy), DUB (dusty). The drum
+ * track's own TUNE / DECAY (2.7) add on top, and win over the fade. */
+static const int8_t DK_SHIFT[5][DRUM_LANES] = {
+    /* kick k2   snr  clp  hat  ohh  pdl  rim  sn2  tl   th   crs  rde  shk  cng  cb  */
+    { -3,  -3,   3,   0,   0,   0,   0,   5,   4,   0,   0,   0,  -2,   2,   2,   2 },   /* ONE DROP */
+    { -5,  -5,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2,  -2 },   /* STEPPERS */
+    {  3,   3,   5,   3,   3,   3,   3,   6,   5,   2,   2,   2,   3,   3,   3,   4 },   /* SKA */
+    {  2,   2,   2,   2,   2,   2,   2,   2,   2,   1,   1,   2,   2,   2,   2,   2 },   /* ROCKERS */
+    { -1,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1,  -1,  -1,  -1,  -1,  -1,   2,  -1 },   /* DUB */
+};
+static const int8_t DK_DEC[5][DRUM_LANES] = {          /* the kit's own fade, 0 = none */
+    { 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
 #define DRUM_CLICK(n) ((n) == 76u || (n) == 77u)    /* (the click's wood block: no lane, never tuned) */
 static uint32_t lane_of_note(uint32_t note);
 static int drum_tweaked(void)
@@ -356,13 +376,15 @@ static void drum_on(uint32_t note, uint32_t vel)
     {
         uint32_t vi = (uint32_t)(v - drums.v);
         uint32_t ln = lane_of_note(v->note), tw = !DRUM_CLICK(v->note);
-        int32_t shift = kit == 1u ? (note <= 36u ? -5 : -2) : kit == 3u ? 2 : kit == 4u ? -1 : 0;
+        int32_t shift = kit < DRUM_SAMPLED ? DK_SHIFT[kit][ln] : 0;
+        uint8_t ddec = drum_dec[ln] < 0 ? DK_SMP[drum_dec[ln] + 4]
+                     : drum_dec[ln] == 0 ? DK_DEC[kit < DRUM_SAMPLED ? kit : 0][ln] : 0;
         drums.kit[vi] = (uint8_t)kit;
         drums.synth[vi] = 0;
         drums.filter[vi] = 0;
         drums.env[vi] = 32767;
         drums.denv[vi] = 32767;                     /* (2.7) DECAY below 0: a fade to -60 dB in 60 .. 500 ms (DK_SMP) */
-        drums.dk[vi] = tw && drum_dec[ln] < 0 ? DECAY_K[DK_SMP[drum_dec[ln] + 4]] : 0u;
+        drums.dk[vi] = tw && ddec ? DECAY_K[ddec] : 0u;
         shift = shift * 16 + (tw ? drum_tune[ln] * 16 : 0);    /* (2.7) TUNE: the sound's semitones */
         if (shift) {
             const smp_zone_t *z = drum_zone_of(v);

@@ -246,8 +246,8 @@ The FM-1's keys have no velocity: on the drum track every hit has one of four **
 
 | # | Kits |
 | --- | --- |
-| 1–5 | **ACOUSTIC** (sampled studio kit, CC0) and its treatments: DEEP, TIGHT, BRIGHT, DUST |
-| 6–37 | 32 synthesised kits, 16 sounds each: 808, 909, 606, 80S, VINTAGE, TRAP, DRILL, BOOMBAP, LO-FI, PHONK, HOUSE, D.HOUSE, TECHNO, MINIMAL, ELECTRO, DISCO, GARAGE, JUNGLE, DUBSTEP, DEMBOW, AMAPIANO, AFRO, LATIN, TRIBAL, SYNTHWV, CHIP, ARCADE, GLITCH, INDUSTR, HYPER, AMBIENT, JAZZ |
+| 1–5 | **ONE DROP** (the sampled CC0 studio kit, pitched and faded to the one drop) and its treatments: STEPPERS, SKA, ROCKERS, DUB |
+| 6–37 | 32 synthesised kits, 16 sounds each: 808, 909, 606, ONEDROP, VINTAGE, TRAP, DRILL, BOOMBAP, LO-FI, ROCKERS, HOUSE, ROCKSTDY, TECHNO, MINIMAL, ELECTRO, SKA, GARAGE, JUNGLE, DUBSTEP, DEMBOW, AMAPIANO, AFRO, LATIN, TRIBAL, DIGITAL, RUBADUB, ARCADE, RAGGA, INDUSTR, GQOM, STEPPERS, JAZZ |
 | 38–41 | **USR1, USR2, USR3, USR4**: your own kit in one sample slot (about 7.4 s) |
 | 42 | **USR3+4**: your own big kit over two slots (about 15 s) |
 | 43–46 | **SYN1, SYN2, SYN3, SYN4** (2.5): your own synthesised kits, made in the editor's [Drum synth](#your-own-synthesised-kits-syn1syn4) page. The FM-1 shows the name you gave them |
@@ -285,7 +285,7 @@ Open it with **EDIT** or **SEQ** tapped on the TRACKS screen while the drum trac
 | --- | --- | --- | --- |
 | **sound** (you hear it) | **tune**: −8 … +7 semitones | **decay**: −4 (very short) … 0 (as the kit has it) … +3 (long) | **level** of the drum track |
 
-On the synthesised kits (808, 909… and your SYN1–4) DECAY shortens or lengthens the sound itself; on the sampled kits (ACOUSTIC … DUST, USR) it can only shorten it (a fade), +3 plays the sample as it is. **(2.8)** On the synthesised kits, TUNE also shapes the **brightness** of the tone-less sounds (closed hats, shakers, claps), which have no pitch to shift: lower it for a darker, duller hat, raise it for a crisper one. The settings are kept with the project and with each section A–D, so a section can have its own tuning; changing the kit keeps them, NEW sets them back to 0. A project from an older SLOOP opens with every sound as its kit has it.
+On the synthesised kits (808, 909… and your SYN1–4) DECAY shortens or lengthens the sound itself; on the sampled kits (ONE DROP … DUB, USR) it can only shorten it (a fade), +3 plays the sample as it is. **(2.8)** On the synthesised kits, TUNE also shapes the **brightness** of the tone-less sounds (closed hats, shakers, claps), which have no pitch to shift: lower it for a darker, duller hat, raise it for a crisper one. The settings are kept with the project and with each section A–D, so a section can have its own tuning; changing the kit keeps them, NEW sets them back to 0. A project from an older SLOOP opens with every sound as its kit has it.
 
 While the song plays in song mode, the grid's hit and level knobs wait (*STOP THE SONG FIRST*).
 
@@ -755,18 +755,18 @@ Notes:
 
 ### The sound bank
 
-**153 factory sounds**, every one a full patch on one of the twelve engines, all level-matched (the same LEVEL gives the same loudness). **PRESETS** browses them **by kind** — basses, keys, organs, pads, leads, plucks and bells, stabs, FX — with the kind shown next to the name; your **32 user presets** come after. A new project starts at **90 BPM** with *808 BOOM* on track 1, *RHODES* on track 2, *LOFI FLUTE* on track 3 and the 808 kit on track 4.
+**158 sound-system presets** (SLOOP Dub 1.1: reggae, roots, ska, dub, drum & bass, jungle, ragga, dubstep, UK steppers, bass music), every one a full patch on one of the engines, all level-matched (the same LEVEL gives the same loudness). **PRESETS** browses them **by kind** — basses, keys, organs, pads, leads, plucks and bells, stabs, FX — with the kind shown next to the name; your **32 user presets** come after. A new project starts at **90 BPM** with *SKANK SUB* on track 1, *DX SKANK* on track 2, *DUB FLUTE* on track 3 and the ONE DROP kit on track 4.
 
 | Kind | Sounds (engine) |
 | --- | --- |
-| **Bass** | 808 BOOM, 808 DIRTY, 808 SLIDE, SUB BASS, PLUGG BASS (they slide between held notes, two octaves under the keys) · REESE, WOBBLE, ACID 303, FUNK BASS, MONO BASS (ANALOG) · FM BASS, BASS GTR (DIGITAL) · CZ BASS (PHASE) · ROUND BASS (FM6) · FAT BASS (TRIO) · WOW BASS (VOICE) · GB BASS (LOFI) · UP BASS, DEEP BASS (SAMPLE) · PLUCK BASS (PHYS) · NES BASS (LOFI) · SAW BASS (ANALOG) |
-| **Keys** | RHODES, DX RHODES, WURLI, M1 PIANO, AFRO KEYS, CLAV (DIGITAL) · GRAND PNO, DUSTY PNO, LOFI KEYS (SAMPLE) · SOFT KEYS (PHASE) · TINE EP (FM6) · FM GRAND (DIGITAL) |
-| **Organ** | SOUL ORGAN, GOSPEL, JAZZ ORGAN, DIRTY B3, HOUSE ORGN (WHEEL) · DRAWBARS (FM6) · ACCORDION (TRIO) · ROCK ORGAN, CHAPEL, REGGAE ORG (WHEEL) |
-| **Pad** | WARM PAD, DARK STR, ATMOS PAD (ANALOG) · SAW PAD, ENSEMBLE (TRIO) · GLASS PAD (DIGITAL) · SOFT PAD (FM6) · CZ STRING (PHASE) · LOFI CLOUD, VIBE HAZE, STR CLOUD, SHIMMER, DRONE (GRAIN) · CHOIR AAH, SOUL OOH (VOICE) · BOWED MTL, CELLO BOW, GLASS BOWL (PHYS) · WIND, OCEAN (NOISE) · CZ PAD (PHASE) · VOX PAD (VOICE) · PNO FREEZE, HORN CLOUD (GRAIN) · SINE PAD (ANALOG) · PULSE PAD (TRIO) |
-| **Lead** | SUPERSAW, G-FUNK LD, FAT LEAD, PAN FLUTE (ANALOG) · SYNC LEAD, HOOVER (TRIO) · TALKBOX, HARMONICA (VOICE) · GAME LEAD (LOFI) · LOFI FLUTE (SAMPLE) · FLUTE DUST (GRAIN) · NZ ARCADE (NOISE) · WAVE LEAD (LOFI) · CZ LEAD (PHASE) · ROBOT (VOICE) · PWM LEAD (ANALOG) · SQR LEAD (TRIO) |
-| **Pluck & bell** | TRAP PLUCK (ANALOG) · RESO PLUCK (PHASE) · PLUGG BELL, TRAP BELL, MUSIC BOX, KALIMBA, MARIMBA, XYLOPHONE, GLOCKEN, CELESTA, STEEL DRUM, HARP (DIGITAL) · VIBES (SAMPLE) · 8BIT ARP (LOFI) · GLASS BELL, WOOD BARS, NYLON PICK (FM6) · STR PLUCK, SITAR, PHYS HARP, BELL TREE, MODAL BAR, THUMB PNO, NYLON GTR, STEEL GTR, MUTED GTR, KOTO, BANJO, TANPURA, CHIMES, BIG BELL, VIBRA BAR, STEEL PAN, WOOD BLOCK (PHYS) · 1BIT BEEP (LOFI) · CZ RESO (PHASE) · TUBE BELL, FM PLUCK (DIGITAL) |
-| **Stab** | MIN STAB, MIN7 STAB, RAVE STAB, DUB CHORD (TRIO: one key plays the chord) · SYN BRASS (ANALOG) · CZ BRASS (PHASE) · BRASS SECT (FM6) · 80S POLY (TRIO) · HORN STAB, STRING STB (SAMPLE) · CHIP CHORD (LOFI) · POWER STAB (TRIO) |
-| **FX** | SCRATCH (scratch, backspin, rewind across the keys) · GM KIT (SAMPLE) · HAND DRUM, MEMB TOMS, TABLA, CONGA, TIMPANI (PHYS) · RAIN, NZ METAL, VINYL, HISS, RISER, NZ SNARE, BITCRUSH, RADIO (NOISE) · CHIP NOISE (LOFI) |
+| **Bass** | SKANK SUB, ROOTS 808, STEPPA SUB, DNB REESE, ROLLER SUB, JUNGLE WOB, RAGGA 808, WOBBLE, GROWL, UKG SLIDE, ACID RUB, MELLOW BS (ANALOG) · FM SUB, DX BASS, STEPPA FM, JUNGLE FM (DIGITAL) · CZ SUB (PHASE) · CHIP BASS (LOFI) · RAGGA BASS, DNB BASS (SAMPLE) · VOX BASS (VOICE) · TRIO BASS, CHORD SUB (TRIO) · FM SUB, GROWL FM, STEPPA FM (FM6) · PICK BASS, UPRIGHT BS (PHYS) |
+| **Keys** | DX SKANK, SKA PIANO, DUB TINE, ROOTS CLAV, NITE EP (DIGITAL) · CZ SKANK, CZ ROOTS, CZ BUBBLE, CZ MELO (PHASE) · CHIP SKANK, CHIP BUBBLE, CHIP LEAD (LOFI) · SKANK PNO, DUB PNO, DUB VIBES (SAMPLE) · DX SKANK, DUB KEYS (FM6) · SKANK GTR, UPSTROKE, ROOTS GTR, SKA GTR, PICK GTR (PHYS) |
+| **Organ** | SKANK ORGN, BUBBLE ORG, ROOTS ORG, DUB ORG, STEPPA ORG, SKA ORGN, REGGAE ORG, GOSPEL ORG (WHEEL) · BUBBLE ORG (TRIO) |
+| **Pad** | SKY PAD, DARK PAD, GONG PAD (ANALOG) · VOX FM (DIGITAL) · CZ DUBPAD (PHASE) · BIT PAD (LOFI) · DUB CHANT, RAGGA OOH, VOX PAD (VOICE) · STEPPA PAD, WOBBLE PAD (TRIO) · SKY CLOUD, HORN HAZE, DUB DUST, STR CLOUD, SHIMMER, DUB DRONE, FLUTE SKY, HORN CLOUD (GRAIN) · BOW STR, TANPURA (PHYS) · WIND, OCEAN, STORM, TAPE HISS, VINYL, RISER (NOISE) |
+| **Lead** | SIREN, DUB LEAD, MELODICA, SKANK LD, FX SLIDE, NITE LEAD (ANALOG) · GONG FM (DIGITAL) · CZ MELO (PHASE) · CHIP SIREN (LOFI) · DUB FLUTE (SAMPLE) · TOAST VOX, DUB VOX, SKA VOX (VOICE) · MELODIC FM (FM6) · DUB SIREN, SIREN 2, AIR HORN, RADIO (NOISE) |
+| **Pluck & bell** | CHIME PLK (ANALOG) · AMEN BELL, DUB BELL, RAGGA BELL, MARIMBAS, KALIMBAS, FM PLUCK, STEEL PAN (DIGITAL) · CZ RESO (PHASE) · DX BELL (FM6) · DUB HARP, STEEL PAN, KALIMBA, BALAFON, CHIMES, BELL TREE, BIG BELL, VIBRA BAR (PHYS) |
+| **Stab** | STEPPA STB, ROOTS STB, DUB CHORD, SKA STAB, TWO TONE, RAGGA STB, DNB STAB, JUNGLE STB, DUBSTEP STB (TRIO) · SKA BRASS, DUB BRASS, RAVE STAB, DNB STAB (DIGITAL) · CZ BRASS (PHASE) · CHIP STAB (LOFI) · HORN STAB, SKA HORNS, DUB HORNS, STRING STB (SAMPLE) · FM HORNS (FM6) |
+| **FX** | SCRATCH, GM KIT (SAMPLE) · CHIP NOIS (LOFI) · CONGAS, BONGOS, HAND DRUM, MEMB TOMS, TABLA, TIMPANI, BODY KICK, COWBELL, WOOD BLOCK (PHYS) · SNARE FX (NOISE) · AMEN CUT, JUNGLE 16, RAGGA CUT, USR SLICE (SLICE) |
 
 To pick an engine directly: SAVE → PRESETS → **KNOB 2**. To start from the engine's defaults: SAVE → TOOLS → **INIT**.
 

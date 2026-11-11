@@ -572,8 +572,9 @@ const dub_sound_t DUB_MEL_SOUNDS[] = {
     {"AIR HORN", 11, 2}, {"DUB FLUTE", 4, 5}, {"FM HORNS", 9, 6}, {"TOAST VOX", 5, 2},
 };
 const uint32_t DUB_MEL_N = sizeof DUB_MEL_SOUNDS / sizeof DUB_MEL_SOUNDS[0];
-/* the drum kits, the drum track's P_E0 (drums.c DRUM_KIT_NAMES: 1 DEEP, 4 DUST, 9 VINTAGE,
- * 5 808, 23 DUBSTEP, 24 DEMBOW, 25 AMAPIANO, 26 AFRO) */
-const uint8_t DUB_DK_KITS[] = {1, 4, 9, 5, 23, 24, 25, 26};
-const char *const DUB_DK_NAMES[] = {"DEEP", "DUST", "VINTAGE", "808", "DUBSTEP", "DEMBOW", "AMAPIANO", "AFRO"};
+/* the drum kits, the drum track's P_E0 (drums.c DRUM_KIT_NAMES: 0 the sampled ONE DROP,
+ * 9 VINTAGE, 5 808; the synthesised banks: 22 JUNGLE, 23 DUBSTEP, 32 RAGGA, 24 DEMBOW,
+ * 35 STEPPERS) */
+const uint8_t DUB_DK_KITS[] = {0, 35, 9, 5, 22, 23, 32, 24};
+const char *const DUB_DK_NAMES[] = {"ONE DROP", "STEPPERS", "VINTAGE", "808", "JUNGLE", "DUBSTEP", "RAGGA", "DEMBOW"};
 const uint32_t DUB_DK_N = sizeof DUB_DK_KITS / sizeof DUB_DK_KITS[0];

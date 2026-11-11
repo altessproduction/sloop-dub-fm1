@@ -3,6 +3,29 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.2 — novembre 2026
+
+**Les kits de batterie suivent la banque sound-system.** 37 kits toujours, mais
+orientés genre, tous recalibrés (`tests/drum_level.c` + `tools/level_drumkits.py`).
+
+- **Les 5 kits échantillonnés** (la batterie acoustique CC0 et ses traitements)
+  deviennent **ONE DROP, STEPPERS, SKA, ROCKERS et DUB** : le traitement par lane
+  est maintenant une table (`DK_SHIFT`/`DK_DEC` dans drums.c) — chaque son pitché
+  et fondé vers le jeu du style (le rimshot devant au one drop, le kick profond
+  au steppers, le rim sec et présent au ska…), le TUNE / DECAY du drum track
+  (2.7) s'ajoute par-dessus et reste prioritaire.
+- **9 kits synthétisés sont reconstruits** (`tools/gen_drumkits.py`) aux places
+  des moins utiles au fork : ONEDROP, ROCKERS, ROCKSTDY, SKA, DIGITAL (le reggae
+  numérique), RUBADUB (la drumbox rub-a-dub, un léger crush), RAGGA (crush 0x22),
+  GQOM et STEPPERS. JUNGLE, DUBSTEP, GARAGE, DEMBOW, TRAP, DRILL, AMAPIANO, AFRO
+  et les machines 808 / 909 / 606 / VINTAGE restent.
+- **Le menu PRS du module dub suit** (dub.c) : ONE DROP, STEPPERS, VINTAGE, 808,
+  JUNGLE, DUBSTEP, RAGGA, DEMBOW.
+- **L'éditeur web est synchronisé** (`scripts/update_editor_kits.py` régénère
+  DSYN_MOCK_NAMES / DSYN_MOCK_KITS et la liste KIT de sloop-editor.html depuis
+  le header généré).
+- Le kit au démarrage d'un projet neuf : ONE DROP (la batterie échantillonnée).
+
 ## 1.1 — novembre 2026
 
 **La banque de sons d'usine est refondue pour le sound system.** Les 158 presets

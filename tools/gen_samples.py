@@ -50,21 +50,23 @@ MEASURED_TUNING = ()                         # sets recorded off A440 (measured 
 
 # the preset of each set: name, {SET (filled in), TUNE, BITS, LOOP (filled in), CUT, -, DRV, -}, env, mono,
 # sends (DIST, CHORUS, DELAY, REVERB), more (track parameter, value) pairs (preset_t.x)
+# SLOOP DUB: the sample sets as sound-system presets (piano skanks, horns stabs, the ragga / DnB basses)
 SET_PRESETS = {
-    "PIANO": ("GRAND PNO", [0, 0, 0, 0, 127, 0, 0, 0], (0, 110, 0, 58), 0, (0, 6, 8, 24), ()),
-    "BASS": ("UP BASS", [0, 0, 0, 0, 118, 0, 12, 0], (0, 127, 127, 26), 1, (0, 0, 0, 4), ()),
-    "VIBES": ("VIBES", [0, 0, 0, 0, 127, 0, 0, 0], (0, 127, 127, 72), 0, (0, 24, 22, 30), ("P_LD_AMP", 18, "P_LRATE", 86)),
+    "PIANO": ("SKANK PNO", [0, 0, 0, 0, 127, 0, 0, 0], (0, 100, 0, 44), 0, (0, 10, 10, 20), ()),
+    "BASS": ("RAGGA BASS", [0, 0, 0, 0, 118, 0, 14, 0], (0, 127, 127, 26), 1, (0, 0, 0, 4), ("P_TRANS", -12)),
+    "VIBES": ("DUB VIBES", [0, 0, 0, 0, 127, 0, 0, 0], (0, 127, 127, 72), 0, (0, 24, 22, 30), ("P_LD_AMP", 18, "P_LRATE", 86)),
     "HORNS": ("HORN STAB", [0, 0, 0, 0, 120, 0, 20, 0], (0, 127, 127, 22), 0, (8, 0, 14, 18), ()),
     "STRGS": ("STRING STB", [0, 0, 0, 0, 122, 0, 10, 0], (0, 127, 127, 26), 0, (0, 10, 12, 24), ()),
-    "FLUTE": ("LOFI FLUTE", [0, 0, 12, 0, 100, 0, 0, 0], (12, 80, 120, 60), 1, (0, 16, 26, 30), ("P_LD_PIT", 1, "P_LRATE", 89, "P_LFADE", 40)),
+    "FLUTE": ("DUB FLUTE", [0, 0, 10, 0, 100, 0, 0, 0], (12, 80, 120, 60), 1, (0, 16, 30, 34), ("P_LD_PIT", 1, "P_LRATE", 89, "P_LFADE", 40)),
     "SCRCH": ("SCRATCH", [0, 0, 0, 0, 127, 0, 8, 0], (0, 127, 127, 18), 0, (0, 0, 0, 0), ()),
     "PERC": ("GM KIT", [0, 0, 0, 0, 127, 0, 0, 0], (0, 127, 127, 60), 0, (0, 0, 0, 6), ()),
 }
 # more presets on a set: (set, name, E[], env, mono, sends, more)
 EXTRA_PRESETS = [
-    ("PIANO", "DUSTY PNO", [0, 0, 34, 0, 96, 0, 24, 0], (0, 98, 0, 52), 0, (0, 8, 10, 22), ()),
-    ("PIANO", "LOFI KEYS", [0, 0, 45, 0, 78, 0, 30, 0], (0, 108, 0, 60), 0, (0, 30, 18, 34), ("P_LD_PIT", 1, "P_LRATE", 38)),
-    ("BASS", "DEEP BASS", [0, -12, 0, 0, 90, 0, 40, 0], (0, 127, 127, 30), 1, (0, 0, 0, 0), ()),
+    ("PIANO", "DUB PNO", [0, 0, 8, 0, 122, 0, 0, 0], (0, 90, 30, 60), 0, (0, 20, 26, 30), ()),
+    ("HORNS", "SKA HORNS", [0, 5, 0, 0, 124, 0, 12, 0], (0, 127, 127, 24), 0, (0, 0, 16, 20), ("P_TRANS", 5)),
+    ("HORNS", "DUB HORNS", [0, -5, 8, 0, 116, 0, 34, 0], (0, 127, 127, 26), 0, (14, 0, 18, 22), ("P_TRANS", -5)),
+    ("BASS", "DNB BASS", [0, 0, 6, 0, 112, 0, 44, 0], (0, 118, 110, 26), 1, (12, 0, 0, 4), ("P_TRANS", -12)),
 ]
 
 KIT_BASE = 53                     # F3, the lowest FM-1 key

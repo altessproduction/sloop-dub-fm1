@@ -113,33 +113,37 @@ static void digital_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, con
 }
 
 static const preset_t DIGITAL_PRESETS[] = {
-    /* ALG R2 R3 R4 INDEX MODDEC FDBK - ; ALG 5 (4 here) = two stacks: 2 -> 1 and 4 -> 3 (the tine) */
-    {"RHODES", {4, 1, 1, 14, 26, 35, 0, 0}, {0, 85, 35, 55}, 0, 0, FX(0, 30, 12, 26), XP(P_LD_AMP + 1, 26, P_LRATE + 1, 84)},
-    {"DX RHODES", {4, 1, 1, 14, 85, 45, 0, 0}, {0, 82, 40, 55}, 0, 0, FX(0, 45, 20, 30)},
-    {"WURLI", {4, 1, 2, 3, 62, 35, 8, 0}, {0, 75, 30, 45}, 0, 0, FX(10, 20, 10, 20), XP(P_LD_AMP + 1, 16, P_LRATE + 1, 89)},
-    {"CLAV", {3, 1, 3, 5, 90, 25, 20, 0}, {0, 58, 34, 18}, 0, 0, FX(10, 10, 6, 10)},
-    /* house piano: bright, fast hammer, the tine stack for the attack */
-    {"M1 PIANO", {4, 1, 2, 13, 74, 30, 12, 0}, {0, 86, 30, 48}, 0, 0, FX(0, 24, 14, 26)},
-    /* afro house / amapiano: round keys with a bell on top */
-    {"AFRO KEYS", {4, 1, 1, 7, 40, 50, 0, 0}, {0, 82, 40, 60}, 0, 0, FX(0, 30, 26, 36)},
-    {"TRAP BELL", {4, 8, 1, 4, 80, 70, 0, 0}, {0, 92, 0, 70}, 0, 0, FX(0, 0, 30, 40)},
-    {"MUSIC BOX", {4, 4, 3, 9, 45, 75, 0, 0}, {0, 90, 0, 75}, 0, 0, FX(0, 10, 32, 45)},
-    {"MARIMBA", {4, 4, 1, 1, 60, 30, 0, 0}, {0, 80, 0, 60}, 0, 0, FX(0, 0, 22, 30)},
-    {"KALIMBA", {4, 4, 1, 6, 52, 24, 0, 0}, {0, 78, 0, 58}, 0, 0, FX(0, 0, 26, 38)},
-    /* pluggnb / cloud rap: a soft bell, lots of space */
-    {"PLUGG BELL", {4, 3, 1, 4, 56, 60, 0, 0}, {0, 90, 0, 82}, 0, 0, FX(0, 22, 36, 56)},
-    {"GLASS PAD", {4, 2, 1, 5, 34, 100, 0, 0}, {62, 92, 112, 92}, 0, 0, FX(0, 50, 26, 62), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 40)},
-    {"FM BASS", {0, 1, 1, 1, 34, 40, 8, 0}, {0, 60, 70, 25}, 0, 1, FX(0, 0, 0, 6), XP(P_GLIDE + 1, 36, P_TRANS + 1, -24)},
-    /* SLOOP 2.5: mallets, steel drum, harp, a finger bass */
-    {"STEEL DRUM", {4, 2, 2, 2, 45, 45, 0, 0}, {0, 88, 0, 66}, 0, 0, FX(0, 12, 18, 30)},
-    {"GLOCKEN", {4, 5, 1, 8, 40, 60, 0, 0}, {0, 95, 0, 85}, 0, 0, FX(0, 0, 24, 40), XP(P_TRANS + 1, 12)},
-    {"CELESTA", {4, 2, 1, 4, 30, 50, 0, 0}, {0, 84, 0, 70}, 0, 0, FX(0, 15, 20, 40), XP(P_TRANS + 1, 12)},
-    {"XYLOPHONE", {4, 4, 3, 3, 70, 18, 0, 0}, {0, 77, 0, 58}, 0, 0, FX(0, 0, 14, 26), XP(P_TRANS + 1, 12)},
-    {"HARP", {4, 1, 1, 2, 45, 30, 10, 0}, {0, 92, 0, 80}, 0, 0, FX(0, 15, 20, 50)},
-    {"BASS GTR", {4, 1, 1, 2, 40, 30, 6, 0}, {0, 76, 40, 22}, 0, 1, FX(0, 0, 0, 6), XP(P_TRANS + 1, -24)},
-    {"TUBE BELL", {4, 6, 1, 13, 50, 90, 0, 0}, {0, 100, 0, 90}, 0, 0, FX(0, 10, 25, 50)},
-    {"FM PLUCK", {4, 2, 1, 3, 70, 15, 0, 0}, {0, 78, 0, 54}, 0, 0, FX(0, 10, 28, 30)},
-    {"FM GRAND", {4, 1, 2, 12, 60, 40, 10, 0}, {0, 90, 20, 60}, 0, 0, FX(0, 20, 14, 30)},
+    /* SLOOP DUB FM bank. {ALG R2 R3 R4 INDEX MODDEC FDBK -} ; ALG 5 (4 here) = two stacks: 2 -> 1 and
+     * 4 -> 3 (the tine). Keys skank on the tine stack, stabs and horns on the brass-ish ratios, the
+     * FM subs on ALG 1 (op 4 a sub-octave modulator into the stack). */
+    /* skank keys: bright tine, round roots tine, the rub-a-dub piano */
+    {"DX SKANK", {4, 1, 1, 14, 58, 30, 0, 0}, {0, 80, 40, 50}, 0, 0, FX(0, 25, 16, 26), XP(P_LD_AMP + 1, 22, P_LRATE + 1, 84)},
+    {"SKA PIANO", {4, 1, 2, 13, 84, 22, 8, 0}, {0, 72, 26, 40}, 0, 0, FX(0, 15, 12, 22)},
+    {"DUB TINE", {4, 1, 1, 14, 30, 42, 0, 0}, {0, 84, 44, 58}, 0, 0, FX(0, 28, 24, 32), XP(P_LD_AMP + 1, 24, P_LRATE + 1, 80)},
+    {"ROOTS CLAV", {3, 1, 3, 5, 88, 26, 22, 0}, {0, 58, 36, 18}, 0, 0, FX(12, 10, 8, 12)},
+    {"NITE EP", {4, 1, 2, 3, 66, 34, 10, 0}, {0, 78, 34, 46}, 0, 0, FX(0, 20, 14, 22)},
+    /* bells: the amen drop bell, the dub bell into the delay, the ragga bell */
+    {"AMEN BELL", {4, 8, 1, 4, 74, 72, 0, 0}, {0, 92, 0, 72}, 0, 0, FX(0, 0, 30, 40), XP(P_TRANS + 1, 12)},
+    {"DUB BELL", {4, 6, 1, 13, 50, 86, 0, 0}, {0, 100, 0, 88}, 0, 0, FX(0, 10, 36, 50)},
+    /* FM subs: pure, punchy, the steppers one, the jungle one (a metallic modulator) */
+    {"FM SUB", {0, 1, 1, 1, 30, 44, 8, 0}, {0, 60, 72, 25}, 0, 1, FX(0, 0, 0, 6), XP(P_GLIDE + 1, 38, P_TRANS + 1, -24)},
+    {"DX BASS", {0, 1, 1, 2, 42, 40, 6, 0}, {0, 64, 66, 24}, 0, 1, FX(0, 0, 0, 6), XP(P_TRANS + 1, -24)},
+    {"STEPPA FM", {0, 1, 1, 1, 36, 36, 14, 0}, {0, 62, 110, 26}, 0, 1, FX(10, 0, 0, 6), XP(P_GLIDE + 1, 30, P_TRANS + 1, -24)},
+    {"JUNGLE FM", {0, 1, 2, 7, 58, 50, 20, 0}, {0, 66, 64, 24}, 0, 1, FX(8, 0, 10, 8), XP(P_GLIDE + 1, 26, P_TRANS + 1, -12)},
+    {"RAGGA BELL", {4, 4, 3, 9, 48, 76, 0, 0}, {0, 90, 0, 76}, 0, 0, FX(0, 10, 30, 44)},
+    {"GONG FM", {4, 4, 3, 6, 80, 90, 4, 0}, {30, 90, 110, 90}, 0, 0, FX(0, 20, 26, 60), XP(P_TRANS + 1, -12)},
+    /* mallets: marimba, kalimba, the FM pluck */
+    {"MARIMBAS", {4, 4, 1, 1, 60, 30, 0, 0}, {0, 80, 0, 60}, 0, 0, FX(0, 0, 22, 30)},
+    {"KALIMBAS", {4, 4, 1, 6, 52, 26, 0, 0}, {0, 78, 0, 58}, 0, 0, FX(0, 0, 26, 38)},
+    {"FM PLUCK", {4, 2, 1, 3, 70, 16, 0, 0}, {0, 78, 0, 54}, 0, 0, FX(0, 10, 28, 30)},
+    /* horn stabs: ska (bright, high), dub (dark, low), the rave one, the steel pan, the DnB stab */
+    {"SKA BRASS", {4, 6, 1, 10, 58, 50, 0, 0}, {4, 70, 92, 36}, 0, 0, FX(0, 15, 16, 24)},
+    {"DUB BRASS", {4, 6, 1, 9, 44, 58, 0, 0}, {10, 70, 92, 40}, 0, 0, FX(6, 15, 18, 26), XP(P_TRANS + 1, -12)},
+    {"RAVE STAB", {4, 8, 1, 4, 86, 64, 0, 0}, {0, 64, 28, 34}, 40, 0, FX(18, 20, 26, 30), XP(P_TRANS + 1, -12)},
+    {"STEEL PAN", {4, 2, 2, 2, 46, 44, 0, 0}, {0, 88, 0, 66}, 0, 0, FX(0, 12, 18, 30)},
+    {"DNB STAB", {4, 6, 2, 4, 78, 42, 6, 0}, {0, 62, 30, 30}, 30, 0, FX(10, 12, 20, 24)},
+    /* a vox-ish pad to sit behind the chords */
+    {"VOX FM", {4, 2, 1, 5, 34, 96, 0, 0}, {62, 92, 112, 92}, 0, 0, FX(0, 50, 26, 62), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 40)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the four operators moved together by r (Q32) of a turn of

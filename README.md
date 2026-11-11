@@ -6,7 +6,7 @@ Free and open source (GPL-3.0), based on <a href="https://github.com/hugelton/Fe
 <p align="center">
 <a href="https://altessproduction.github.io/sloop-dub-fm1/dub/"><b>Play SLOOP Dub in the browser</b></a> ·
 <a href="https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/"><b>Install it from the browser</b></a> ·
-<a href="docs/firmware/sloop-dub-1.0.0.fwsc">the 1.0 package (.fwsc)</a> ·
+<a href="docs/firmware/sloop-dub-1.1.fwsc">the 1.1 package (.fwsc)</a> ·
 <a href="GUIDE.md">SLOOP guide</a> ·
 <a href="DUB-FR.md">Le manuel Dub (FR)</a> ·
 <a href="CHANGELOG.md">Changelog</a> ·
@@ -17,9 +17,9 @@ Free and open source (GPL-3.0), based on <a href="https://github.com/hugelton/Fe
 
 **SLOOP Dub** is that, plus the dub wing: a **DUB module** (bipolar filter, mix, throw), a **dub siren** you hold on OCT+, **ten riddims** that load into the sequencer, a four-band **isolator** whose mutes really cut, a **tape delay** whose TIME knob bends the loop like a real tape echo, per-track **throws** into the delay, and the **WIRES** visualizer. Everything below is SLOOP, the base; everything in [The Dub](#the-dub-what-this-firmware-adds) is the fork. Le manuel du fork en français : [DUB-FR.md](DUB-FR.md).
 
-SLOOP turns the FM-1 into a four-track groovebox you play live: **three synths and a drum machine** with 16 sounds on the white keys, twelve synthesis engines, 153 sounds, 37 drum kits, your own samples, a song mode you play with your hands, USB audio, MIDI in on the jack and MIDI clock — and now **physical models** (guitars, sitar, bells, hand drums), a **noise** engine, **six-operator FM with DX7 patches**, **parameter locks**, **micro timing**, **fills**, a **quick chain** of sections and the **sequencer to MIDI out**. House, techno, hip-hop, trap, drum & bass, amapiano, synthwave, lo-fi, ambient, chiptune — it does not pick a style for you. No factory patterns, nothing to load: everything you hear, you play.
+SLOOP turns the FM-1 into a four-track groovebox you play live: **three synths and a drum machine** with 16 sounds on the white keys, twelve synthesis engines, 158 sound-system presets, 37 drum kits, your own samples, a song mode you play with your hands, USB audio, MIDI in on the jack and MIDI clock — and now **physical models** (guitars, sitar, bells, hand drums), a **noise** engine, **six-operator FM with DX7 patches**, **parameter locks**, **micro timing**, **fills**, a **quick chain** of sections and the **sequencer to MIDI out**. Reggae, roots, ska, dub, drum & bass, jungle, ragga jungle, dubstep, UK steppers, bass music — this fork is tuned for the sound system. No factory patterns, nothing to load: everything you hear, you play.
 
-> **Status: SLOOP Dub 1.0.** The isolator rebuilt (its crossover sat a hundred times too low: SUB, BASS and MIDS came out near silence and TOPS carried the whole sound — one knob or one mute only ever did what TOPS does), DLY TIME bends the loop like a tape echo, the menu rows follow their knobs. The base SLOOP's history is in [CHANGELOG.md](CHANGELOG.md). Still custom firmware: install at your own risk, and please [report](../../issues) what you find. Your projects, presets, samples and settings are kept when you update, and you can go back at any time (see [Going back](#going-back)).
+> **Status: SLOOP Dub 1.1.** The factory sound bank is rebuilt for the sound system: the 158 presets (13 engines, SLICE included) are reggae, roots, ska, dub, DnB, jungle, ragga, dubstep and UK steppers — skank organs and guitars, the subs and Reese of every genre, the stabs, the sirens, the breaks. Every preset level-matched again from scratch. The isolator rebuilt (its crossover sat a hundred times too low: SUB, BASS and MIDS came out near silence and TOPS carried the whole sound — one knob or one mute only ever did what TOPS does), DLY TIME bends the loop like a tape echo, the menu rows follow their knobs. The base SLOOP's history is in [CHANGELOG.md](CHANGELOG.md). Still custom firmware: install at your own risk, and please [report](../../issues) what you find. Your projects, presets, samples and settings are kept when you update, and you can go back at any time (see [Going back](#going-back)).
 
 ## Contents
 
@@ -75,7 +75,7 @@ Hold **HOME** to open the menu: SELECT walks the fourteen pages — `SCR · LGT 
 
 - The dub tracks are **SLOOP's own sequencer**: **OCT+ on RDM loads one of ten 64-step riddims** (ONE DROP, STEPPERS, ROCKERS, DUBWALK, DIGITAL, LOVERS, MEDITATE, SKANKIN, DUB CUT, ZION) into the four tracks; KN2 / KN3 / KN4 + OCT+ load one track's motif alone — mixing one riddim's bass with another's drums is the sound system's classic move. What loads is what plays and what you edit afterwards (PATTERN, NOTES, ACCENTS, SLIDES).
 - **ACCENTS and SLIDES** (the SEQ button) add a second sequencer on the flags: a per-step accent grid (the step plays at 127) and slides (the note glides into the next instead of re-attacking).
-- **PRS** loads real SLOOP presets per track: SUB BASS, 808 BOOM, REESE, ACID 303… for the bass; DUB CHORD, REGGAE ORG… for the skanks; PAN FLUTE, STEELPAN… for the melody; the kits DEEP, DUST, VINTAGE, 808, DUBSTEP, DEMBOW, AMAPIANO, AFRO for the drums. **SKK** plays a one-key skank chord (MAJ · MIN · DIM · AUG · 7TH · MIN7 · 9TH · PWR, root, octave, velocity).
+- **PRS** loads real SLOOP presets per track: SKANK SUB, ROOTS 808, STEPPA SUB, DNB REESE, GROWL… for the bass; STEPPA STB, ROOTS STB, DUB CHORD, SKA STAB, SKANK ORGN, REGGAE ORG, DX SKANK… for the skanks; MELODICA, DUB SIREN, STEEL PAN, AIR HORN… for the melody; the kits DEEP, DUST, VINTAGE, 808, DUBSTEP, DEMBOW, AMAPIANO, AFRO for the drums. **SKK** plays a one-key skank chord (MAJ · MIN · DIM · AUG · 7TH · MIN7 · 9TH · PWR, root, octave, velocity).
 
 ### The isolator — page ISO
 
@@ -91,7 +91,7 @@ Hold **HOME** to open the menu: SELECT walks the fourteen pages — `SCR · LGT 
 - **The isolator works.** The crossover's coefficients sat a hundred times too low — SUB, BASS and MIDS came out near silence and TOPS carried everything. Rebuilt: real crossovers at 90 Hz / 420 Hz / 2.6 kHz, stereo, and each mute cuts its own band.
 - **TIME bends like a tape.** With a loop in the delay, turning TIME speeds the loop up or slows it down continuously (varispeed) instead of the old ~12 ms jump.
 - **The rows follow the knobs:** DLY LEVEL and SIREN LEVEL redraw as they move.
-- The repository becomes the distribution: the browser installer serves **sloop-dub-1.0.0.fwsc**, the emulator page explains the fork, and the development tools (tests, editor sources) live with the developer.
+- The repository becomes the distribution: the browser installer serves **sloop-dub-1.1.fwsc**, the emulator page explains the fork, and the development tools (tests, editor sources) live with the developer.
 
 ---
 
@@ -154,7 +154,7 @@ Keys 1, 5, 9 and 13 glow dimly while a layer is held: the first key of each row 
 ### Synths and sounds
 
 - **Twelve engines:** analog, 4-op FM, **6-op FM with DX7 patches (FM6, 2.4)**, phase distortion, three-oscillator, tonewheel organ, formant voice, granular, lo-fi chip, sampler, **physical models (PHYS, 2.5)**, **noise (NOISE, 2.5)**.
-- **153 sounds, browsed by kind** — basses (sliding 808s, acid 303, reese, FM, bass guitar), guitars, sitar and koto (physical models), keys (Rhodes, a real Steinway grand, house and afro keys), organs and accordion, pads (string machine, granular clouds), leads (supersaw, talkbox, pan flute, harmonica), plucks and bells (harp, steel drum, glockenspiel, celesta, xylophone), stabs and dub chords — every one level-matched. **32 slots** for your own presets.
+- **158 sound-system presets, browsed by kind** — basses (the reggae subs, the 808s, steppers, the Reese and rollers, wobbles and growls, the FM subs), keys (skank EPs, pianos, clav, the skank guitars), organs (SKANK ORGN, BUBBLE ORG, ROOTS ORG, the classic REGGAE ORG), pads (vox chants, the grain clouds, wind and ocean), leads (the melodica, the sirens, the air horn), plucks and bells (mallets, steel pan, the balafon), stabs (steppers, roots, ska, two-tone, ragga, DnB, jungle, dubstep — and the classic DUB CHORD), FX (congas, bongos, cowbell, the break slicer) — every one level-matched. **32 slots** for your own presets.
 - Envelopes (with a pitch punch for 808s; 2.6: in note values with ENV SYNC), LFO (2.6: tempo-synced, free-running or unipolar), arpeggiator, glide and voice modes (POLY, MONO, LEGATO, UNISON), per-track drive, **INSERT effect** (2.6: soft / hard clip, wavefolder, fuzz, bit crush, phaser, flanger, chorus) and slicer, ANALOG's filter as LP, BP or HP (2.6), sends to a **stereo chorus**, a **tempo delay** (dotted 1/8 and 1/16 too) and a **stereo reverb**.
 - **Key and chords (SEL):** the key of the song for all synths, 16 scales, one-key chords (triad, 7th, 9th, sus4, power), keys snapped to the scale or the scale on the white keys.
 
@@ -212,13 +212,13 @@ Every button can glow so its label is readable on a black FM-1; the C keys or ev
 
 1. Open **[the SLOOP Dub installer](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/)** in **Chrome or Edge** on a computer.
 2. Connect the FM-1 by USB — a **data** cable, directly (no hub).
-3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub logo. The installer serves **SLOOP Dub 1.0** (`sloop-dub-1.0.0.fwsc`); you can also pick another `.fwsc` with its file picker.
+3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub logo. The installer serves **SLOOP Dub 1.1** (`sloop-dub-1.1.fwsc`); you can also pick another `.fwsc` with its file picker.
 
 Nothing to download or compile. Your projects, user presets, samples and settings are kept. After an install, **unplug and plug the FM-1 back in** once so the computer finds its USB audio input.
 
 ### Other ways
 
-- **Direct download:** [sloop-dub-1.0.0.fwsc](docs/firmware/sloop-dub-1.0.0.fwsc), installed with the installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.0.0.fwsc` (needs `pip install mido python-rtmidi`).
+- **Direct download:** [sloop-dub-1.1.fwsc](docs/firmware/sloop-dub-1.1.fwsc), installed with the installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.1.fwsc` (needs `pip install mido python-rtmidi`).
 - **Build it yourself:** see [Building](#building).
 
 ### Going back
@@ -442,7 +442,7 @@ Something else? [Open an issue](../../issues): what you did, what you expected, 
 | | |
 | --- | --- |
 | Tracks | 3 synth parts (8 voices shared) + drums (16 sounds, 6 voices) |
-| Sounds | 153 presets on 12 engines (browsed by kind, level-matched), 6-op FM with DX7 SysEx import and a 27-patch bank, 8 sampled sets (CC0), 4 slots for your own samples (USR1–USR4), 32 user presets |
+| Sounds | 158 sound-system presets on 13 engines (browsed by kind, level-matched), 6-op FM with DX7 SysEx import and a 27-patch bank, 8 sampled sets (CC0), 4 slots for your own samples (USR1–USR4), 32 user presets |
 | Polyphony | 8 voices shared across the synth tracks; per engine played alone: **8** (ANALOG, DIGITAL, PHASE, LOFI, SAMPLE, TRIO, WHEEL, NOISE), **6** (FM6), **4** (VOICE), **3** (GRAIN, PHYS — SYMP model 2); MONO / LEGATO play one note at a time; drums 6 |
 | Drum kits | 37 (5 sampled, 32 synthesised, 16 sounds each), level-matched, plus your own: USR1–USR4 and USR3+4 (about 15 s) |
 | Sequencer | 64 steps per track, own length and division each (1/32 to two bars); chords with a level and ratchet per note; drums with a level and ratchet per sound; ties, slide; per-step parameter locks (24 per track), micro timing (±½ step in 1/64) and fill conditions; swing 0 (straight) to 100 (MPC 75 %); one sample-accurate clock (no drift) |

@@ -271,17 +271,17 @@ static void drawbar_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, con
 }
 
 static const preset_t DRAWBAR_PRESETS[] = {
-    /* name, {REG, SUB, BODY, TOP, PERC, CLICK, DRIVE, ROTR}, {A D S R}, fenv, mono */
-    {"SOUL ORGAN", {3, 0, 0, 0, 0, 25, 10, 1}, {0, 64, 127, 40}, 0, 0, FX(0, 0, 0, 22)},
-    {"GOSPEL", {6, 0, 0, 0, 1, 60, 40, 2}, {0, 64, 127, 45}, 0, 0, FX(0, 0, 0, 30)},
-    {"JAZZ ORGAN", {4, 0, 0, 0, 2, 50, 8, 1}, {0, 64, 127, 40}, 0, 0, FX(0, 0, 0, 22)},
-    {"DIRTY B3", {5, 0, 0, 0, 0, 60, 90, 2}, {0, 64, 127, 40}, 0, 0, FX(30, 0, 6, 20)},
+    /* SLOOP DUB organ bank: the skank, the bubble, the roots / dub / steppers organs, the ska
+     * upstroke, the house classic (kept). {REG, SUB, BODY, TOP, PERC, CLICK, DRIVE, ROTR} */
+    {"SKANK ORGN", {2, 0, 0, 1, 1, 60, 12, 0}, {0, 52, 0, 26}, 0, 0, FX(0, 0, 12, 16)},
+    {"BUBBLE ORG", {3, 0, 0, 0, 2, 70, 10, 1}, {0, 60, 90, 26}, 0, 0, FX(0, 0, 14, 18)},
+    {"ROOTS ORG", {4, 0, 0, 0, 0, 40, 10, 1}, {0, 64, 100, 40}, 0, 0, FX(0, 0, 8, 22)},
+    {"DUB ORG", {2, -2, 0, 0, 0, 50, 24, 1}, {0, 64, 110, 40}, 0, 0, FX(6, 0, 18, 20)},
+    {"STEPPA ORG", {3, 0, 0, 1, 1, 66, 14, 0}, {0, 56, 40, 26}, 0, 0, FX(0, 0, 14, 18)},
     /* 90s house: the percussive organ that plays bass lines and chords */
-    {"HOUSE ORGN", {13, 2, 0, 1, 1, 80, 22, 0}, {0, 60, 96, 22}, 0, 0, FX(0, 10, 12, 18)},
-    /* SLOOP 2.5: {REG, SUB, BODY, TOP, PERC, CLICK, DRIVE, ROTR} */
-    {"ROCK ORGAN", {7, 0, 0, 0, 0, 50, 80, 2}, {0, 64, 127, 40}, 0, 0, FX(20, 0, 6, 20)},
-    {"CHAPEL", {12, 0, 0, 0, 0, 10, 0, 1}, {20, 64, 127, 60}, 0, 0, FX(0, 0, 0, 50)},
+    {"SKA ORGN", {13, 2, 0, 1, 1, 80, 20, 0}, {0, 56, 30, 22}, 0, 0, FX(0, 10, 12, 18)},
     {"REGGAE ORG", {2, 0, 0, 0, 0, 60, 10, 0}, {0, 52, 0, 24}, 0, 0, FX(0, 0, 10, 15)},
+    {"GOSPEL ORG", {6, 0, 0, 0, 1, 60, 40, 2}, {0, 64, 127, 45}, 0, 0, FX(0, 0, 0, 30)},
 };
 
 static const engine_t ENG_DRAWBAR = {

@@ -553,21 +553,23 @@ const uint32_t DUB_RIDDIM_COUNT = sizeof DUB_RIDDIMS / sizeof DUB_RIDDIMS[0];
 uint8_t dub_enabled = 0;
 
 /* 2.9.3: the dub sound banks (dub.h). Engine indices: 0 ANALOG, 1 DIGITAL, 2 PHASE,
- * 3 LOFI, 6 TRIO, 7 DRAWBAR, 10 PHYS. The preset numbers are the engines' own banks:
- * the names are theirs, the level trims and the patches come with apply_preset_to. */
+ * 3 LOFI, 4 SAMPLE, 5 FORMANT, 6 TRIO, 7 DRAWBAR, 9 FM6, 10 PHYS, 11 NOISE. The preset
+ * numbers are the engines' own banks: the names are theirs, the level trims and the
+ * patches come with apply_preset_to. SLOOP DUB: the sound-system bank's picks. */
 const dub_sound_t DUB_BASS_SOUNDS[] = {
-    {"SUB BASS", 0, 2}, {"808 BOOM", 0, 0}, {"FAT BASS", 6, 0}, {"REESE", 0, 6},
-    {"WOBBLE", 0, 7}, {"ACID 303", 0, 4}, {"CZ BASS", 2, 0}, {"NES BASS", 3, 3},
+    {"SKANK SUB", 0, 0}, {"ROOTS 808", 0, 1}, {"STEPPA SUB", 0, 2}, {"DNB REESE", 0, 3},
+    {"WOBBLE", 0, 7}, {"GROWL", 0, 8}, {"CZ SUB", 2, 7}, {"CHIP BASS", 3, 3},
+    {"RAGGA BASS", 4, 1}, {"TRIO BASS", 6, 9},
 };
 const uint32_t DUB_BASS_N = sizeof DUB_BASS_SOUNDS / sizeof DUB_BASS_SOUNDS[0];
 const dub_sound_t DUB_SKANK_SOUNDS[] = {
-    {"DUB CHORD", 6, 4}, {"MIN STAB", 6, 1}, {"MIN7 STAB", 6, 2}, {"REGGAE ORG", 7, 7},
-    {"DIRTY B3", 7, 3}, {"SOUL ORGAN", 7, 0}, {"AFRO KEYS", 1, 5}, {"CHIP CHORD", 3, 4},
+    {"STEPPA STB", 6, 0}, {"ROOTS STB", 6, 1}, {"DUB CHORD", 6, 2}, {"SKA STAB", 6, 3},
+    {"SKANK ORGN", 7, 0}, {"REGGAE ORG", 7, 6}, {"DX SKANK", 1, 0}, {"SKANK PNO", 4, 0},
 };
 const uint32_t DUB_SKANK_N = sizeof DUB_SKANK_SOUNDS / sizeof DUB_SKANK_SOUNDS[0];
 const dub_sound_t DUB_MEL_SOUNDS[] = {
-    {"PAN FLUTE", 0, 16}, {"STEELPAN", 10, 21}, {"STEEL DRUM", 1, 13}, {"KALIMBA", 1, 9},
-    {"SQR LEAD", 6, 11}, {"SYNC LEAD", 6, 6}, {"FAT LEAD", 0, 17}, {"CZ LEAD", 2, 5},
+    {"MELODICA", 0, 14}, {"DUB LEAD", 0, 13}, {"DUB SIREN", 11, 0}, {"STEEL PAN", 10, 8},
+    {"AIR HORN", 11, 2}, {"DUB FLUTE", 4, 5}, {"FM HORNS", 9, 6}, {"TOAST VOX", 5, 2},
 };
 const uint32_t DUB_MEL_N = sizeof DUB_MEL_SOUNDS / sizeof DUB_MEL_SOUNDS[0];
 /* the drum kits, the drum track's P_E0 (drums.c DRUM_KIT_NAMES: 1 DEEP, 4 DUST, 9 VINTAGE,

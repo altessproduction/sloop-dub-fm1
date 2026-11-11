@@ -211,17 +211,17 @@ static void formant_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, con
 }
 
 static const preset_t FORMANT_PRESETS[] = {
-    /* VOWEL VOWL2 TALK SHIFT | BUZZ BREATH Q RAND ; vowels A E I O U over 0..127 */
-    {"CHOIR AAH", {0, 0, 0, 0, 40, 22, 60, 0}, {85, 90, 115, 95}, 0, 0, FX(0, 60, 10, 70)},
-    {"SOUL OOH", {110, 0, 0, 0, 30, 30, 55, 0}, {70, 90, 115, 90}, 0, 0, FX(0, 60, 10, 70)},
-    {"TALKBOX", {32, 95, 60, 0, 100, 4, 75, 0}, {4, 70, 110, 40}, 0, 1, FX(10, 15, 20, 25),
+    /* SLOOP DUB voice bank: the dub chant, the ragga oohs, the toast, a vox bass, leads.
+     * {VOWL VOWL2 TALK SHIFT | BUZZ BREATH Q RAND ; vowels A E I O U over 0..127} */
+    {"DUB CHANT", {0, 0, 0, 0, 40, 22, 60, 0}, {85, 90, 115, 95}, 0, 0, FX(0, 60, 12, 70)},
+    {"RAGGA OOH", {110, 0, 0, 0, 30, 30, 55, 0}, {70, 90, 115, 90}, 0, 0, FX(0, 60, 12, 70)},
+    {"TOAST VOX", {32, 95, 60, 0, 100, 6, 75, 0}, {4, 70, 110, 40}, 0, 1, FX(10, 15, 22, 25),
      XP(P_GLIDE + 1, 60, P_LD_PIT + 1, 2, P_LRATE + 1, 89)},
-    {"WOW BASS", {95, 0, 68, 0, 100, 0, 80, 0}, {0, 70, 70, 30}, 0, 1, FX(10, 0, 0, 6), XP(P_TRANS + 1, -12)},
-    /* SLOOP 2.5: a reedy harmonica, a hand tremolo that comes in on long notes */
-    {"HARMONICA", {64, 0, 0, 0, 127, 20, 70, 0}, {4, 70, 115, 25}, 0, 1, FX(10, 10, 10, 22),
+    {"VOX BASS", {95, 0, 68, 0, 100, 0, 80, 0}, {0, 70, 70, 30}, 0, 1, FX(10, 0, 0, 6), XP(P_TRANS + 1, -12)},
+    {"DUB VOX", {70, 20, 40, 0, 90, 20, 70, 0}, {10, 70, 108, 36}, 0, 1, FX(10, 10, 28, 26), XP(P_GLIDE + 1, 40)},
+    {"SKA VOX", {64, 0, 0, 0, 127, 20, 70, 0}, {4, 70, 115, 25}, 0, 1, FX(10, 10, 10, 22),
      XP(P_LD_AMP + 1, 18, P_LRATE + 1, 80, P_LFADE + 1, 60)},
-    {"ROBOT", {40, 40, 0, 0, 127, 0, 110, 0}, {0, 60, 110, 20}, 0, 1, FX(10, 0, 20, 15), XP(P_GLIDE + 1, 20)},
-    {"VOX PAD", {20, 100, 110, 0, 50, 30, 60, 10}, {80, 90, 118, 90}, 0, 0, FX(0, 60, 15, 70)},
+    {"VOX PAD", {20, 100, 110, 0, 50, 30, 60, 10}, {80, 90, 118, 90}, 0, 0, FX(0, 60, 16, 70)},
 };
 
 static const engine_t ENG_FORMANT = {

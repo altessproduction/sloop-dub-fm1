@@ -357,24 +357,24 @@ static void trio_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const 
 }
 
 static const preset_t TRIO_PRESETS[] = {
-    /* name, {WAVE, INT2, INT3, DTN, MODE, CUT, RES, PW}, {A D S R}, fenv, mono. INT2 / INT3: one-finger chords */
-    {"FAT BASS", {0, 0, -12, 9, 0, 72, 45, 64}, {0, 64, 80, 25}, 40, 1, FX(22, 0, 0, 6), XP(P_TRANS + 1, -24)},
-    {"MIN STAB", {0, 3, 7, 6, 0, 82, 20, 64}, {0, 66, 26, 36}, 30, 0, FX(0, 20, 20, 30)},
-    {"MIN7 STAB", {3, 3, 10, 5, 0, 75, 15, 64}, {0, 66, 28, 40}, 20, 0, FX(0, 25, 18, 30)},
-    /* rave: a bright minor stab, the filter snapping shut */
-    {"RAVE STAB", {0, 3, 7, 14, 0, 98, 30, 64}, {0, 66, 30, 34}, 40, 0, FX(16, 20, 24, 30)},
-    /* dub techno: a dark minor 7th chord into the delay */
+    /* SLOOP DUB stabs bank: one key plays the chord (INT2 / INT3 intervals), the stabs of every
+     * genre; three basses and two pads. {WAVE, INT2, INT3, DTN, MODE, CUT, RES, PW} */
+    {"STEPPA STB", {3, 3, 10, 6, 0, 70, 26, 64}, {0, 66, 24, 42}, 24, 0, FX(0, 10, 40, 30)},
+    {"ROOTS STB", {1, 4, 7, 6, 0, 76, 22, 64}, {0, 66, 28, 40}, 20, 0, FX(0, 20, 20, 26)},
+    /* dub techno: a dark minor 7th chord into the delay (the house classic, kept) */
     {"DUB CHORD", {3, 3, 10, 6, 0, 68, 40, 64}, {0, 66, 22, 46}, 28, 0, FX(0, 10, 72, 40)},
-    {"SAW PAD", {0, 0, 12, 30, 0, 72, 10, 64}, {52, 90, 115, 86}, 6, 0, FX(0, 40, 20, 60)},
-    {"SYNC LEAD", {9, 9, 0, 0, 0, 82, 30, 64}, {2, 70, 100, 40}, 18, 1, FX(0, 10, 30, 22), XP(P_GLIDE + 1, 56)},
-    {"HOOVER", {0, 0, -12, 40, 0, 70, 20, 64}, {10, 70, 110, 40}, 10, 1, FX(10, 40, 10, 24), XP(P_GLIDE + 1, 70)},
-    /* SLOOP 2.5: a musette accordion, a 70s string machine, an 80s poly synth */
-    {"ACCORDION", {1, 0, 12, 14, 0, 92, 10, 40}, {6, 70, 118, 24}, 0, 0, FX(0, 20, 0, 22)},
-    {"ENSEMBLE", {0, 12, 0, 10, 0, 85, 0, 64}, {50, 90, 118, 80}, 0, 0, FX(0, 90, 10, 55)},
-    {"80S POLY", {0, 0, 12, 12, 0, 70, 30, 64}, {2, 72, 70, 50}, 34, 0, FX(0, 50, 22, 34)},
-    {"SQR LEAD", {1, 0, 12, 4, 0, 90, 20, 50}, {2, 70, 110, 30}, 10, 1, FX(0, 10, 28, 22), XP(P_GLIDE + 1, 40)},
-    {"POWER STAB", {0, 7, 12, 8, 0, 85, 25, 64}, {0, 70, 50, 36}, 30, 0, FX(16, 10, 20, 25)},
-    {"PULSE PAD", {1, 0, 12, 20, 0, 70, 10, 30}, {60, 90, 115, 85}, 0, 0, FX(0, 50, 20, 60), XP(P_LD_SHP + 1, 25, P_LRATE + 1, 30)},
+    {"SKA STAB", {0, 3, 7, 8, 0, 92, 24, 64}, {0, 58, 22, 30}, 26, 0, FX(0, 15, 16, 22)},
+    {"TWO TONE", {1, 3, 7, 10, 0, 88, 30, 50}, {0, 60, 20, 28}, 20, 0, FX(8, 10, 14, 20)},
+    {"RAGGA STB", {0, 3, 10, 6, 0, 78, 26, 64}, {0, 64, 26, 36}, 26, 0, FX(0, 15, 22, 28)},
+    {"DNB STAB", {0, 3, 7, 10, 0, 84, 34, 64}, {0, 62, 30, 30}, 34, 0, FX(12, 14, 20, 24)},
+    {"JUNGLE STB", {0, 3, 7, 14, 0, 88, 30, 64}, {0, 62, 26, 30}, 30, 0, FX(10, 20, 24, 26)},
+    {"DUBSTEP STB", {3, 3, 10, 8, 0, 60, 44, 64}, {0, 66, 30, 40}, 30, 0, FX(10, 10, 30, 30), XP(P_TRANS + 1, -12)},
+    /* the three basses: fat, the chord sub, and the round bubble organ (the piano shuffle) */
+    {"TRIO BASS", {0, 0, -12, 9, 0, 72, 45, 64}, {0, 64, 80, 25}, 40, 1, FX(22, 0, 0, 6), XP(P_TRANS + 1, -24)},
+    {"CHORD SUB", {3, 0, -12, 8, 0, 64, 34, 64}, {0, 66, 90, 26}, 24, 1, FX(8, 0, 0, 6), XP(P_TRANS + 1, -24)},
+    {"BUBBLE ORG", {1, 7, 12, 5, 0, 88, 12, 40}, {0, 58, 90, 22}, 0, 0, FX(0, 10, 16, 20)},
+    {"STEPPA PAD", {0, 0, 12, 22, 0, 66, 16, 64}, {50, 90, 112, 80}, 8, 0, FX(0, 40, 22, 58)},
+    {"WOBBLE PAD", {1, 0, 12, 24, 0, 64, 18, 30}, {55, 90, 112, 80}, 0, 0, FX(0, 44, 20, 56), XP(P_LD_SHP + 1, 26, P_LRATE + 1, 34)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the three oscillators moved by r (Q32) of a turn of the

@@ -3,6 +3,37 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.1 — novembre 2026
+
+**La banque de sons d'usine est refondue pour le sound system.** Les 158 presets
+(13 moteurs, SLICE compris) remplacent la banque d'origine : reggae, roots, ska, dub,
+drum & bass, jungle, ragga jungle, dubstep, UK steppers, bass music. Chaque moteur a
+sa banque redessinée paramètre par paramètre, et tous les niveaux sont recalibrés
+(`tools/level_presets.py`, cible −15 LUFS, trois passes).
+
+- **Les basses de chaque genre** (ANALOG, DIGITAL, FM6, CZ, CHIP, SAMPLE, VOICE, TRIO,
+  PHYS) : les subs reggae et steppers, les 808 qui glissent (ROOTS 808, RAGGA 808),
+  le Reese et le roller DnB, les wobbles et growls dubstep, la basse UK garage.
+- **Le comping** : SKANK ORGN et les orgues de la banque WHEEL, BUBBLE ORG (TRIO),
+  les EP skank FM et CZ, SKANK PNO, les guitares du skank en modélisation physique
+  (SKANK GTR, UPSTROKE, SKA GTR).
+- **Les stabs d'un doigt** (TRIO) : STEPPA STB, ROOTS STB, SKA STAB, TWO TONE,
+  RAGGA STB, DNB STAB, JUNGLE STB, DUBSTEP STB — DUB CHORD reste, comme REGGAE ORG.
+- **Les sirens et FX du sound system** (NOISE) : DUB SIREN et SIREN 2 (le registre LFSR
+  pitché, le LFO le fait pleurer), AIR HORN, la pluie de vinyle et de bande.
+- **Les breaks** (SLICE) : AMEN CUT, JUNGLE 16, RAGGA CUT sur le break intégré.
+- **Les 8 patchs FM6 d'usine sont réécrits** (`tools/gen_fm6_patches.py`) : SKANK,
+  DUB KEYS, FM SUB, GROWL, STEPPA, BELL, HORNS, MELODI — la mélodica du dubpoète.
+- **La banque PRS du module dub suit** (dub.c) : les trois listes basse / skank /
+  mélodie pointent sur les nouveaux presets (nom + index vérifiés).
+- **L'éditeur web est synchronisé** (scripts/update_editor_presets.py régénère les
+  blocs `presets:` et `FACTORY_PK` de sloop-editor.html depuis les tables C).
+- Les sons de démarrage d'un projet neuf : SKANK SUB (piste 1), DX SKANK (piste 2),
+  DUB FLUTE (piste 3).
+- `tests/preset_level.c` du dépôt amont revient dans le fork avec les rôles de mesure
+  de la banque sound-system (stabs d'un doigt, basses, beds tenus, comping, mélodie) ;
+  les pages de test restent hors du firmware.
+
 ## 1.0 — novembre 2026
 
 La première version de partage : le firmware est prêt pour le test réel sur FM-1,

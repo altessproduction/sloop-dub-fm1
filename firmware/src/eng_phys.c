@@ -224,40 +224,45 @@ static void phys_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const 
 /* MODAL partials by STRC: 34 harmonic, 70 1 : 2.83 : 5.48 : 8.90 (a free bar, a chime: 1 : 2.76 : 5.40 : 8.93),
  * 98 1 : 3.57 : 7.65, 116 1 : 4.0 : 9.0 (a tuned bar: 1 : 4 : 10) */
 static const preset_t PHYS_PRESETS[] = {
-    /* name, {MODEL, STRC, BRIT, DAMP, POS, ACC, BOW, EXC}, {A D S R}, fenv, mono */
-    {"BELL TREE", {PM_MODAL, 70, 100, 106, 12, 100, 0, 6}, {0, 100, 127, 96}, 0, 0, FX(0, 20, 30, 60)},
-    {"MODAL BAR", {PM_MODAL, 116, 38, 40, 24, 90, 0, 30}, {0, 90, 127, 52}, 0, 0, FX(0, 0, 15, 30)},
-    {"STR PLUCK", {PM_STRING, 56, 72, 84, 40, 96, 0, 0}, {0, 100, 127, 58}, 0, 0, FX(0, 10, 30, 30)},
-    {"BOWED MTL", {PM_MODAL, 98, 70, 112, 10, 80, 90, 0}, {60, 90, 127, 90}, 0, 0, FX(0, 40, 20, 70)},
-    {"THUMB PNO", {PM_MODAL, 34, 16, 56, 100, 90, 0, 48}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 20, 40)},
-    /* MEMB: {MODEL, HARM, BRIT, DAMP, POS, ACC, BEND, EXC} */
+    /* SLOOP DUB physical-modelling bank: the skank guitars, the sound-system percussion (congas,
+     * bongos, cowbell), the steel pan, the mallets. {MODEL, STRC, BRIT, DAMP, POS, ACC, BOW, EXC},
+     * {A D S R}, fenv, mono; MEMB is {MODEL, HARM, BRIT, DAMP, POS, ACC, BEND, EXC},
+     * SYMP is {MODEL, CHRD, BRIT, DAMP, SYMP, ACC, BUZZ, EXC}. MODAL partials by STRC:
+     * 34 harmonic, 70 1 : 2.83 : 5.48 : 8.90, 98 1 : 3.57 : 7.65, 116 1 : 4.0 : 9.0 */
+    /* the guitars: the muted skank, its second inversion, the steel roots one, the bright ska one,
+     * the nylon picker, the koto-like pluck into the delay */
+    {"SKANK GTR", {PM_STRING, 50, 40, 55, 30, 90, 0, 20}, {0, 100, 127, 20}, 0, 0, FX(0, 0, 18, 18)},
+    {"UPSTROKE", {PM_STRING, 44, 34, 60, 26, 92, 0, 24}, {0, 100, 127, 18}, 0, 0, FX(0, 0, 14, 16), XP(P_TRANS + 1, 12)},
+    {"ROOTS GTR", {PM_STRING, 56, 85, 88, 22, 96, 0, 6}, {0, 100, 127, 56}, 0, 0, FX(0, 15, 18, 35)},
+    {"SKA GTR", {PM_STRING, 56, 72, 84, 40, 96, 0, 0}, {0, 100, 127, 58}, 0, 0, FX(0, 10, 26, 28), XP(P_TRANS + 1, 12)},
+    {"PICK GTR", {PM_STRING, 40, 50, 80, 30, 80, 0, 10}, {0, 100, 127, 50}, 0, 0, FX(0, 10, 15, 35)},
+    {"DUB HARP", {PM_STRING, 20, 70, 82, 15, 96, 0, 4}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 25, 45)},
+    /* the basses: the plucked one, the upright */
+    {"PICK BASS", {PM_STRING, 60, 45, 74, 35, 100, 0, 8}, {0, 100, 127, 30}, 0, 1, FX(0, 0, 0, 6), XP(P_TRANS + 1, -12)},
+    {"UPRIGHT BS", {PM_STRING, 34, 42, 90, 30, 96, 0, 4}, {0, 100, 127, 34}, 0, 1, FX(0, 0, 0, 8), XP(P_TRANS + 1, -24)},
+    /* the sound-system percussion: pan, congas, bongos, hand drum, toms, tabla, timpani, the body
+     * kick, the cowbell, the block */
+    {"STEEL PAN", {PM_MODAL, 36, 80, 90, 30, 100, 0, 20}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 20, 35)},
+    {"CONGAS", {PM_MEMB, 90, 60, 50, 40, 100, 8, 40}, {0, 100, 127, 40}, 0, 0, FX(0, 0, 10, 25)},
+    {"BONGOS", {PM_MEMB, 120, 60, 45, 55, 110, 10, 45}, {0, 100, 127, 30}, 0, 0, FX(0, 0, 10, 20), XP(P_TRANS + 1, 12)},
     {"HAND DRUM", {PM_MEMB, 112, 76, 56, 44, 100, 14, 24}, {0, 100, 127, 64}, 0, 0, FX(0, 0, 10, 30)},
     {"MEMB TOMS", {PM_MEMB, 0, 52, 40, 30, 100, 40, 30}, {0, 100, 127, 70}, 0, 0, FX(0, 0, 0, 40)},
-    /* SYMP: {MODEL, CHRD, BRIT, DAMP, SYMP, ACC, BUZZ, EXC} */
-    {"SITAR", {PM_SYMP, 127, 80, 88, 64, 100, 92, 0}, {0, 100, 127, 90}, 0, 0, FX(0, 10, 20, 50)},
-    {"PHYS HARP", {PM_SYMP, 8, 62, 74, 60, 90, 0, 0}, {0, 100, 127, 80}, 0, 0, FX(0, 20, 20, 60)},
-    /* SLOOP 2.5: more models. STRNG: {MODEL, STRC, BRIT, DAMP, POS, ACC, BOW, EXC} */
-    {"NYLON GTR", {PM_STRING, 40, 50, 80, 30, 80, 0, 10}, {0, 100, 127, 50}, 0, 0, FX(0, 10, 15, 35)},
-    {"STEEL GTR", {PM_STRING, 56, 85, 88, 22, 96, 0, 6}, {0, 100, 127, 56}, 0, 0, FX(0, 15, 18, 35)},
-    {"MUTED GTR", {PM_STRING, 50, 40, 55, 30, 90, 0, 20}, {0, 100, 127, 20}, 0, 0, FX(0, 0, 20, 20)},
-    {"PLUCK BASS", {PM_STRING, 60, 45, 74, 35, 100, 0, 8}, {0, 100, 127, 30}, 0, 1, FX(0, 0, 0, 6), XP(P_TRANS + 1, -12)},
-    {"KOTO", {PM_STRING, 20, 70, 82, 15, 96, 0, 4}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 25, 45)},
-    {"BANJO", {PM_STRING, 70, 100, 60, 12, 110, 0, 12}, {0, 100, 127, 40}, 0, 0, FX(0, 0, 15, 25)},
-    {"CELLO BOW", {PM_MODAL, 34, 60, 110, 12, 70, 90, 0}, {60, 90, 127, 70}, 0, 0, FX(0, 20, 10, 55)},
-    /* SYMP: {MODEL, CHRD, BRIT, DAMP, SYMP, ACC, BUZZ, EXC} */
-    {"TANPURA", {PM_SYMP, 0, 70, 120, 90, 80, 110, 0}, {0, 100, 127, 100}, 0, 0, FX(0, 10, 10, 60)},
-    /* MODAL: chimes, bells, bars, a glass bowl, a pan, a block */
+    {"TABLA", {PM_MEMB, 120, 70, 70, 50, 110, 20, 30}, {0, 100, 127, 50}, 0, 0, FX(0, 0, 10, 25)},
+    {"TIMPANI", {PM_MEMB, 10, 50, 100, 20, 110, 6, 10}, {0, 100, 127, 90}, 0, 0, FX(0, 0, 0, 50), XP(P_TRANS + 1, -12)},
+    {"BODY KICK", {PM_MEMB, 30, 40, 50, 20, 110, 4, 70}, {0, 100, 127, 40}, 0, 0, FX(0, 0, 0, 10), XP(P_TRANS + 1, -12)},
+    {"COWBELL", {PM_MODAL, 116, 60, 40, 40, 110, 0, 60}, {0, 100, 127, 20}, 0, 0, FX(0, 0, 10, 16), XP(P_TRANS + 1, 12)},
+    {"WOOD BLOCK", {PM_MODAL, 116, 30, 35, 40, 110, 0, 60}, {0, 100, 127, 20}, 0, 0, FX(0, 0, 10, 20)},
+    /* the mallets: the thumb piano, the balafon, chimes, bells, the vibra bar */
+    {"KALIMBA", {PM_MODAL, 34, 16, 56, 100, 90, 0, 48}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 20, 40)},
+    {"BALAFON", {PM_MODAL, 116, 38, 40, 24, 90, 0, 30}, {0, 90, 127, 52}, 0, 0, FX(0, 0, 15, 30)},
     {"CHIMES", {PM_MODAL, 70, 110, 118, 8, 110, 0, 4}, {0, 100, 127, 100}, 0, 0, FX(0, 15, 25, 65)},
+    {"BELL TREE", {PM_MODAL, 70, 100, 106, 12, 100, 0, 6}, {0, 100, 127, 96}, 0, 0, FX(0, 20, 30, 60)},
     {"BIG BELL", {PM_MODAL, 80, 90, 124, 16, 120, 0, 8}, {0, 100, 127, 110}, 0, 0, FX(0, 10, 20, 70), XP(P_TRANS + 1, -12)},
     {"VIBRA BAR", {PM_MODAL, 116, 60, 100, 20, 80, 0, 10}, {0, 100, 127, 70}, 0, 0, FX(0, 20, 15, 40),
      XP(P_LD_AMP + 1, 20, P_LRATE + 1, 70)},
-    {"GLASS BOWL", {PM_MODAL, 98, 90, 120, 6, 60, 70, 0}, {70, 90, 127, 100}, 0, 0, FX(0, 30, 20, 75)},
-    {"STEEL PAN", {PM_MODAL, 36, 80, 90, 30, 100, 0, 20}, {0, 100, 127, 60}, 0, 0, FX(0, 10, 20, 35)},
-    {"WOOD BLOCK", {PM_MODAL, 116, 30, 35, 40, 110, 0, 60}, {0, 100, 127, 20}, 0, 0, FX(0, 0, 10, 20)},
-    /* MEMB: {MODEL, HARM, BRIT, DAMP, POS, ACC, BEND, EXC} */
-    {"TABLA", {PM_MEMB, 120, 70, 70, 50, 110, 20, 30}, {0, 100, 127, 50}, 0, 0, FX(0, 0, 10, 25)},
-    {"CONGA", {PM_MEMB, 90, 60, 50, 40, 100, 8, 40}, {0, 100, 127, 40}, 0, 0, FX(0, 0, 10, 25)},
-    {"TIMPANI", {PM_MEMB, 10, 50, 100, 20, 110, 6, 10}, {0, 100, 127, 90}, 0, 0, FX(0, 0, 0, 50), XP(P_TRANS + 1, -12)},
+    /* the bowed and the drone strings */
+    {"BOW STR", {PM_MODAL, 34, 60, 110, 12, 70, 90, 0}, {60, 90, 127, 70}, 0, 0, FX(0, 20, 10, 55)},
+    {"TANPURA", {PM_SYMP, 0, 70, 120, 90, 80, 110, 0}, {0, 100, 127, 100}, 0, 0, FX(0, 10, 10, 60)},
 };
 
 static const engine_t ENG_PHYS = {

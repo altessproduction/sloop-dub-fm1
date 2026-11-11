@@ -170,16 +170,16 @@ static void phase_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const
 }
 
 static const preset_t PHASE_PRESETS[] = {
-    /* name, {WAVE, WAVE2, DCW, ENV, DTN, LINE, SUB, -}, {A D S R}, fenv, mono */
-    {"CZ BASS", {5, 0, 36, 70, 0, 0, 72, 0}, {0, 64, 64, 22}, 0, 1, FX(5, 0, 0, 4), XP(P_GLIDE + 1, 36, P_TRANS + 1, -24)},
-    {"SOFT KEYS", {3, 0, 40, 70, 0, 0, 0, 0}, {0, 80, 20, 50}, 0, 0, FX(0, 35, 14, 28)},
-    {"CZ STRING", {0, 4, 50, 40, 12, 0, 0, 0}, {50, 90, 105, 75}, 0, 0, FX(0, 50, 20, 55)},
-    {"RESO PLUCK", {5, 0, 60, 60, 0, 0, 0, 0}, {0, 70, 30, 60}, 0, 0, FX(0, 0, 30, 30)},
-    {"CZ BRASS", {0, 0, 30, 90, 0, 0, 0, 0}, {8, 70, 90, 40}, 0, 0, FX(0, 20, 14, 26)},
-    /* SLOOP 2.5 */
-    {"CZ LEAD", {0, 0, 70, 60, 6, 0, 0, 0}, {2, 70, 110, 30}, 0, 1, FX(0, 10, 25, 25), XP(P_GLIDE + 1, 30)},
-    {"CZ PAD", {1, 4, 45, 30, 14, 0, 0, 0}, {70, 90, 115, 85}, 0, 0, FX(0, 50, 20, 60)},
-    {"CZ RESO", {6, 0, 80, 90, 0, 0, 0, 0}, {0, 70, 60, 40}, 0, 0, FX(0, 10, 25, 30)},
+    /* SLOOP DUB phase-distortion bank (the CZ flavour): skank keys, roots keys, the bubble, a
+     * melodica-ish lead, brass, a dub pad, a resonance lead, a sub. {WAVE, WAVE2, DCW, ENV, DTN, LINE, SUB, -} */
+    {"CZ SKANK", {3, 0, 40, 70, 0, 0, 0, 0}, {0, 74, 30, 42}, 0, 0, FX(0, 25, 16, 24)},
+    {"CZ ROOTS", {3, 0, 36, 60, 0, 0, 20, 0}, {0, 80, 60, 42}, 0, 0, FX(0, 25, 14, 24)},
+    {"CZ BUBBLE", {5, 0, 52, 64, 0, 0, 0, 0}, {0, 72, 34, 44}, 0, 0, FX(0, 15, 20, 24)},
+    {"CZ MELO", {0, 0, 70, 58, 6, 0, 0, 0}, {2, 70, 108, 32}, 0, 1, FX(0, 10, 26, 24), XP(P_GLIDE + 1, 30)},
+    {"CZ BRASS", {0, 0, 30, 88, 0, 0, 0, 0}, {8, 70, 90, 40}, 0, 0, FX(0, 20, 14, 26)},
+    {"CZ DUBPAD", {1, 4, 44, 30, 14, 0, 0, 0}, {70, 90, 115, 85}, 0, 0, FX(0, 50, 22, 60)},
+    {"CZ RESO", {6, 0, 80, 88, 0, 0, 0, 0}, {0, 70, 58, 40}, 0, 0, FX(0, 10, 25, 30)},
+    {"CZ SUB", {5, 0, 34, 66, 0, 0, 80, 0}, {0, 64, 64, 22}, 0, 1, FX(6, 0, 0, 4), XP(P_GLIDE + 1, 36, P_TRANS + 1, -24)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): line 1, line 2 (DTN cents up) and the sub (an octave

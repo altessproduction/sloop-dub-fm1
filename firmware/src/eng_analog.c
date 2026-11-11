@@ -124,39 +124,41 @@ static void analog_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, cons
 }
 
 static const preset_t ANALOG_PRESETS[] = {
-    /* SLOOP hip-hop / drum & bass bank. {WAVE, DTN, MIX, NOIS, CUT, RES, DRV, KTR}, {A D S R}, fenv, mono */
-    /* 808s: a sine that decays (SUS 0) with a little pitch drop (ENV -> PITCH) and slides (GLIDE, legato) */
-    {"808 BOOM", {3, 0, 0, 0, 127, 0, 48, 0}, {0, 112, 0, 52}, 0, 1, FX(0, 0, 0, 0), XP(P_GLIDE + 1, 59, P_GLMODE + 1, 1, P_ED_PIT + 1, 18, P_TRANS + 1, -24)},
-    {"808 DIRTY", {3, 0, 0, 0, 96, 12, 118, 30}, {0, 108, 0, 46}, 0, 1, FX(24, 0, 0, 0), XP(P_GLIDE + 1, 56, P_GLMODE + 1, 1, P_ED_PIT + 1, 24, P_TRANS + 1, -24)},
-    {"SUB BASS", {3, 0, 0, 0, 127, 0, 10, 0}, {0, 60, 118, 24}, 0, 1, FX(0, 0, 0, 0), XP(P_GLIDE + 1, 40, P_TRANS + 1, -24)},
-    {"808 SLIDE", {3, 0, 0, 0, 127, 0, 72, 0}, {0, 118, 0, 60}, 0, 1, FX(30, 0, 0, 0), XP(P_GLIDE + 1, 82, P_GLMODE + 1, 1, P_ED_PIT + 1, 12, P_TRANS + 1, -24)},
-    /* acid: one saw, high resonance, the envelope on the filter, slides where notes overlap */
-    {"ACID 303", {0, 0, 0, 0, 36, 112, 44, 64}, {0, 56, 24, 20}, 52, 1, FX(28, 0, 22, 10), XP(P_GLIDE + 1, 34, P_GLMODE + 1, 1, P_TRANS + 1, -12)},
-    /* plugg / soft trap: a round triangle bass */
-    {"PLUGG BASS", {2, 0, 0, 0, 92, 0, 30, 0}, {0, 96, 92, 34}, 0, 1, FX(0, 0, 0, 6), XP(P_GLIDE + 1, 52, P_GLMODE + 1, 1, P_TRANS + 1, -24)},
-    /* drum & bass: two detuned saws, slowly moving filter */
-    {"REESE", {0, 22, 64, 0, 56, 22, 36, 40}, {0, 70, 118, 28}, 0, 1, FX(0, 22, 0, 6), XP(P_LRATE + 1, 22, P_LD_FLT + 1, 10, P_TRANS + 1, -24)},
-    {"WOBBLE", {0, 9, 64, 0, 38, 72, 62, 30}, {0, 64, 127, 22}, 0, 1, FX(10, 0, 0, 4), XP(P_LRATE + 1, 74, P_LD_FLT + 1, 40, P_TRANS + 1, -24)},
-    /* west coast: a square bass that slides, the high sine-ish lead with a delayed vibrato */
-    {"FUNK BASS", {1, 6, 50, 0, 50, 30, 22, 64}, {0, 55, 62, 20}, 30, 1, FX(0, 0, 0, 4), XP(P_GLIDE + 1, 50, P_GLMODE + 1, 1, P_TRANS + 1, -24)},
-    {"G-FUNK LD", {2, 0, 0, 0, 92, 0, 10, 64}, {6, 70, 112, 46}, 0, 1, FX(0, 0, 28, 30),
-     XP(P_GLIDE + 1, 74, P_LD_PIT + 1, 2, P_LRATE + 1, 89, P_LFADE + 1, 50)},
-    {"TRAP PLUCK", {0, 8, 64, 0, 52, 35, 20, 64}, {0, 80, 24, 45}, 48, 0, FX(0, 15, 34, 26)},
-    {"SYN BRASS", {0, 10, 64, 0, 45, 20, 16, 64}, {12, 70, 96, 35}, 34, 0, FX(0, 15, 12, 24)},
-    /* trance / EDM: eight detuned saw voices on one note */
-    {"SUPERSAW", {0, 14, 64, 0, 96, 12, 10, 64}, {4, 70, 112, 46}, 10, 1, FX(0, 20, 30, 36), XP(P_VOICE + 1, 3, P_DETUNE + 1, 64, P_GLIDE + 1, 30)},
-    {"WARM PAD", {4, 12, 64, 6, 52, 8, 0, 32}, {75, 90, 115, 90}, 0, 0, FX(0, 55, 20, 55), XP(P_LRATE + 1, 30, P_LD_SHP + 1, 20)},
-    {"DARK STR", {0, 18, 64, 0, 48, 6, 0, 32}, {60, 90, 118, 85}, 0, 0, FX(0, 50, 18, 60)},
-    {"ATMOS PAD", {4, 25, 64, 20, 60, 15, 0, 32}, {90, 100, 120, 100}, 0, 0, FX(0, 60, 30, 75), XP(P_LRATE + 1, 18, P_LD_PIT + 1, 1)},
-    /* SLOOP 2.5: a breathy pan flute, a fat mono lead, a classic mono bass */
-    {"PAN FLUTE", {2, 0, 0, 30, 70, 10, 0, 64}, {14, 70, 110, 40}, 0, 1, FX(0, 10, 24, 45),
-     XP(P_LD_PIT + 1, 1, P_LRATE + 1, 80, P_LFADE + 1, 70)},
-    {"FAT LEAD", {0, 8, 64, 0, 70, 30, 30, 64}, {2, 70, 110, 30}, 30, 1, FX(0, 0, 26, 20), XP(P_GLIDE + 1, 40)},
-    {"MONO BASS", {0, 4, 64, 0, 48, 36, 30, 64}, {0, 60, 70, 20}, 44, 1, FX(10, 0, 0, 4), XP(P_TRANS + 1, -24)},
-    {"PWM LEAD", {4, 0, 0, 0, 80, 20, 10, 64}, {2, 70, 110, 30}, 0, 1, FX(0, 10, 26, 22),
-     XP(P_LD_PIT + 1, 1, P_LRATE + 1, 80, P_LFADE + 1, 60, P_GLIDE + 1, 30)},
-    {"SAW BASS", {0, 6, 64, 0, 52, 30, 40, 64}, {0, 60, 60, 20}, 30, 1, FX(8, 0, 0, 4), XP(P_TRANS + 1, -24)},
-    {"SINE PAD", {3, 10, 64, 4, 90, 0, 0, 32}, {80, 90, 118, 90}, 0, 0, FX(0, 60, 20, 65)},
+    /* SLOOP DUB sound-system bank (reggae, roots, ska, dub, DnB, jungle, ragga, dubstep, steppers, bass
+     * music). {WAVE, DTN, MIX, NOIS, CUT, RES, DRV, KTR}, {A D S R}, fenv, mono.
+     * Subs: a sine (or a wide sine) with a slow release and a two-octave transposition (TRANS -24);
+     * the 808s add a pitch drop (ENV -> PITCH) and slides (GLIDE, legato); the Reese / wobbles move
+     * the filter with the LFO (LRATE, ENV -> FILTER). */
+    /* reggae / roots subs: round, bouncy, no drive, deep */
+    {"SKANK SUB", {3, 0, 0, 0, 127, 0, 8, 0}, {0, 55, 100, 30}, 0, 1, FX(0, 0, 0, 4), XP(P_GLIDE + 1, 34, P_GLMODE + 1, 1, P_TRANS + 1, -24)},
+    {"ROOTS 808", {3, 0, 0, 0, 127, 0, 40, 0}, {0, 100, 0, 55}, 0, 1, FX(0, 0, 0, 0), XP(P_GLIDE + 1, 45, P_GLMODE + 1, 1, P_ED_PIT + 1, 16, P_TRANS + 1, -24)},
+    /* steppers: the widest sub, a little drive to stay in front */
+    {"STEPPA SUB", {3, 0, 64, 0, 110, 10, 55, 0}, {0, 70, 127, 30}, 0, 1, FX(12, 0, 0, 4), XP(P_TRANS + 1, -24)},
+    /* drum & bass / jungle: the Reese, a roller sub, a filter wobble */
+    {"DNB REESE", {0, 24, 64, 0, 54, 26, 40, 40}, {0, 70, 118, 28}, 0, 1, FX(0, 22, 0, 6), XP(P_LRATE + 1, 20, P_LD_FLT + 1, 12, P_TRANS + 1, -24)},
+    {"ROLLER SUB", {3, 0, 50, 0, 120, 0, 18, 20}, {0, 64, 120, 26}, 0, 1, FX(0, 0, 0, 6), XP(P_TRANS + 1, -24)},
+    {"JUNGLE WOB", {0, 10, 64, 0, 46, 60, 30, 40}, {0, 64, 120, 24}, 0, 1, FX(8, 0, 0, 4), XP(P_LRATE + 1, 62, P_LD_FLT + 1, 34, P_TRANS + 1, -24)},
+    /* ragga: the sliding 808 */
+    {"RAGGA 808", {3, 0, 0, 0, 127, 0, 72, 0}, {0, 118, 0, 62}, 0, 1, FX(30, 0, 0, 0), XP(P_GLIDE + 1, 80, P_GLMODE + 1, 1, P_ED_PIT + 1, 12, P_TRANS + 1, -24)},
+    /* dubstep: the classic LFO wobble, the growl (drive + LFO on the pitch) */
+    {"WOBBLE", {0, 9, 64, 0, 36, 74, 64, 30}, {0, 64, 127, 22}, 0, 1, FX(10, 0, 0, 4), XP(P_LRATE + 1, 76, P_LD_FLT + 1, 42, P_TRANS + 1, -24)},
+    {"GROWL", {0, 14, 70, 0, 40, 40, 90, 40}, {0, 60, 110, 20}, 44, 1, FX(26, 0, 10, 4), XP(P_LRATE + 1, 88, P_LD_PIT + 1, 3, P_TRANS + 1, -24)},
+    /* bass music: the UK garage slide, a dub acid line, a soft round bass */
+    {"UKG SLIDE", {1, 6, 50, 0, 52, 28, 24, 64}, {0, 55, 64, 20}, 30, 1, FX(0, 0, 0, 4), XP(P_GLIDE + 1, 62, P_GLMODE + 1, 1, P_TRANS + 1, -24)},
+    {"ACID RUB", {0, 0, 0, 0, 34, 110, 48, 64}, {0, 56, 26, 20}, 52, 1, FX(24, 0, 22, 10), XP(P_GLIDE + 1, 36, P_GLMODE + 1, 1, P_TRANS + 1, -12)},
+    {"MELLOW BS", {2, 0, 0, 0, 92, 0, 28, 0}, {0, 96, 92, 34}, 0, 1, FX(0, 0, 0, 6), XP(P_GLIDE + 1, 50, P_GLMODE + 1, 1, P_TRANS + 1, -24)},
+    /* dub leads: the siren (a fast pitch LFO), the echo lead, the melodica of the dub poets */
+    {"SIREN", {1, 0, 0, 0, 110, 10, 20, 64}, {2, 70, 110, 36}, 0, 1, FX(0, 0, 34, 12), XP(P_LRATE + 1, 96, P_LD_PIT + 1, 24)},
+    {"DUB LEAD", {0, 8, 64, 0, 66, 26, 26, 64}, {2, 70, 108, 34}, 22, 1, FX(0, 10, 40, 20), XP(P_GLIDE + 1, 40)},
+    {"MELODICA", {2, 0, 0, 24, 86, 6, 6, 64}, {8, 64, 110, 40}, 0, 1, FX(0, 12, 30, 28), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 82, P_LFADE + 1, 55)},
+    {"SKANK LD", {4, 0, 0, 0, 84, 14, 10, 64}, {2, 70, 108, 30}, 0, 1, FX(0, 10, 26, 20), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 78, P_LFADE + 1, 50, P_GLIDE + 1, 30)},
+    {"FX SLIDE", {0, 10, 64, 0, 50, 36, 34, 64}, {0, 66, 110, 24}, 30, 1, FX(14, 0, 24, 16), XP(P_GLIDE + 1, 74, P_GLMODE + 1, 1)},
+    {"NITE LEAD", {2, 0, 0, 0, 100, 4, 4, 64}, {4, 70, 104, 44}, 0, 1, FX(0, 20, 30, 30), XP(P_GLIDE + 1, 46, P_GLMODE + 1, 1)},
+    /* pads: sky (atmos), dark, the gong (a slow pitch drift) */
+    {"SKY PAD", {2, 12, 64, 6, 54, 8, 0, 32}, {75, 90, 115, 90}, 0, 0, FX(0, 55, 22, 58), XP(P_LRATE + 1, 30, P_LD_SHP + 1, 20)},
+    {"DARK PAD", {0, 18, 64, 0, 48, 8, 0, 32}, {60, 90, 118, 85}, 0, 0, FX(0, 50, 20, 62)},
+    {"GONG PAD", {4, 25, 64, 20, 60, 15, 0, 32}, {90, 100, 120, 100}, 0, 0, FX(0, 60, 32, 75), XP(P_LRATE + 1, 18, P_LD_PIT + 1, 1)},
+    {"CHIME PLK", {0, 8, 64, 0, 52, 35, 20, 64}, {0, 80, 24, 45}, 48, 0, FX(0, 15, 34, 26)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): both oscillators moved by r (Q32) of a turn of the note,

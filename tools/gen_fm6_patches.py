@@ -53,15 +53,50 @@ def pack(v):
 INIT = voice("INIT VOICE", 1, [op(ol=99)] + [op() for _ in range(5)], lpms=3)
 
 # OP1..OP6. Algorithm 5 = three pairs (1<-2, 3<-4, 5<-6 with the feedback), 32 = six carriers.
+# SLOOP DUB: the factory patches as sound-system presets — the skank EP, dub keys, the FM subs
+# (F3..F5: two stacks, the modulator fat and the feedback for the growl), the glass bell, the horn
+# section, the melodica.
 PATCHES = [
-    ("TINE EP", voice("TINE EP", 5, [
-        op(r=(96, 25, 25, 67), l=(99, 75, 0, 0), ol=98, kvs=2, rs=3),
-        op(r=(95, 50, 35, 78), l=(99, 75, 0, 0), ol=58, kvs=7, rs=3),
-        op(r=(95, 20, 20, 50), l=(99, 95, 0, 0), ol=90, kvs=2, det=8, rs=2),
-        op(r=(97, 62, 40, 60), l=(99, 60, 0, 0), ol=68, fc=14, kvs=6, rs=3),
-        op(r=(95, 30, 20, 60), l=(99, 90, 0, 0), ol=78, det=6, kvs=1),
-        op(r=(95, 40, 30, 60), l=(99, 80, 0, 0), ol=52, kvs=3)],
+    ("SKANK", voice("SKANK", 5, [
+        op(r=(96, 25, 25, 67), l=(99, 75, 0, 0), ol=99, kvs=2, rs=3),
+        op(r=(95, 50, 35, 78), l=(99, 75, 0, 0), ol=62, kvs=7, rs=3),
+        op(r=(95, 20, 20, 50), l=(99, 95, 0, 0), ol=92, kvs=2, det=8, rs=2),
+        op(r=(97, 62, 40, 60), l=(99, 60, 0, 0), ol=72, fc=14, kvs=6, rs=3),
+        op(r=(95, 30, 20, 60), l=(99, 90, 0, 0), ol=80, det=6, kvs=1),
+        op(r=(95, 40, 30, 60), l=(99, 80, 0, 0), ol=56, kvs=3)],
         fb=3, lfs=34, lfd=33, lfw=4, lpms=2)),
+    ("DUB KEYS", voice("DUB KEYS", 5, [
+        op(r=(88, 30, 30, 55), l=(99, 80, 0, 0), ol=96, kvs=1, rs=2),
+        op(r=(90, 55, 40, 65), l=(99, 70, 0, 0), ol=50, kvs=5, rs=2),
+        op(r=(90, 26, 26, 55), l=(99, 90, 0, 0), ol=84, kvs=1, det=9, rs=1),
+        op(r=(92, 66, 44, 60), l=(99, 62, 0, 0), ol=62, fc=10, kvs=5, rs=2),
+        op(r=(90, 34, 26, 60), l=(99, 86, 0, 0), ol=70, det=7, kvs=1),
+        op(r=(90, 44, 34, 60), l=(99, 76, 0, 0), ol=44, kvs=2)],
+        fb=2, lfs=30, lfd=40, lfw=3, lpms=2)),
+    ("FM SUB", voice("FM SUB", 5, [
+        op(r=(99, 42, 32, 78), l=(99, 88, 76, 0), ol=99, kvs=2),
+        op(r=(99, 60, 42, 78), l=(99, 76, 58, 0), ol=88, kvs=5),
+        op(r=(99, 55, 42, 78), l=(99, 72, 55, 0), ol=82, det=8, kvs=1),
+        op(r=(99, 74, 52, 78), l=(99, 68, 44, 0), ol=72, fc=1, kvs=6),
+        op(ol=0),
+        op(ol=0)],
+        fb=4, lpms=0)),
+    ("GROWL", voice("GROWL", 5, [
+        op(r=(99, 30, 30, 60), l=(99, 85, 70, 0), ol=99, kvs=2),
+        op(r=(99, 40, 40, 60), l=(99, 78, 62, 0), ol=92, fc=1, kvs=3),
+        op(r=(99, 26, 26, 55), l=(99, 90, 72, 0), ol=90, kvs=1, det=9),
+        op(r=(99, 36, 36, 55), l=(99, 82, 66, 0), ol=84, fc=1, kvs=3, det=6),
+        op(ol=0),
+        op(ol=0)],
+        fb=10, lpms=0)),
+    ("STEPPA", voice("STEPPA", 5, [
+        op(r=(99, 50, 40, 82), l=(99, 92, 80, 0), ol=99, kvs=1),
+        op(r=(99, 70, 50, 82), l=(99, 84, 70, 0), ol=76, kvs=3),
+        op(r=(99, 60, 45, 82), l=(99, 80, 68, 0), ol=72, det=7, kvs=1),
+        op(r=(99, 80, 55, 82), l=(99, 74, 58, 0), ol=64, fc=2, kvs=5),
+        op(ol=0),
+        op(ol=0)],
+        fb=2, lpms=0)),
     ("BELL", voice("GLASS BELL", 5, [
         op(r=(99, 40, 25, 35), l=(99, 80, 0, 0), ol=96, kvs=1),
         op(r=(99, 35, 25, 35), l=(99, 70, 0, 0), ol=78, fc=3, ff=50, kvs=3),
@@ -70,15 +105,7 @@ PATCHES = [
         op(r=(99, 60, 40, 45), l=(99, 50, 0, 0), ol=78, fc=5, ff=40, det=5),
         op(r=(99, 60, 40, 45), l=(99, 50, 0, 0), ol=60)],
         fb=0, lpms=0)),
-    ("FM BASS", voice("ROUND BASS", 5, [
-        op(r=(99, 40, 30, 75), l=(99, 85, 70, 0), ol=99, kvs=2),
-        op(r=(99, 60, 40, 75), l=(99, 72, 55, 0), ol=80, kvs=5),
-        op(r=(99, 55, 40, 75), l=(99, 70, 50, 0), ol=80, det=8, kvs=1),
-        op(r=(99, 72, 50, 75), l=(99, 65, 40, 0), ol=78, fc=2, kvs=6),
-        op(ol=0),
-        op(ol=0)],
-        fb=0, lpms=0)),
-    ("BRASS", voice("BRASS SECT", 5, [
+    ("HORNS", voice("HORNS", 5, [
         op(r=(65, 50, 40, 60), l=(99, 92, 90, 0), ol=98, kvs=1),
         op(r=(55, 50, 40, 60), l=(99, 88, 85, 0), ol=80, kvs=3),
         op(r=(62, 50, 40, 60), l=(99, 92, 90, 0), ol=92, det=9, kvs=1),
@@ -86,38 +113,14 @@ PATCHES = [
         op(r=(62, 50, 40, 60), l=(99, 92, 90, 0), ol=88, det=5, kvs=1),
         op(r=(52, 50, 40, 60), l=(99, 85, 82, 0), ol=72, kvs=2)],
         fb=5, pr=(80, 60, 99, 60), pl=(46, 50, 50, 50), lfs=33, lfd=50, lpmd=6, lfw=4, lpms=3)),
-    ("PAD", voice("SOFT PAD", 5, [
-        op(r=(40, 30, 40, 40), l=(99, 95, 90, 0), ol=92, det=5),
-        op(r=(35, 30, 40, 40), l=(85, 90, 80, 0), ol=60, kvs=1),
-        op(r=(40, 30, 40, 40), l=(99, 95, 90, 0), ol=92, det=10),
-        op(r=(30, 25, 40, 40), l=(80, 90, 85, 0), ol=55, fc=2, kvs=1),
-        op(r=(38, 30, 40, 40), l=(99, 95, 90, 0), ol=80, fc=2),
-        op(r=(35, 30, 40, 40), l=(85, 90, 85, 0), ol=50)],
-        fb=2, lfs=30, lfd=60, lpmd=4, lfw=4, lpms=2)),
-    ("MARIMBA", voice("WOOD BARS", 5, [
-        op(r=(99, 52, 40, 55), l=(99, 0, 0, 0), ol=99, kvs=2, rs=2),
-        op(r=(99, 75, 50, 60), l=(99, 0, 0, 0), ol=70, fc=4, kvs=5, rs=3),
-        op(r=(99, 70, 50, 60), l=(99, 0, 0, 0), ol=72, fc=4, kvs=3, rs=3),
-        op(r=(99, 80, 50, 60), l=(99, 0, 0, 0), ol=45, kvs=3, rs=3),
-        op(ol=0),
+    ("MELODI", voice("MELODI", 5, [
+        op(r=(94, 40, 30, 55), l=(99, 82, 60, 0), ol=98, kvs=1, rs=2),
+        op(r=(90, 62, 45, 60), l=(99, 74, 50, 0), ol=70, fc=2, kvs=3, rs=2),
+        op(r=(94, 36, 28, 55), l=(99, 84, 62, 0), ol=86, det=8, kvs=1),
+        op(r=(90, 58, 42, 60), l=(99, 70, 48, 0), ol=58, fc=4, kvs=3, det=6),
+        op(r=(94, 44, 34, 58), l=(99, 80, 58, 0), ol=62, fc=1, kvs=1),
         op(ol=0)],
-        fb=0, lpms=0)),
-    ("ORGAN", voice("DRAWBARS", 32, [
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=90),
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=84, fc=0),
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=86, fc=2),
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=76, fc=3),
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=78, fc=4),
-        op(r=(99, 99, 99, 85), l=(99, 99, 99, 0), ol=72, fc=1, ff=50)],
-        fb=0, lfs=60, lpmd=3, lfw=4, lpms=3)),
-    ("PLUCK", voice("NYLON PICK", 5, [
-        op(r=(99, 45, 30, 60), l=(99, 60, 0, 0), ol=98, kvs=2, rs=2),
-        op(r=(99, 70, 40, 60), l=(99, 40, 0, 0), ol=76, fc=3, kvs=4, rs=2),
-        op(r=(99, 60, 40, 60), l=(99, 30, 0, 0), ol=74, fc=2, det=8, kvs=2, rs=2),
-        op(r=(99, 75, 40, 60), l=(99, 30, 0, 0), ol=68, kvs=3, rs=2),
-        op(ol=0),
-        op(ol=0)],
-        fb=0, lpms=0)),
+        fb=3, lfs=36, lfd=44, lpmd=5, lfw=3, lpms=2)),
 ]
 
 

@@ -6,7 +6,7 @@ Free and open source (GPL-3.0), based on <a href="https://github.com/hugelton/Fe
 <p align="center">
 <a href="https://altessproduction.github.io/sloop-dub-fm1/dub/"><b>Play SLOOP Dub in the browser</b></a> ·
 <a href="https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/"><b>Install it from the browser</b></a> ·
-<a href="docs/firmware/sloop-dub-1.2.fwsc">the 1.2 package (.fwsc)</a> ·
+<a href="docs/firmware/sloop-dub-1.3.fwsc">the 1.3 package (.fwsc)</a> ·
 <a href="GUIDE.md">SLOOP guide</a> ·
 <a href="DUB-FR.md">Le manuel Dub (FR)</a> ·
 <a href="CHANGELOG.md">Changelog</a> ·
@@ -91,7 +91,7 @@ Hold **HOME** to open the menu: SELECT walks the fourteen pages — `SCR · LGT 
 - **The isolator works.** The crossover's coefficients sat a hundred times too low — SUB, BASS and MIDS came out near silence and TOPS carried everything. Rebuilt: real crossovers at 90 Hz / 420 Hz / 2.6 kHz, stereo, and each mute cuts its own band.
 - **TIME bends like a tape.** With a loop in the delay, turning TIME speeds the loop up or slows it down continuously (varispeed) instead of the old ~12 ms jump.
 - **The rows follow the knobs:** DLY LEVEL and SIREN LEVEL redraw as they move.
-- The repository becomes the distribution: the browser installer serves **sloop-dub-1.2.fwsc**, the emulator page explains the fork, and the development tools (tests, editor sources) live with the developer.
+- The repository becomes the distribution: the browser installer serves **sloop-dub-1.3.fwsc**, the emulator page explains the fork, and the development tools (tests, editor sources) live with the developer.
 
 ---
 
@@ -212,13 +212,13 @@ Every button can glow so its label is readable on a black FM-1; the C keys or ev
 
 1. Open **[the SLOOP Dub installer](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/)** in **Chrome or Edge** on a computer.
 2. Connect the FM-1 by USB — a **data** cable, directly (no hub).
-3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub logo. The installer serves **SLOOP Dub 1.2** (`sloop-dub-1.2.fwsc`); you can also pick another `.fwsc` with its file picker.
+3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub logo. The installer serves **SLOOP Dub 1.3** (`sloop-dub-1.3.fwsc`); you can also pick another `.fwsc` with its file picker.
 
 Nothing to download or compile. Your projects, user presets, samples and settings are kept. After an install, **unplug and plug the FM-1 back in** once so the computer finds its USB audio input.
 
 ### Other ways
 
-- **Direct download:** [sloop-dub-1.2.fwsc](docs/firmware/sloop-dub-1.2.fwsc), installed with the installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.2.fwsc` (needs `pip install mido python-rtmidi`).
+- **Direct download:** [sloop-dub-1.3.fwsc](docs/firmware/sloop-dub-1.3.fwsc), installed with the installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.3.fwsc` (needs `pip install mido python-rtmidi`).
 - **Build it yourself:** see [Building](#building).
 
 ### Going back

@@ -10,7 +10,7 @@ Le fork ajoute une extension DSP indépendante dans `firmware/src/dub.c` et `dub
   - **L'ISO fonctionne** — les coefficients du crossover étaient ~100 fois trop faibles (`hz * 2100 / FS` donne 4 sur 32767 à 90 Hz) : SUB, BASS et MIDS sortaient quasi muets et TOPS, le reste non filtré, portait tout le signal (le « seul le Top réagit » du retour de test). Reconstruit : une échelle de stages un pôle par canal, trois croisements à 90 Hz / 420 Hz / 2,6 kHz, chaque croisement deux passe-bas et un passe-haut à zéro vrai de DC (aucune fuite de phase) ; stéréo ; les gains calculés une fois par bloc et glissés ~12 ms (un mute ne clique jamais). L'égaliseur jamais accessible quitte la structure.
   - **TIME plie la boucle comme un vrai tape delay** — tourner TIME avec une boucle dans le delay accélère ou ralentit la boucle en continu : la tête de lecture marche à au plus la moitié de la vitesse de la bande (`DUB_TAPE_SLEW`), régulièrement à travers chaque bloc (`dly_a` → `dly_b`, Q8 échantillon par échantillon) — la tonalité monte en raccourcissant, descend en allongeant, le pliage tient tant que la tête avance (parcours complet ≈ 2,7 s). Avant, le glissement `(cible − courant) >> 4` par bloc balayait la tête en ~12 ms — le saut entendu.
   - **Les lignes suivent les knobs** — DLY LEVEL et SIREN LEVEL ne se redessinaient pas : `song.g[G_DMIX]`, `dub_menu_siren` et `song.g[G_BPM]` manquaient à la signature de redraw du menu.
-  - Le paquet à flasher est publié à `docs/firmware/sloop-dub-1.0.0.fwsc` (image 565 440 o de 581 052, marge 15 612 o) et l'installateur web le sert par défaut. Empreinte complète plus bas.
+  - Le paquet à flasher est publié à `docs/firmware/sloop-dub-1.3.fwsc` (image 576 208 o de 581 052, marge 4 844 o) et l'installateur web le sert par défaut. Empreinte complète plus bas.
 
 - **Dub siren** (2.9.1) : une vraie siren dub style NJD — oscillateur au choix (`SQR`, `PLS`, `SAW`, `TRI`, `SIN`), **balayage de pitch exponentiel** piloté par un LFO au choix (`WAIL` triangle, `HILO` deux tons, `RAMP` la charge du yelp, `SWEEP` la chute, `SPACE` l'échantillonneur glissé), symétrie du LFO, vitesse 1 à 16 Hz, profondeur 0 à 2 octaves, et **envoi vers le delay** du projet SLOOP.
 - **Séquenceur dub** (2.9.2) : **quatre pistes** (basse, skanks, mélodie, drums) de 16, 32 ou 64 pas, note et vélocité par pas, jouées sur le transport (DUB ENABLE + PLAY) — basse et mélodie en legato, skanks en piqué d'accord, drums en notes General MIDI.
@@ -88,7 +88,7 @@ La compilation et l’installation sur le matériel FM-1 nécessitent toujours l
 
 Une surface web jouable est publiée sous `docs/dub/` et déployée automatiquement sur GitHub Pages à chaque envoi vers `main`. **La page est la faceplate du FM-1 et le firmware réel** — l'ancienne console d'onglets (`DUB`, `SIR`, `SR2`, …) est retirée (2.9.16) : le menu Dub du firmware (HOME long, SELECT, KNOB 1–4, OCT+, OCT−) est le seul réglage, exactement comme sur la machine. Sous l'émulateur, la section **« SLOOP DUB — LES FONCTIONS AJOUTÉES »** explique chaque page du fork (DUB, SIR, SR2, SKANK, DLY, SND, RDM, PRS, ISO, ACC/SLD), la sirène momentanée tenue à travers les pages et le chemin audio intact. Les tests lisent l'état du firmware lui-même par la sonde `emu_dbg` du wasm (menu ouvert, la page du curseur, la sirène active, le hash des pas du séquenceur) — la page ne reflète plus l'état, elle l'affiche.
 
-Le moteur SLOOP/WASM est distribué avec la page et exécute le mixage firmware dans un `AudioWorklet` séparé. Les exports dédiés restent (`emu_dub_siren_type`, `_wave`, `_sym`, `_send`, `_level`, `_freq`, `_depth`, `emu_dub_siren_rate`, `emu_dub_mix`, …) : les réglages programmatiques marchent toujours, le `worklet.js` les détecte au chargement. Le paquet à flasher accompagne le dépôt : **`docs/firmware/sloop-dub-1.0.0.fwsc`** — l'installateur web le sert par défaut (sha256 vérifié avant écriture) ; il accepte aussi n'importe quel `.fwsc` à son sélecteur de fichier.
+Le moteur SLOOP/WASM est distribué avec la page et exécute le mixage firmware dans un `AudioWorklet` séparé. Les exports dédiés restent (`emu_dub_siren_type`, `_wave`, `_sym`, `_send`, `_level`, `_freq`, `_depth`, `emu_dub_siren_rate`, `emu_dub_mix`, …) : les réglages programmatiques marchent toujours, le `worklet.js` les détecte au chargement. Le paquet à flasher accompagne le dépôt : **`docs/firmware/sloop-dub-1.3.fwsc`** — l'installateur web le sert par défaut (sha256 vérifié avant écriture) ; il accepte aussi n'importe quel `.fwsc` à son sélecteur de fichier.
 
 Un test de fumée du binaire vérifie le chemin audio complet (note sèche, note sous isolateur plein mix, sirène seule) sans navigateur :
 
@@ -135,16 +135,18 @@ Cette prévisualisation reste un adaptateur navigateur : elle ne remplace pas en
 - Les filtres de séparation et les paramètres de gain doivent être testés avec le limiteur et les effets master de SLOOP avant activation permanente.
 - Toute redistribution doit conserver les notices GPL et les crédits de SLOOP/Felucca.
 
-## Empreinte FM-1 (mesurée, build 2.9.16)
+## Empreinte FM-1 (mesurée, build 1.3)
 
 Mesures réelles obtenues avec la chaîne JieLi (clang 4.0.1 pi32v2) sur ce dépôt ; la base SLOOP 2.9.6
 (`bddd08a`) servait de référence. Le 1.0 ajoute ~400 o de flash et 8 o de RAM sur le 2.9.16
-(les trois correctifs : l'échelle du crossover, le varispeed tape, la signature de redraw). La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
+(les trois correctifs : l'échelle du crossover, le varispeed tape, la signature de redraw) ; la banque
+sound-system (1.1 : 158 presets, 1.2 : 37 kits, 1.3 : 22 riddims et leurs patterns) reprend ensuite
+la marge jusqu'à 576 208 o. La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
 application fait 0x8DFBC o (581 Ko) — en 2.9.6 il était déjà rempli à 99,9 % (360 o de marge).
 
-| Ressource | 2.9.6 (base) | 2.9.13 | 2.9.16 | **1.0 (ce build)** | Capacité | Marge 1.0 |
+| Ressource | 2.9.6 (base) | 2.9.13 | 2.9.16 | **1.3 (ce build)** | Capacité | Marge 1.3 |
 |---|---|---|---|---|---|---|
-| Image flash (code + rodata) | 580 692 o | 572 784 o | 565 040 o | **565 440 o** | 581 052 o | **15 612 o** |
+| Image flash (code + rodata) | 580 692 o | 572 784 o | 565 040 o | **576 208 o** | 581 052 o | **4 844 o** |
 | RAM `.data`+`.bss` | 60 108 o | 60 448 o | 57 600 o | **57 608 o** | 98 304 o | 40 696 o |
 | `.lowram` (reverb, piles cœur 1) | 22 772 o | 22 772 o | 22 772 o | 22 772 o | 29 392 o | 6 620 o |
 | Pool (canevas, lignes d'effets) | 333 900 o | 333 900 o | 328 396 o | **328 396 o** | 344 064 o | **15 668 o** |

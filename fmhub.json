@@ -1,5 +1,5 @@
 {
-  "what": "The SLOOP groovebox for the M-VAVE FM-1, forked for dub: a three-band isolator with mute bands, a bipolar DJ filter, per-track echo throws, a tape echo with free time or synced divisions, an independent siren voice, skank, accents and slides — over the base SLOOP engines, kits and FM6.",
+  "what": "The SLOOP groovebox for the M-VAVE FM-1, forked for dub: a three-band isolator with mute bands, a bipolar DJ filter, per-track echo throws, a tape echo with free time or synced divisions, an independent siren voice, skank, accents and slides — with a sound-system bank of 158 genre presets (ska to ragga jungle), 37 drum kits and 22 riddims that each load with their four patterns (bass, skanks, melody, drums), over the base SLOOP engines and FM6.",
   "author": "altessproduction",
   "kinds": ["groove"],
   "play": "https://altessproduction.github.io/sloop-dub-fm1/dub/",

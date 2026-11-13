@@ -16,6 +16,7 @@ import os
 
 STEPS = 64          # 4 bars x 16 sixteenths
 REST = 255          # DUB_SEQ_REST
+CUT = 253           # DUB_SEQ_CUT: the held note ends here (a rest that cuts)
 
 # track order = DUB_TRK_BASS, DUB_TRK_SKANK, DUB_TRK_MEL, DUB_TRK_DRUM
 BASS, SKANK, MEL, DRUM = 0, 1, 2, 3
@@ -31,7 +32,7 @@ def blank():
 
 def put(notes, vels, track, step, note, vel):
     assert 0 <= step < STEPS, step
-    assert note == REST or 0 <= note <= 127, note
+    assert note == REST or note == CUT or 0 <= note <= 127, note
     assert 0 <= vel <= 127, vel
     assert notes[track][step] == REST, f"step {step} of track {track} hit twice"
     notes[track][step] = note
@@ -84,6 +85,20 @@ GROOVES = {
     # Hiroko Okuda heard as reggae, the octave pop and the flat-seventh turnaround.
     "sleng":    {0: (0, 120), 3: (0, 102), 4: (0, 114), 6: (12, 102), 8: (0, 118), 11: (0, 100), 12: (0, 112), 14: (10, 104)},
     "sleng_b":  {0: (12, 104), 2: (10, 100), 4: (7, 106), 6: (0, 116), 8: (0, 118), 11: (0, 100), 12: (0, 112), 14: (7, 102)},
+    # ---- the MT-40's Rock-preset bass, the verified transcription (Noel Davey's own
+    # tab + the Ableton roll, 82 bpm): the root on the beat, three sixteenths a semitone
+    # above it -- each one written, so each one strikes again -- the tail a sixth and a
+    # fifth above, cut off plucked-short. Degrees ride the bar's root; the Sleng Teng's
+    # bars all share the one static root, the chords move above it (the def's chords).
+    "mtstut":   {0: (0, 120), 1: (1, 100), 2: (1, 94), 3: (1, 90),
+                 4: (0, 118), 5: (1, 100), 6: (1, 94), 7: (1, 90),
+                 8: (0, 118), 9: (1, 100), 10: (1, 94), 11: (1, 90),
+                 12: (6, 108), 13: ("c", 0), 14: (5, 100), 15: ("c", 0)},
+    # ---- the Roots Radics' march of Gunman, the tab's walk (the flat third, the
+    # sharp second, home) plucked through the bar
+    "mtmarch":  {0: (0, 122), 1: ("c", 0), 3: (0, 96), 4: ("c", 0), 6: (0, 104), 7: ("c", 0),
+                 8: (3, 110), 9: ("c", 0), 10: (2, 104), 11: ("c", 0),
+                 12: (0, 112), 13: ("c", 0), 14: (0, 98), 15: ("c", 0)},
     "mtpops":   {0: (0, 116), 2: (0, 98), 4: (7, 108), 6: (0, 112), 8: (0, 116), 10: (0, 98), 12: (7, 108), 14: (12, 102)},
     "mtpops_b": {0: (0, 116), 4: (7, 106), 6: (0, 112), 8: (10, 108), 10: (7, 102), 12: (5, 100), 14: (0, 108)},
     "mtslow":   {0: (0, 116), 6: (7, 100), 8: (0, 112), 12: (10, 100), 14: (7, 96)},
@@ -241,11 +256,11 @@ RIDDIM_DEFS = [
     # pump), the Sleng Teng (the MT-40's Rock preset — Wayne Smith, King Jammy's, 1985),
     # Anthony Red Rose's Tempo (1985, King Tubby's Firehouse) and the Peanie Peany /
     # Fade Away riddim (Bobby Digital, 1987; Little John voiced it first).
-    ("GUNMAN", [36, 36, 32, 34], ("gunman", "gunman_b"), "sparse", "deep"),
+    ("GUNMAN", [36, 36, 32, 34], ("mtmarch", "mtmarch"), "sparse", "deep"),
     ("HERE I COME", [33, 36, 38, 40], ("octave", "octave"), "upbeats", "call"),
-    ("SLENG TENG", [37, 35, 33, 35], ("sleng", "sleng_b"), "mtup", "rest"),
-    ("TEMPO", [33, 36, 38, 33], ("digital", "digital"), "pushed", "rest"),
-    ("PEANY PEANY", [33, 36, 33, 40], ("peany", "peany_b"), "mtup", "rest"),
+    ("SLENG TENG", [37, 37, 37, 37], ("mtstut", "mtstut"), "mtup", "rest", [37, 35, 33, 35]),
+    ("TEMPO", [33, 36, 38, 33], ("mtstut", "mtstut"), "pushed", "rest"),
+    ("PEANY PEANY", [33, 36, 33, 40], ("mtstut", "mtstut"), "mtup", "rest"),
     # ---- dancehall / ragga: the 3+3+2 clap, the dembow's boom-ch-boom-chick
     ("DANCEHALL", [33, 38, 33, 43], ("dembo", "dembo"), "pushed", "brass"),
     ("DEMBOW", [33, 33, 40, 40], ("meditate", "dembo"), "toast", "rest"),
@@ -265,15 +280,18 @@ RIDDIM_DEFS = [
 
 
 def build_riddim(defn):
-    name, roots, (g_a, g_b), skank, mel = defn
+    name, roots, grooves, skank, mel, *rest = defn
+    g_a, g_b = grooves
+    chords = rest[0] if rest else roots         # the skank's roots: a def's 6th field overrides
     notes, vels = blank()
     bar_roots_ = bar_roots(roots)
     for b, root in enumerate(bar_roots_):
         groove = GROOVES[g_a if b < 2 else g_b]
         for st, (deg, vel) in groove.items():
-            put(notes, vels, BASS, b * 16 + st, root + deg, vel)
+            note = CUT if deg == "c" else root + deg    # a cut: the held note ends there
+            put(notes, vels, BASS, b * 16 + st, note, vel)
         for st, vel in SKANKS[skank].items():
-            put(notes, vels, SKANK, b * 16 + st, (root % 12) + 57, vel)   # the chord's root, one octave up
+            put(notes, vels, SKANK, b * 16 + st, (chords[b] % 12) + 57, vel)   # the chord's root, one octave up
         for st, (note, vel) in MELODIES[mel][b].items():
             put(notes, vels, MEL, b * 16 + st, note, vel)
         for st, (gm, vel) in DRUMS[drum_key(defn[0])][b].items():
@@ -306,9 +324,12 @@ def check_bank():
     """every riddim: four bars, each track has music, roots in the dub bass' range;
     the drums lose no hit to a same-step overwrite"""
     for defn in RIDDIM_DEFS:
-        name, roots, grooves, skank, mel = defn
+        name, roots, grooves, skank, mel, *rest = defn
+        chords = rest[0] if rest else roots
         assert len(roots) == 4, f"{name}: the roots must be four"
         assert all(28 <= r <= 50 for r in roots), f"{name}: a root out of the bass' range"
+        assert len(chords) == 4, f"{name}: the chords must be four"
+        assert all(28 <= c <= 50 for c in chords), f"{name}: a chord out of the bass' range"
         for g in grooves:
             assert g in GROOVES, f"{name}: no groove {g}"
         assert skank in SKANKS, f"{name}: no skank {skank}"
@@ -320,8 +341,17 @@ def check_bank():
             hits = sum(1 for n in notes[tr] if n != REST)
             assert hits > 0, f"{name}: track {tr} is empty"
             for st, n in enumerate(notes[tr]):
-                assert n == REST or 0 <= n <= 127, f"{name}: track {tr} step {st}: note {n}"
+                assert n == REST or n == CUT or 0 <= n <= 127, f"{name}: track {tr} step {st}: note {n}"
                 assert 0 <= vels[tr][st] <= 127, f"{name}: track {tr} step {st}: vel {vels[tr][st]}"
+        if any(n == CUT for n in notes[BASS]):       # a re-attack-style stutter: the cut lands
+            held = REST                              # after a note, never on a bare rest
+            for st in range(STEPS):
+                n = notes[BASS][st]
+                if n == CUT:
+                    assert held != REST, f"{name}: a cut with nothing held (step {st})"
+                    held = REST
+                elif n != REST:
+                    held = n
     assert len(set(d[0] for d in RIDDIM_DEFS)) == len(RIDDIM_DEFS), "a name twice"
     assert len(set(DRUM_MAP)) == len(RIDDIM_DEFS), "the drum map is not one to one"
     # every D() call in the source keeps all its hits: a same-step overwrite in the

@@ -159,6 +159,21 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
         if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));
     console.log('seq readback ...... OK (steps in the tracks, TIE holds, LEN 64)');
 
+    /* the MT-40's verified stutter: SLENG TENG (16) loads the Rock preset's bass, Noel
+     * Davey's own tab at 82 bpm: the root (C#2, 37), three sixteenths a semitone above
+     * (38, each one a fresh strike, not a TIE), the tail G2 (43) and F#2 (42) cut off
+     * plucked-short (the readback shows a bare rest 255, not the TIE's 254) */
+    e.emu_dub_riddim_load(16);
+    e.emu_frame();
+    if (note(0, 0) !== 37) throw new Error('sleng st0 ' + note(0, 0));
+    if (note(0, 1) !== 38 || note(0, 2) !== 38 || note(0, 3) !== 38)
+        throw new Error('sleng stutter ' + note(0, 1) + ',' + note(0, 2) + ',' + note(0, 3));
+    if (note(0, 12) !== 43 || note(0, 14) !== 42) throw new Error('sleng tail ' + note(0, 12) + ',' + note(0, 14));
+    if (note(0, 13) !== 255 || note(0, 15) !== 255) throw new Error('sleng cut ' + note(0, 13) + ',' + note(0, 15));
+    console.log('sleng teng ........ OK (37/38 strikes re-attacked, tail G-F# cut)');
+    e.emu_dub_riddim_load(0);
+    e.emu_frame();
+
     /* 2.9.7: the DUB page's filter and throw, the DLY page's tape delay: the same state
      * the menu rows hold, and the audio path runs tape without a trap */
     for (const n of ['emu_dub_filter', 'emu_dub_filter_get', 'emu_dub_send', 'emu_dub_send_get',

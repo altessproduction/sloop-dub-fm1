@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/hub-card.png" alt="SLOOP DUB 1.5 · FM-1" width="360"></p>
+<p align="center"><img src="assets/hub-card.png" alt="SLOOP DUB 1.6 · FM-1" width="360"></p>
 
 <p align="center"><b>SLOOP DUB — the sound-system firmware for the M-VAVE FM-1.</b><br>
 A four-track groovebox with a full dub wing and a reggae / dub / ska / jungle / bass-music bank,
@@ -8,7 +8,7 @@ by isod89, based on <a href="https://github.com/hugelton/Felucca">Felucca</a> by
 <p align="center">
 <a href="https://altessproduction.github.io/sloop-dub-fm1/dub/"><b>Play SLOOP Dub in the browser</b></a> ·
 <a href="https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/"><b>Install it from the browser</b></a> ·
-<a href="docs/firmware/sloop-dub-1.5.fwsc">the 1.5 package (.fwsc)</a> ·
+<a href="docs/firmware/sloop-dub-1.6.fwsc">the 1.6 package (.fwsc)</a> ·
 <a href="DUB-FR.md">Le manuel Dub (FR)</a> ·
 <a href="GUIDE.md">The complete guide</a> ·
 <a href="CHANGELOG.md">Changelog</a> ·
@@ -29,7 +29,7 @@ dancehall, drum & bass, jungle, ragga jungle, dubstep, UK steppers, bass music �
 the keyboard the Sleng Teng came from: no factory patterns to load, everything you hear, you
 play — or you load a riddim and dub over it.
 
-> **Status: SLOOP Dub 1.5 — the classic riddims.** The **eleven riddims every sound system
+> **Status: SLOOP Dub 1.6 — the classic riddims, and the Sleng Teng that finally sounds like the Sleng Teng.** The **eleven riddims every sound system
 > grew up on** join the bank: **Heavenless, Tonight, Get in the Groove, Hot Milk, Answer,
 > Promised Land, Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany** — from the Studio One
 > rocksteady of 1967–68 to the first digital dancehall of 1985–87, each one a full 64-step
@@ -325,6 +325,16 @@ reconstructed so the first bar says which record it came from. Their origins:
 | **TEMPO** | Anthony Red Rose, *Tempo* | 1985, Firehouse (King Tubby) |
 | **PEANY PEANY** | the Peanie Peanie riddim, aka *Fade Away* — Little John voiced it first, Shabba Ranks made it famous | 1987, Bobby Digital |
 
+**1.6: the Sleng Teng finally sounds like the Sleng Teng.** Its bass is now the verified
+transcription — Noel Davey's own tab (he played the preset into the original session) and the
+Ableton roll agree, at 82 bpm: one static bar, the root on every beat, three sixteenths a
+semitone above it, each one a fresh strike, the tail a sixth and a fifth above cut off
+plucked-short — while the chords move C#m–B–A–B above it. `TEMPO` and `PEANY PEANY` ride the
+same figure on their own roots (that is what the MT-40's auto-bass does: the figure follows
+the chord), and `GUNMAN` walks the Roots Radics' march, the tab's flat-third–sharp-second
+walk plucked through the bar. A step marker comes with them: `DUB_SEQ_CUT` (253) ends a held
+note — the plucked tails — while a plain rest still holds (the dub glue).
+
 Ten generic riddims of the 1.1–1.4 bank step aside to keep the bank at twenty-eight and the
 image inside its slot: `DIGITAL`, `LOVERS`, `SKANKIN`, `TWO TONE`, `ROCKSTDY`, `UK STEPPA`,
 `DNB STEP`, `RAGGA JGL`, `UK 2STEP`, `BASSLINE`. The bases stay: the reggae / dub / roots
@@ -557,7 +567,7 @@ glow too; the notes playing can light their keys. Details: [The menu](#the-menu-
    in **Chrome or Edge** on a computer.
 2. Connect the FM-1 by USB — a **data** cable, directly (no hub).
 3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub
-   logo. The installer serves **SLOOP Dub 1.5** (`sloop-dub-1.5.fwsc`); you can also pick another
+   logo. The installer serves **SLOOP Dub 1.6** (`sloop-dub-1.6.fwsc`); you can also pick another
    `.fwsc` with its file picker.
 
 Nothing to download or compile. Your projects, user presets, samples and settings are kept.
@@ -566,8 +576,8 @@ input.
 
 ### Other ways
 
-- **Direct download:** [sloop-dub-1.5.fwsc](docs/firmware/sloop-dub-1.5.fwsc), installed with the
-  installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.5.fwsc` (needs
+- **Direct download:** [sloop-dub-1.6.fwsc](docs/firmware/sloop-dub-1.6.fwsc), installed with the
+  installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.6.fwsc` (needs
   `pip install mido python-rtmidi`).
 - **Build it yourself:** see [Building](#building).
 
@@ -650,7 +660,7 @@ them.
 | **2ND CORE** | ON / OFF | the sound on the FM-1's second core (after sloop-lab) |
 | **HARDWARE CALIBRATION** (SYSTEM) | | the panel table, if a key or a knob answers wrongly |
 | **MIDI LEARN CLEAR** (SYSTEM) | | forgets the learned CCs |
-| **ABOUT** | | the version (*SLOOP DUB 1.5*) and its build date, the credits |
+| **ABOUT** | | the version (*SLOOP DUB 1.6*) and its build date, the credits |
 
 Two more settings of the FM-1 live elsewhere: **SYNC** (GLO → SYSTEM: INT, USB or TRS) and the
 REC screen's **mode** and **start**.
@@ -766,7 +776,7 @@ current page session. This mode makes no MIDI requests and does not connect to o
 Audio preview requires the served site, rather than the downloaded single-file editor.
 
 **Offline.** *Download the editor* (under Connect, or on the installer page) saves the whole
-editor as one file for a computer, `sloop-editor-1.5.html`, also on the
+editor as one file for a computer, `sloop-editor-1.6.html`, also on the
 [installer page](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/).
 Double-click it: it opens in Chrome or Edge without internet (Chrome asks once to allow MIDI) and
 works as the online one. Its sound library (kept in the browser) is its own, apart from the
@@ -906,7 +916,7 @@ test: exports, the dub audio path, the band mutes, the riddim bank and a real tr
 
 - **SLOOP Dub** — the dub module, the siren, the riddims and their patterns, the drum kits, the
   sound-system preset bank, the isolator, the tape delay and the pages: the fork's wing on SLOOP,
-  by **Altess Production**, from 2.9.1 to 1.5.
+  by **Altess Production**, from 2.9.1 to 1.6.
 - **SLOOP** ([isod89](https://github.com/isod89/sloop-fm1)) — the groovebox this fork stands on:
   the engines, the sequencer, the editor, the installer, the USB audio input, the MIDI clock, the
   parameter locks, the FM6 engine and its DX7 patch editor, the INSERT effects, MIDI LEARN and

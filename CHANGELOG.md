@@ -3,6 +3,30 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.6 — novembre 2026
+
+**Le Sleng Teng sonne enfin comme le Sleng Teng.** La basse du riddim le plus broyé de
+l'histoire est maintenant **la transcription vérifiée** : la tablature de Noel Davey (le
+claviériste de la session originale) et le rouleau d'Ableton concordent — 82 bpm, **une
+mesure statique en do#** : la racine sur chaque temps, trois doubles-croches un demi-ton
+au-dessus **re-déclenchées une à une**, la queue sol–fa# coupée net — pendant que les accords
+tournent do#m–si–la–si au-dessus. Avant, la basse était une pompe d'octaves générique : le
+riddim était méconnaissable.
+
+- **La figure du preset se partage** : `TEMPO` et `PEANY PEANY` montent le même stutter sur
+  leurs propres accords (c'est ce que fait l'auto-basse du MT-40 — la figure suit l'accord) ;
+  `GUNMAN` marche comme la tablature des Roots Radics — la descente b3–#2–racine, pincée
+  coupe après coupe (`mtmarch`). Les accords du Skeng Teng restent ceux du 1.5
+  (do#m–si–la–si) ; le skank suit désormais une liste d'accords séparée de la basse statique.
+- **Le marqueur de coupe** : `DUB_SEQ_CUT` (253) dans la banque et dans `dub_tracks_load` —
+  la note tenue s'arrête là (les queues pincées du preset) ; le repos seul tient toujours
+  (le glue dub). `check_bank()` refuse une coupe sans note tenue derrière elle.
+- Le smoke test du wasm lit le stutter chargé (37/38/38/38 en attaques fraîches, la queue
+  43/42, les coupes en repos nus — pas des TIE) et joue le riddim sur le transport.
+- L'image passe à 580 992 o (+16 o, la branche de coupe), **572 o de marge** ; le paquet
+  `sloop-dub-1.6.fwsc`, l'éditeur hors-ligne `sloop-editor-1.6.html`, installateur, service
+  worker et carte du hub suivent.
+
 ## 1.5 — novembre 2026
 
 **Les classiques du sound system entrent dans la boîte.** Les onze riddims que tout sound

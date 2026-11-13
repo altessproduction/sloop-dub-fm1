@@ -69,10 +69,14 @@ typedef struct {
 } dub_seq_t;
 
 /* the riddim bank (dub_riddim.h, tools/gen_riddims.py): twenty-eight 64-step sequences,
- * four tracks each. A step's note DUB_SEQ_REST (255) is a rest. The RIDDIM page loads a
+ * four tracks each. A step's note DUB_SEQ_REST (255) is a rest -- and a rest HOLDS (the
+ * legato the grooves lean on: a held note carries over rests as a TIE, while every written
+ * note strikes again, even the same pitch). DUB_SEQ_CUT (253) is the rest that cuts: the
+ * held note ends there (the plucked tails the MT-40's bass lives on). The RIDDIM page loads a
  * whole riddim (OCT+ on KNOB 1) or one track's motif (OCT+ on KNOB 2..4) into the
  * dub sequence; seq.c plays it on the transport's sixteenths. */
 #define DUB_SEQ_REST 255u
+#define DUB_SEQ_CUT 253u
 #define DUB_RIDDIM_STEPS 64u
 typedef struct {
     const char *name;                              /* "ONE DROP", the LCD and the web tab */

@@ -17,13 +17,15 @@ EXPECTED_V14 = "7c169c5d45"
 
 def read(rel, fw_name):
     """the file's bytes; a folder entry resolves to its index.html; the firmware and
-    the editor wasm come from the working tree when they exist, else from git HEAD"""
+    the editor wasm come from the working tree when they exist, else from git history
+    (the v1.4 sanity reads the 80f8f4d tree: HEAD no longer carries that package)"""
     p = (WEB / rel).resolve() if not rel.endswith("/") else WEB / rel / "index.html"
     p = Path(os.path.normpath(p))
     if p.exists():
         return p.read_bytes()
     gitpath = os.path.relpath(p, ROOT).replace(os.sep, "/")
-    return subprocess.run(["git", "show", f"HEAD:{gitpath}"],
+    rev = "80f8f4d" if rel.endswith(".fwsc") and "1.4" in rel else "HEAD"
+    return subprocess.run(["git", "show", f"{rev}:{gitpath}"],
                           cwd=ROOT, capture_output=True, check=True).stdout
 
 

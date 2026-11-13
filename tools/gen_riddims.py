@@ -45,7 +45,9 @@ def bar_roots(roots, bars=None):
 
 # ---- the bass grooves. Every groove is {step: (degree, vel)} per bar, the degree
 # resolved on the bar's root: 0 the root, +7 the fifth, +12 the octave, +3 the minor
-# third, +10 the flat seventh. A rest ends the note (the glue legatos equal notes).
+# third, +10 the flat seventh. Every written note strikes again — the repeats are the
+# bounce (the Sleng Teng's, the MT-40's plucks); the load's glue holds the sub over the
+# rests (hand a TIE over two notes to glue them).
 GROOVES = {
     "drop":     {0: (0, 116), 3: (0, 108), 6: (7, 112), 8: (0, 116), 11: (0, 104), 14: (12, 110)},
     "drop_b":   {0: (0, 116), 3: (0, 108), 6: (0, 112), 8: (7, 114), 11: (5, 104), 14: (0, 110)},

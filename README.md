@@ -272,7 +272,10 @@ synth page.
 
 Twenty-eight 64-step riddims, four bars each, with their **four patterns** — bass, skanks, melody,
 drums. **OCT+ on RDM loads the whole riddim** into the tracks; KN2 / KN3 / KN4 + OCT+ load one
-track's pattern alone. The BPM is where each groove lives; the tempo is yours.
+track's pattern alone. The loaded bass and melody **strike every written note again — the
+same-pitch repeats too** (the Sleng Teng's bounce, the MT-40's plucks); the dub glue holds the
+note over the rests as TIE steps, visible and editable on the PATTERN page. The BPM is where
+each groove lives; the tempo is yours.
 
 | Reggae · dub · roots | BPM | | BPM |
 | --- | --- | --- | --- |

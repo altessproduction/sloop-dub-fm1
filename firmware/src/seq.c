@@ -1988,8 +1988,10 @@ static track_t *const DUB_TO[DUB_TRK_N] = {&trk[0], &trk[1], &trk[2], TDRUM};
 
 /* write the staged dub sequence into the SLOOP sequencer (the RIDDIM page's loads).
  * mask: a bit per dub track (DUB_TRK_*); len: the steps written (a riddim: 64), the
- * track's LEN follows it. The bass and the melody hold their note over the rests and
- * the repeats — the hold becomes TIE steps (2.9.2's legato, now visible and editable).
+ * track's LEN follows it. The bass and the melody hold their note over the rests — the
+ * hold becomes TIE steps (2.9.2's legato, now visible and editable) — while a repeated
+ * note strikes again: every written note is an attack, the Sleng Teng's bounce (hand a
+ * TIE over two of them when the glue is wanted).
  * The skank stabs its chord, built here with the SKANK page's quality (up to the four
  * notes a step holds), a stab a step. The drum notes go to their lanes (LANE_OF_GM),
  * each hit's velocity to its level. A load clears the track's nudges, fills and locks
@@ -2042,12 +2044,14 @@ void dub_tracks_load(const dub_seq_t *s, uint32_t mask, uint8_t len)
                     }
                     continue;
                 }
-                if (note == DUB_SEQ_REST || note == held) {   /* the hold goes on: a TIE */
+                if (note == DUB_SEQ_REST) {            /* the hold goes on over a rest: a TIE */
                     sp->n = held != DUB_SEQ_REST;
                     sp->time = held != DUB_SEQ_REST ? ST_TIE : ST_REST;
                     continue;
                 }
-                sp->note[0] = note;                    /* a new note: it sounds from here */
+                sp->note[0] = note;                    /* a new note — even the same pitch: it strikes
+                                                        * again (the Sleng Teng's bounce, the MT-40's plucks;
+                                                        * the held note ends at its gate into this attack) */
                 sp->n = 1;
                 sp->time = ST_NOTE;
                 held = note;

@@ -32,10 +32,18 @@ marche de basse, le drop — la première mesure dit de quel disque il vient.
   (`ONE DROP`, `STEPPERS`, `ROCKERS`, `DUBWALK`, `MEDITATE`, `DUB CUT`, `ZION`, `SKA`,
   `DANCEHALL`, `DEMBOW`, `JUNGLE`, `DUBSTEP`) et les cinq autres auto-rythmes du MT-40
   aussi (`MT40 POPS`, `MT40 SLOWRK`, `MT40 SWING`, `MT40 WALTZ`, `MT40 SAMBA`).
+- **Les répétitions de basse frappent de nouveau** (2.9.6) : au chargement d'un riddim, le
+  chargeur collait en TIE toute note de même hauteur que la tenue — le bounce du Sleng Teng
+  (les paires 3–4 et 11–12) fondait dans une seule note filée. Chaque pas écrit re-frappe
+  maintenant, même à l'unisson : **32 attaques de basse sur les quatre mesures, dont six
+  re-frappes consécutives de même hauteur** (le pluck du MT-40), la note tenue s'achevant à
+  son gate dans l'attaque suivante ; le glue dub reste sur les silences (la tenue devient un
+  TIE, lisible et éditable au PATTERN). Vérifié dans l'émulateur (`scripts/verify_sleng_bounce.js`)
+  : SLENG-BOUNCE-OK.
 - **La chaîne web suit** : l'émulateur recompilé (zig, wasm32) passe le smoke test — 28
-  riddims dont les onze, AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK ; le wasm de l'éditeur suit ;
-  l'installateur web sert le paquet 1.5 (sha256 vérifié), le STAMP du service worker est
-  recalculé.
+  riddims dont les onze, AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK — et le SLENG-BOUNCE-OK ; le wasm
+  de l'éditeur suit ; l'installateur web sert le paquet 1.5 (sha256 vérifié), le STAMP du
+  service worker est recalculé.
 - **La place** : l'image passe de 580 944 à **580 976 o** (+32 o) sur le slot de 0x8DFBC
   (581 564 o) — **588 o de marge**.
 

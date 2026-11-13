@@ -3,6 +3,42 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.5 — novembre 2026
+
+**Les classiques du sound system entrent dans la boîte.** Les onze riddims que tout sound
+system a broyés — de la salle Studio One aux premières heures du digital — sont maintenant
+dans la banque : **Heavenless, Tonight, Get in the Groove, Hot Milk, Answer, Promised Land,
+Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany**. Comme toujours dans ce dépôt, tout
+est reconstruit à la main d'après le disque (aucun échantillon ni ROM copié) : le tempo, la
+marche de basse, le drop — la première mesure dit de quel disque il vient.
+
+- **Dix riddims nouveaux** (`tools/gen_riddims.py`), par famille :
+  - **Studio One / rocksteady** — `HEAVENLESS` 80 bpm (Vin Gordon, 1968, Coxsone Dodd ;
+    la marche root–quinte), `TONIGHT` 84 (Keith & Tex, 1967, Derrick Harriott ; la basse
+    qui roule), `GET IN GROOVE` 88 (le riddim de 1968 alias *Up Park Camp* — John Holt
+    l'a rendu célèbre en 1976), `HOT MILK` 92 (Jackie Mittoo & The Soul Vendors, 1968 ;
+    le backbeat feutré, la ligne qui flotte), `ANSWER` 82 (le galop d'un seul accord —
+    né de « I'll Never Let You Go » de Slim Smith & The Uniques, 1967), `PROMISED LAND`
+    78 (Dennis Brown avec Aswad, 1981 ; le one-drop, la cadence F–B♭–C–G).
+  - **Dancehall band et digital des années 80** — `GUNMAN` 78 (Michael Prophet, 1980,
+    Henry « Junjo » Lawes à Channel One ; la marche mineure lourde des Roots Radics,
+    le kick qui respire et le fill qui arrive), `HERE I COME` 95 (Barrington Levy, 1985 ;
+    la pompe d'octaves), `TEMPO` 88 (Anthony Red Rose, 1985, Firehouse de King Tubby),
+    `PEANY PEANY` 92 (le riddim de Bobby Digital, 1987, alias *Fade Away* — Little John
+    l'a chanté d'abord) ; le `SLENG TENG` (déjà là depuis le 1.4) les précède.
+- **Dix riddims cèdent leur place** pour tenir dans le slot — la banque reste à **28** et
+  l'échange ne coûte que +32 o : `DIGITAL`, `LOVERS`, `SKANKIN`, `ROCKSTDY`, `TWO TONE`,
+  `UK STEPPA`, `DNB STEP`, `RAGGA JGL`, `UK 2STEP`, `BASSLINE`. Les racines restent
+  (`ONE DROP`, `STEPPERS`, `ROCKERS`, `DUBWALK`, `MEDITATE`, `DUB CUT`, `ZION`, `SKA`,
+  `DANCEHALL`, `DEMBOW`, `JUNGLE`, `DUBSTEP`) et les cinq autres auto-rythmes du MT-40
+  aussi (`MT40 POPS`, `MT40 SLOWRK`, `MT40 SWING`, `MT40 WALTZ`, `MT40 SAMBA`).
+- **La chaîne web suit** : l'émulateur recompilé (zig, wasm32) passe le smoke test — 28
+  riddims dont les onze, AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK ; le wasm de l'éditeur suit ;
+  l'installateur web sert le paquet 1.5 (sha256 vérifié), le STAMP du service worker est
+  recalculé.
+- **La place** : l'image passe de 580 944 à **580 976 o** (+32 o) sur le slot de 0x8DFBC
+  (581 564 o) — **588 o de marge**.
+
 ## 1.4 — novembre 2026
 
 **Le Casio MT-40 entre dans la boîte.** Le clavier de 1981 dont un preset — le « Rock »

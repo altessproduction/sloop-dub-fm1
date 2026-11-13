@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Generates firmware/src/dub_riddim.h: twenty-eight 64-step sound-system riddims, four
 # tracks each (BASS, SKANK, MEL, DRUM = DUB_TRK_* in dub.h), one step a sixteenth,
-# four bars. Reggae / dub / roots first (ONE DROP .. ZION), then ska (SKA, TWO TONE,
-# ROCKSTDY), dancehall (DANCEHALL, DEMBOW), the UK bass music (UK STEPPA, DNB STEP,
-# JUNGLE, RAGGA JGL, DUBSTEP, UK 2STEP, BASSLINE) and the Casio MT-40's six auto-rhythms
-# (SLENG TENG = the famous Rock preset, POPS, SLOWRK, SWING, WALTZ, SAMBA) rebuilt by hand:
-# the MT-40 plays bass and drums only, the skank is the player's upstroke, the fourth bar
-# carries the fill-in the machine's FILL-IN switch added.
+# four bars. Reggae / dub / roots first (ONE DROP .. ZION, SKA), then the classic
+# riddims every sound system grew up on, rebuilt by hand from the records' feel: the
+# Studio One / rocksteady family (HEAVENLESS, TONIGHT, GET IN GROOVE, HOT MILK, ANSWER,
+# PROMISED LAND), the band and digital dancehall of the early eighties (GUNMAN, HERE I
+# COME, SLENG TENG, TEMPO, PEANY PEANY), then DANCEHALL, DEMBOW, the UK bass music
+# (JUNGLE, DUBSTEP) and the Casio MT-40's other five auto-rhythms (POPS, SLOWRK, SWING,
+# WALTZ, SAMBA; SLENG TENG above is the machine's famous Rock preset).
 # Run from the repo root:  python3 tools/gen_riddims.py
 # The table is committed: the firmware builds need no Python.
 
@@ -54,7 +55,6 @@ GROOVES = {
     "digital":  {0: (0, 118), 3: (12, 106), 6: (0, 112), 8: (0, 118), 11: (7, 106), 14: (12, 110)},
     "lovers":   {0: (0, 112), 4: (7, 100), 8: (0, 112), 12: (10, 104)},
     "meditate": {0: (0, 120), 8: (3, 104), 12: (0, 112)},
-    "skankin":  {0: (0, 114), 2: (7, 100), 4: (0, 112), 6: (12, 104), 8: (0, 114), 10: (7, 100), 12: (0, 112), 14: (12, 104)},
     "dubcut":   {0: (0, 120), 7: (12, 100), 10: (0, 112), 14: (7, 104)},
     "zion":     {0: (0, 118), 4: (0, 108), 6: (7, 112), 8: (0, 116), 12: (12, 104), 14: (7, 110)},
     # the ska / rocksteady walks
@@ -63,17 +63,20 @@ GROOVES = {
     "rockst":   {0: (0, 116), 3: (0, 104), 6: (7, 108), 8: (0, 114), 11: (10, 104), 14: (0, 106)},
     # the dancehall / ragga pockets
     "dembo":    {0: (0, 120), 7: (0, 100), 10: (0, 112), 14: (12, 104)},
-    # the UK bass music subs
-    "deepstep": {0: (0, 122), 4: (0, 106), 8: (0, 120), 12: (0, 106)},
-    "roll":     {0: (0, 122), 8: (0, 104), 10: (7, 112), 14: (12, 102)},
-    "roll_b":   {0: (0, 122), 6: (7, 104), 10: (10, 108), 12: (0, 110)},
+    # the UK bass music: the jungle's subs
     "junglesub":{0: (0, 122), 6: (0, 98), 10: (0, 112), 14: (3, 100)},
     "junglesub_b": {0: (0, 122), 7: (0, 100), 10: (12, 106), 14: (0, 104)},
     "wobble":   {0: (0, 120), 6: (0, 104), 10: (0, 112)},
     "wobble_b": {0: (0, 120), 6: (7, 106), 10: (10, 104), 14: (0, 102)},
-    "garage":   {0: (0, 118), 3: (12, 100), 6: (0, 110), 10: (7, 106), 12: (0, 114), 14: (10, 100)},
-    "off16":    {2: (0, 112), 6: (12, 104), 10: (0, 112), 14: (12, 104)},
-    "off16_b":  {2: (0, 112), 7: (12, 104), 10: (0, 112), 15: (7, 100)},
+    # the classic riddims' bass lines, rebuilt by hand from the records' feel: the
+    # Roots Radics' heavy minor march (Gunman), the Studio One root-fifth walk
+    # (Heavenless), the Peanie Peany / Fade Away digital bounce
+    "gunman":   {0: (0, 122), 6: (0, 100), 8: (0, 118), 14: (10, 102)},
+    "gunman_b": {0: (0, 122), 6: (3, 100), 8: (0, 118), 12: (10, 102), 14: (7, 100)},
+    "hvn":      {0: (0, 116), 6: (7, 100), 8: (0, 112), 14: (0, 100)},
+    "hvn_b":    {0: (0, 116), 6: (7, 100), 8: (0, 112), 12: (10, 100), 14: (7, 100)},
+    "peany":    {0: (0, 118), 3: (0, 100), 6: (12, 104), 8: (0, 118), 11: (7, 100), 14: (0, 104)},
+    "peany_b":  {0: (0, 118), 3: (12, 100), 6: (0, 110), 8: (0, 118), 11: (0, 100), 14: (10, 104)},
     # the MT-40's auto-bass patterns, rebuilt by hand (the machine plays one measure per chord:
     # major, minor or seventh, bass + drums only). The Rock one is the Sleng Teng: the bounce
     # Hiroko Okuda heard as reggae, the octave pop and the flat-seventh turnaround.
@@ -102,7 +105,6 @@ SKANKS = {
     # the sound system's stabs: the dancehall doubles the clap's 3+3+2, the 2-step
     # pushes, the dubstep keeps one mid-bar stab, the jungle hits the "e" sixteenths
     "toast":    {3: 106, 6: 98, 11: 106, 14: 98},
-    "shuf":     {2: 106, 7: 98, 10: 106, 14: 98},
     "dark":     {8: 96},
     "staba":    {7: 102, 15: 96},
     # the MT-40's player's chords: the machine gave none, the session played the offbeat
@@ -144,9 +146,7 @@ DRUMS = {
     "rockers":   [D((0, K, 122), (4, S, 104), (8, K, 118), (11, K, 96), (12, S, 104), (2, CH, 80), (6, CH, 88), (10, CH, 80), (14, CH, 88)) for _ in range(4)],
     "digital":   [D((0, K, 120), (6, K, 108), (8, K, 118), (4, S, 106), (12, S, 106), (2, CH, 84), (10, CH, 84), (14, CH, 90)) for _ in range(4)],
     "dubwalk":   [D((0, K, 124), (8, K, 118), (4, CH, 72), (12, CH, 76)) for _ in range(4)],
-    "lovers":    [D((0, K, 116), (8, K, 112), (4, S, 84), (12, S, 84), (2, CH, 72), (6, CH, 80), (10, CH, 72), (14, OH, 88)) for _ in range(4)],
     "meditate":  [D((0, K, 124), (8, S, 108), (4, CH, 64), (12, CH, 64)) for _ in range(4)],
-    "skankin":   [D((0, K, 120), (4, S, 100), (8, K, 116), (12, S, 100), (2, CH, 84), (6, OH, 96), (10, CH, 84), (14, OH, 96)) for _ in range(4)],
     "dubcut":    [D((0, K, 124), (8, S, 108), (2, CH, 68), (6, CH, 76), (10, CH, 68), (14, CH, 76)) for _ in range(3)] + [D((0, K, 124), (8, S, 108), (11, K, 100), (14, S, 88), (15, S, 72))],
     "zion":      [D((0, K, 124), (8, S, 112), (2, CH, 76), (6, CH, 84), (10, OH, 96) if b % 2 else (10, CH, 76), (14, CH, 84)) for b in range(4)],
     # ---- the sound system's drums. One note per step (a track holds one lane), so a
@@ -159,19 +159,19 @@ DRUMS = {
     "dancehall": [D((0, K, 122), (8, K, 112), (10, K, 104), (3, P, 108), (6, P, 100), (11, P, 108), (14, P, 96), (2, CH, 76), (7, CH, 80)) for _ in range(3)]
                + [D((0, K, 122), (8, K, 112), (10, K, 104), (3, P, 108), (6, P, 100), (11, P, 108), (14, P, 96), (12, P, 88), (15, P, 72))],
     "dembow":    [D((0, K, 122), (8, K, 116), (3, S, 108), (6, S, 100), (11, S, 108), (14, S, 96), (2, CH, 80), (10, CH, 80)) for _ in range(4)],
-    "uksteppa":  [D((0, K, 124), (4, K, 116), (8, K, 124), (12, K, 116), (2, R, 72), (6, R, 76), (10, R, 72), (14, R, 76)) for _ in range(3)]
-               + [D((0, K, 124), (4, K, 116), (8, K, 124), (12, K, 116), (14, S, 84), (15, S, 68), (2, R, 72), (6, R, 76), (10, R, 72))],
-    "dnb":       [D((0, K, 124), (4, S, 116), (7, S, 52), (10, K, 118), (12, S, 112), (15, S, 46), (2, CH, 76), (6, CH, 72), (8, CH, 76), (14, CH, 72)) for _ in range(3)]
-               + [D((0, K, 124), (4, S, 116), (7, S, 56), (10, K, 118), (12, S, 112), (13, S, 48), (15, S, 40), (2, CH, 76), (6, CH, 72), (8, CH, 76), (14, CH, 72))],
     "jungle":    [D((0, K, 124), (4, S, 118), (6, S, 60), (10, K, 118), (12, S, 114), (15, S, 50), (2, CH, 70), (8, CH, 74)) for _ in range(2)]
                + [D((0, K, 124), (4, S, 118), (6, S, 64), (7, S, 48), (10, K, 118), (12, S, 114), (13, S, 56), (15, S, 44), (2, CH, 70), (8, CH, 74)) for _ in range(2)],
-    "ragjgl":    [D((0, K, 124), (4, P, 112), (7, S, 56), (10, K, 118), (12, P, 110), (15, S, 46), (2, CH, 72), (8, CH, 74)) for _ in range(2)]
-               + [D((0, K, 124), (4, P, 112), (6, S, 60), (7, S, 48), (10, K, 118), (12, P, 110), (13, S, 52), (15, S, 42), (2, CH, 72), (8, CH, 74)) for _ in range(2)],
     "dubstep":   [D((0, K, 124), (8, S, 118), (6, CH, 86), (10, CH, 86), (14, OH, 96)) for _ in range(2)]
                + [D((0, K, 124), (6, K, 100), (8, S, 118), (10, CH, 86), (14, OH, 96)),
                   D((0, K, 124), (8, S, 118), (15, S, 48), (6, CH, 86), (10, CH, 86), (14, OH, 96))],
-    "uk2step":   [D((0, K, 118), (10, K, 112), (4, P, 108), (12, P, 108), (2, CH, 82), (3, CH, 68), (6, CH, 78), (7, CH, 66), (11, CH, 68), (14, CH, 78), (15, CH, 66)) for _ in range(4)],
-    "bassline":  [D((0, K, 122), (4, K, 116), (8, K, 122), (12, K, 116), (6, P, 104), (14, P, 100), (2, CH, 84), (10, CH, 84)) for _ in range(4)],
+    # ---- the classic riddims' drums, rebuilt by hand: Jackie Mittoo's mellow backbeat
+    # (Hot Milk), Dennis Brown's one drop (Promised Land), the Roots Radics' deep rockers
+    # (Gunman — the kick breathes, the fill arrives on the fourth bar)
+    "milk_d":    [D((0, K, 116), (4, S, 96), (8, K, 110), (12, S, 96), (2, CH, 70), (6, CH, 78), (10, CH, 70), (14, OH, 90)) for _ in range(4)],
+    "pland":     [D((0, K, 120), (8, S, 108), (2, CH, 74), (6, CH, 82), (10, CH, 74), (14, OH, 92)) for _ in range(3)]
+               + [D((0, K, 120), (8, S, 108), (2, CH, 74), (6, CH, 82), (10, CH, 74), (14, S, 96), (15, S, 80))],
+    "radics":    [D((0, K, 122), (8, S, 112), (2, CH, 72), (6, CH, 80), (10, CH, 72), (14, OH, 90)) for _ in range(3)]
+               + [D((0, K, 122), (8, S, 112), (11, K, 96), (14, S, 96), (15, S, 80), (2, CH, 72), (6, CH, 80), (10, CH, 72))],
     # ---- the MT-40's rhythm unit, rebuilt: the Rock's straight beat with the thin digital
     # snare, the fills its FILL-IN switch dropped at the bar ends (a drum fill, or a snare
     # roll), the samba's agogo on the rim, the waltz's oom-pah-pah on a four-four grid
@@ -193,19 +193,21 @@ DRUMS = {
 
 # ---- the twenty-eight riddims. roots: the four bars' bass roots (MIDI). skank: the stabs.
 # bass: the groove, bass_alt: the groove the 3rd and 4th bars swap to (a dub's B half).
-# Genre order: reggae / dub / roots, ska, dancehall, the UK bass music, the MT-40's six.
-# BPMs for the docs: ONE DROP 72, STEPPERS 76, ROCKERS 80, DUBWALK 70, DIGITAL 92, LOVERS 84,
-# MEDITATE 66, SKANKIN 88, DUB CUT 74, ZION 68, SKA 88, TWO TONE 92, ROCKSTDY 76,
-# DANCEHALL 95, DEMBOW 100, UK STEPPA 84, DNB STEP 174, JUNGLE 172, RAGGA JGL 170,
-# DUBSTEP 140, UK 2STEP 134, BASSLINE 132, SLENG TENG 82 (the tune's own tempo),
+# Genre order: reggae / dub / roots, ska, then the classics every sound system grew up
+# on (the Studio One / rocksteady family, the early-eighties band and digital dancehall),
+# dancehall, the UK bass music, the MT-40's other five.
+# BPMs for the docs: ONE DROP 72, STEPPERS 76, ROCKERS 80, DUBWALK 70, MEDITATE 66,
+# DUB CUT 74, ZION 68, SKA 88, HEAVENLESS 80, TONIGHT 84, GET IN GROOVE 88, HOT MILK 92,
+# ANSWER 82, PROMISED LAND 78, GUNMAN 78, HERE I COME 95, SLENG TENG 82 (the tune's own
+# tempo), TEMPO 88, PEANY PEANY 92, DANCEHALL 95, DEMBOW 100, JUNGLE 172, DUBSTEP 140,
 # MT40 POPS 96, MT40 SLOWRK 66, MT40 SWING 84, MT40 WALTZ 90, MT40 SAMBA 100.
-RIDDIM_NAMES = ["ONE DROP", "STEPPERS", "ROCKERS", "DUBWALK", "DIGITAL",
-                "LOVERS", "MEDITATE", "SKANKIN", "DUB CUT", "ZION",
-                "SKA", "TWO TONE", "ROCKSTDY", "DANCEHALL", "DEMBOW",
-                "UK STEPPA", "DNB STEP", "JUNGLE", "RAGGA JGL", "DUBSTEP",
-                "UK 2STEP", "BASSLINE",
-                "SLENG TENG", "MT40 POPS", "MT40 SLOWRK", "MT40 SWING",
-                "MT40 WALTZ", "MT40 SAMBA"]
+RIDDIM_NAMES = ["ONE DROP", "STEPPERS", "ROCKERS", "DUBWALK", "MEDITATE", "DUB CUT", "ZION",
+                "SKA",
+                "HEAVENLESS", "TONIGHT", "GET IN GROOVE", "HOT MILK", "ANSWER", "PROMISED LAND",
+                "GUNMAN", "HERE I COME", "SLENG TENG", "TEMPO", "PEANY PEANY",
+                "DANCEHALL", "DEMBOW",
+                "JUNGLE", "DUBSTEP",
+                "MT40 POPS", "MT40 SLOWRK", "MT40 SWING", "MT40 WALTZ", "MT40 SAMBA"]
 
 RIDDIM_DEFS = [
     #  name         roots                bass groove pair   skank      melody
@@ -213,33 +215,45 @@ RIDDIM_DEFS = [
     ("STEPPERS", [45, 43, 45, 43], ("steppers", "steppers"), "upbeats", "offbeat"),
     ("ROCKERS", [38, 38, 33, 33], ("rockers", "drop_b"), "upbeat2", "deep"),
     ("DUBWALK", [33, 41, 43, 40], ("dubwalk", "dubwalk"), "sparse", "rest"),
-    ("DIGITAL", [40, 38, 40, 38], ("digital", "digital"), "two_four", "offbeat"),
-    ("LOVERS", [41, 43, 45, 45], ("lovers", "drop_b"), "upbeats", "sigh"),
     ("MEDITATE", [45, 43, 41, 40], ("meditate", "meditate"), "sparse", "deep"),
-    ("SKANKIN", [48, 45, 41, 43], ("skankin", "skankin"), "upbeat2", "offbeat"),
     ("DUB CUT", [33, 33, 41, 41], ("dubcut", "dubcut"), "pushed", "rest"),
     ("ZION", [38, 33, 38, 40], ("zion", "drop_b"), "upbeats", "call"),
-    # ---- ska: the walking bass, the octave pump, the rocksteady's bounce
+    # ---- ska
     ("SKA", [45, 45, 41, 43], ("walk", "walk"), "upbeats", "offbeat"),
-    ("TWO TONE", [45, 41, 43, 43], ("octave", "octave"), "upbeats", "offbeat"),
-    ("ROCKSTDY", [33, 38, 41, 43], ("rockst", "drop_b"), "upbeats", "sigh"),
+    # ---- the classic riddims, rebuilt by hand from the records' feel. The Studio One /
+    # rocksteady family: Vin Gordon's Heavenless (1968, Coxsone Dodd), Keith & Tex's
+    # Tonight (1967, Derrick Harriott, the rolling bass), the Get in the Groove riddim
+    # (1968, Studio One, aka Up Park Camp — John Holt's 1976 cut), Jackie Mittoo's Hot
+    # Milk (1968, Studio One, the floating lead), the Answer's one-chord gallop (Slim
+    # Smith & The Uniques, "I'll Never Let You Go", 1967) and Dennis Brown's Promised
+    # Land (1981, with Aswad, cut on the UK side as "Love Fire").
+    ("HEAVENLESS", [33, 41, 33, 43], ("hvn", "hvn_b"), "upbeats", "sigh"),
+    ("TONIGHT", [40, 45, 43, 40], ("rockst", "drop_b"), "upbeats", "sigh"),
+    ("GET IN GROOVE", [41, 45, 43, 41], ("walk", "walk"), "upbeats", "rest"),
+    ("HOT MILK", [36, 41, 43, 36], ("lovers", "drop_b"), "upbeats", "call"),
+    ("ANSWER", [33, 33, 33, 33], ("steppers", "steppers"), "upbeats", "rest"),
+    ("PROMISED LAND", [41, 46, 36, 43], ("zion", "drop_b"), "upbeats", "call"),
+    # ---- the band and digital dancehall of the early eighties: Michael Prophet's
+    # Gunman (1980, Henry "Junjo" Lawes at Channel One, the Roots Radics' heavy march,
+    # Scientist at the mix), Barrington Levy's Here I Come (1985, the bouncy octave
+    # pump), the Sleng Teng (the MT-40's Rock preset — Wayne Smith, King Jammy's, 1985),
+    # Anthony Red Rose's Tempo (1985, King Tubby's Firehouse) and the Peanie Peany /
+    # Fade Away riddim (Bobby Digital, 1987; Little John voiced it first).
+    ("GUNMAN", [36, 36, 32, 34], ("gunman", "gunman_b"), "sparse", "deep"),
+    ("HERE I COME", [33, 36, 38, 40], ("octave", "octave"), "upbeats", "call"),
+    ("SLENG TENG", [37, 35, 33, 35], ("sleng", "sleng_b"), "mtup", "rest"),
+    ("TEMPO", [33, 36, 38, 33], ("digital", "digital"), "pushed", "rest"),
+    ("PEANY PEANY", [33, 36, 33, 40], ("peany", "peany_b"), "mtup", "rest"),
     # ---- dancehall / ragga: the 3+3+2 clap, the dembow's boom-ch-boom-chick
     ("DANCEHALL", [33, 38, 33, 43], ("dembo", "dembo"), "pushed", "brass"),
     ("DEMBOW", [33, 33, 40, 40], ("meditate", "dembo"), "toast", "rest"),
-    # ---- the UK bass music: the steppers' drone, the DnB / jungle subs, the
-    # dubstep's half-time, the 2-step's syncopation, the bassline's offbeats
-    ("UK STEPPA", [33, 33, 40, 40], ("deepstep", "deepstep"), "sparse", "deep"),
-    ("DNB STEP", [33, 36, 33, 31], ("roll", "roll_b"), "sparse", "blip"),
+    # ---- the UK bass music: the jungle's break, the dubstep's half-time
     ("JUNGLE", [33, 33, 36, 31], ("junglesub", "junglesub_b"), "staba", "blip"),
-    ("RAGGA JGL", [33, 33, 38, 38], ("dembo", "dembo"), "toast", "brass"),
     ("DUBSTEP", [33, 33, 31, 31], ("wobble", "wobble_b"), "dark", "dark"),
-    ("UK 2STEP", [33, 38, 43, 45], ("garage", "garage"), "shuf", "sigh"),
-    ("BASSLINE", [40, 40, 43, 45], ("off16", "off16_b"), "two_four", "offbeat"),
-    # ---- the Casio MT-40's auto-rhythms, rebuilt by hand. The machine played one measure
-    # of bass and drums per chord (major, minor, seventh) and nothing else: the skank is
-    # the player's offbeat, the melody the toaster's. The Rock preset is the Sleng Teng,
-    # the C#-minor bounce of "Under Mi Sleng Teng" (Wayne Smith, King Jammy's, 1985).
-    ("SLENG TENG", [37, 35, 33, 35], ("sleng", "sleng_b"), "mtup", "rest"),
+    # ---- the Casio MT-40's other five auto-rhythms, rebuilt by hand (the Sleng Teng
+    # above is the Rock one). The machine played one measure of bass and drums per chord
+    # (major, minor, seventh) and nothing else: the skank is the player's offbeat, the
+    # melody the toaster's.
     ("MT40 POPS", [40, 43, 45, 40], ("mtpops", "mtpops_b"), "upbeats", "rest"),
     ("MT40 SLOWRK", [33, 33, 40, 38], ("mtslow", "mtslow_b"), "sparse", "rest"),
     ("MT40 SWING", [45, 41, 43, 40], ("mtwalk", "mtwalk_b"), "two_four", "rest"),
@@ -265,17 +279,20 @@ def build_riddim(defn):
     return notes, vels
 
 
-# the drum pattern each riddim plays (its own name, lower case)
+# the drum pattern each riddim plays (its own name, lower case; the classic riddims
+# share the one-drop of the Studio One house band and the digital dancehall's beat)
 DRUM_MAP = {
     "ONE DROP": "one_drop", "STEPPERS": "steppers", "ROCKERS": "rockers",
-    "DUBWALK": "dubwalk", "DIGITAL": "digital", "LOVERS": "lovers",
-    "MEDITATE": "meditate", "SKANKIN": "skankin", "DUB CUT": "dubcut", "ZION": "zion",
-    "SKA": "ska", "TWO TONE": "two_tone", "ROCKSTDY": "rockstdy",
-    "DANCEHALL": "dancehall", "DEMBOW": "dembow", "UK STEPPA": "uksteppa",
-    "DNB STEP": "dnb", "JUNGLE": "jungle", "RAGGA JGL": "ragjgl",
-    "DUBSTEP": "dubstep", "UK 2STEP": "uk2step", "BASSLINE": "bassline",
-    "SLENG TENG": "mt_rock", "MT40 POPS": "mt_pops", "MT40 SLOWRK": "mt_slow",
-    "MT40 SWING": "mt_swing", "MT40 WALTZ": "mt_waltz", "MT40 SAMBA": "mt_samba",
+    "DUBWALK": "dubwalk", "MEDITATE": "meditate", "DUB CUT": "dubcut", "ZION": "zion",
+    "SKA": "ska",
+    "HEAVENLESS": "one_drop", "TONIGHT": "rockstdy", "GET IN GROOVE": "one_drop",
+    "HOT MILK": "milk_d", "ANSWER": "one_drop", "PROMISED LAND": "pland",
+    "GUNMAN": "radics", "HERE I COME": "two_tone",
+    "SLENG TENG": "mt_rock", "TEMPO": "digital", "PEANY PEANY": "digital",
+    "DANCEHALL": "dancehall", "DEMBOW": "dembow",
+    "JUNGLE": "jungle", "DUBSTEP": "dubstep",
+    "MT40 POPS": "mt_pops", "MT40 SLOWRK": "mt_slow", "MT40 SWING": "mt_swing",
+    "MT40 WALTZ": "mt_waltz", "MT40 SAMBA": "mt_samba",
 }
 
 
@@ -324,7 +341,8 @@ def emit():
     rows.append("/* SPDX-License-Identifier: GPL-3.0-only")
     rows.append(" * Generated by tools/gen_riddims.py -- do not edit by hand: change the generator")
     rows.append(" * and run it again. Twenty-eight 64-step sound-system riddims (reggae, dub, roots,")
-    rows.append(" * ska, dancehall, UK bass music, the Casio MT-40's six auto-rhythms), four tracks each")
+    rows.append(" * ska, the Studio One and early-digital classics, dancehall, UK bass music, the Casio")
+    rows.append(" * MT-40), four tracks each")
     rows.append(" * (DUB_TRK_BASS, DUB_TRK_SKANK, DUB_TRK_MEL, DUB_TRK_DRUM), one step a sixteenth:")
     rows.append(" * four bars, DUB_SEQ_REST (255) is a rest. The dub_riddim_t struct is in dub.h. */")
     rows.append("#ifndef SLOOP_DUB_RIDDIM_H")

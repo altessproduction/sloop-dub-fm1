@@ -73,7 +73,7 @@
   <p id="status"></p>
   <pre id="log"></pre>
   <a class="ed" href="../editor/" data-t="editor"></a>
-  <p class="small"><a href="../editor/sloop-editor.html" download="sloop-editor-1.4.html" data-t="edOffline"></a></p>
+  <p class="small"><a href="../editor/sloop-editor.html" download="sloop-editor-1.5.html" data-t="edOffline"></a></p>
   <p><button id="app" class="ed" hidden data-t="appInstall"></button></p>
   <hr>
   <p class="small" data-t="direct"></p>
@@ -424,7 +424,7 @@ const TEXT = {
     appInstall: "アプリとしてインストール（エディタとインストーラーがオフラインで使える・Android も）",
     direct: "USB ケーブルはパソコンに直接つないでください。Probe や Transporter などの機材は不要です。",
     brick: "万一インストールに失敗して起動しなくなった場合は、復旧に Transporter が必要です:",
-    beta: "これはカスタムファームウェア SLOOP Dub 1.4 です。このファームウェアを使ったことで FM-1 が壊れたり不具合が起きたりしても、作者は一切の責任を負いません。自己責任でお使いください。",
+    beta: "これはカスタムファームウェア SLOOP Dub 1.5 です。このファームウェアを使ったことで FM-1 が壊れたり不具合が起きたりしても、作者は一切の責任を負いません。自己責任でお使いください。",
     back: "公式ファームウェアに戻すには、M-VAVE 公式のアップデーター M-UPGRADE（Downloads → PC Software → M-UPGRADE）と公式ファームウェア（PC Firmware → FM-1、V16）が必要です。",
     nomidi: "このブラウザでは使えません。Chrome か Edge で開いてください。", loadfail: "読み込めませんでした: ",
     start: "開始します", verify: "確認中", loader: "書き込みモードに切り替え中", write: "書き込み中",
@@ -460,7 +460,7 @@ const TEXT = {
     appInstall: "Install the app (the editor and the installer offline, Android too)",
     direct: "Connect the USB cable directly to the computer. No probe or Transporter is needed.",
     brick: "If an install fails and the FM-1 no longer starts, recovering it needs a Transporter:",
-    beta: "This is SLOOP Dub 1.4, custom firmware. The author accepts no responsibility if your FM-1 is damaged or misbehaves because of it. Use it at your own risk.",
+    beta: "This is SLOOP Dub 1.5, custom firmware. The author accepts no responsibility if your FM-1 is damaged or misbehaves because of it. Use it at your own risk.",
     back: "To go back to the official firmware you need M-VAVE's official updater, M-UPGRADE (Downloads → PC Software → M-UPGRADE), and the official firmware (PC Firmware → FM-1, V16).",
     nomidi: "This browser cannot do it. Open the page in Chrome or Edge.", loadfail: "Could not load: ",
     start: "Starting", verify: "Verifying", loader: "Switching to update mode", write: "Writing",
@@ -519,7 +519,7 @@ const sayK = (k, arg = "") => { lastKey = k; lastArg = arg; $("status").textCont
 const say = (txt) => { lastKey = null; $("status").textContent = txt; };
 const log = (t) => { $("log").textContent += t + "\n"; };
 let image = null;
-const meta = {"version": "1.4", "product": "FM-1_234", "pkg": "../../firmware/sloop-dub-1.4.fwsc", "sha256": "8605886b0131a39f4dc64680760757962b7595a0b19d6e8e23f75e48a38c65b6"};
+const meta = {"version": "1.5", "product": "FM-1_234", "pkg": "../../firmware/sloop-dub-1.5.fwsc", "sha256": "9aa56728fba7ad601b8c7c82bf8836a8f8e9f9c023262a40b4242efadae907d2"};
 
 let writing = false;
 const lockAll = (on) => {

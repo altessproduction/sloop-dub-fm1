@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-# Generates firmware/src/dub_riddim.h: twenty-two 64-step sound-system riddims, four
+# Generates firmware/src/dub_riddim.h: twenty-eight 64-step sound-system riddims, four
 # tracks each (BASS, SKANK, MEL, DRUM = DUB_TRK_* in dub.h), one step a sixteenth,
 # four bars. Reggae / dub / roots first (ONE DROP .. ZION), then ska (SKA, TWO TONE,
-# ROCKSTDY), dancehall (DANCEHALL, DEMBOW) and the UK bass music (UK STEPPA, DNB STEP,
-# JUNGLE, RAGGA JGL, DUBSTEP, UK 2STEP, BASSLINE).
+# ROCKSTDY), dancehall (DANCEHALL, DEMBOW), the UK bass music (UK STEPPA, DNB STEP,
+# JUNGLE, RAGGA JGL, DUBSTEP, UK 2STEP, BASSLINE) and the Casio MT-40's six auto-rhythms
+# (SLENG TENG = the famous Rock preset, POPS, SLOWRK, SWING, WALTZ, SAMBA) rebuilt by hand:
+# the MT-40 plays bass and drums only, the skank is the player's upstroke, the fourth bar
+# carries the fill-in the machine's FILL-IN switch added.
 # Run from the repo root:  python3 tools/gen_riddims.py
 # The table is committed: the firmware builds need no Python.
 
@@ -71,6 +74,21 @@ GROOVES = {
     "garage":   {0: (0, 118), 3: (12, 100), 6: (0, 110), 10: (7, 106), 12: (0, 114), 14: (10, 100)},
     "off16":    {2: (0, 112), 6: (12, 104), 10: (0, 112), 14: (12, 104)},
     "off16_b":  {2: (0, 112), 7: (12, 104), 10: (0, 112), 15: (7, 100)},
+    # the MT-40's auto-bass patterns, rebuilt by hand (the machine plays one measure per chord:
+    # major, minor or seventh, bass + drums only). The Rock one is the Sleng Teng: the bounce
+    # Hiroko Okuda heard as reggae, the octave pop and the flat-seventh turnaround.
+    "sleng":    {0: (0, 120), 3: (0, 102), 4: (0, 114), 6: (12, 102), 8: (0, 118), 11: (0, 100), 12: (0, 112), 14: (10, 104)},
+    "sleng_b":  {0: (12, 104), 2: (10, 100), 4: (7, 106), 6: (0, 116), 8: (0, 118), 11: (0, 100), 12: (0, 112), 14: (7, 102)},
+    "mtpops":   {0: (0, 116), 2: (0, 98), 4: (7, 108), 6: (0, 112), 8: (0, 116), 10: (0, 98), 12: (7, 108), 14: (12, 102)},
+    "mtpops_b": {0: (0, 116), 4: (7, 106), 6: (0, 112), 8: (10, 108), 10: (7, 102), 12: (5, 100), 14: (0, 108)},
+    "mtslow":   {0: (0, 116), 6: (7, 100), 8: (0, 112), 12: (10, 100), 14: (7, 96)},
+    "mtslow_b": {0: (0, 116), 6: (0, 100), 8: (7, 108), 12: (12, 100), 14: (10, 96)},
+    "mtwalk":   {0: (0, 114), 4: (7, 102), 8: (10, 108), 12: (7, 102), 14: (10, 98)},
+    "mtwalk_b": {0: (0, 114), 4: (7, 102), 8: (12, 100), 12: (10, 102), 14: (7, 98)},
+    "mtwaltz":  {0: (0, 118), 8: (7, 104), 12: (12, 100)},
+    "mtwaltz_b": {0: (0, 118), 8: (7, 104), 12: (10, 98), 14: (12, 100)},
+    "mtsamba":  {0: (0, 120), 3: (12, 98), 6: (0, 112), 10: (0, 116), 13: (10, 98)},
+    "mtsamba_b": {0: (0, 120), 3: (0, 98), 6: (7, 108), 10: (0, 116), 13: (12, 98)},
 }
 
 # ---- the skanks: {step: vel}, the chord's root follows the bar (the glue builds the
@@ -87,6 +105,10 @@ SKANKS = {
     "shuf":     {2: 106, 7: 98, 10: 106, 14: 98},
     "dark":     {8: 96},
     "staba":    {7: 102, 15: 96},
+    # the MT-40's player's chords: the machine gave none, the session played the offbeat
+    # upstroke over the Rock preset; the waltz's oom-pah-pah lands on beats two and three
+    "mtup":     {2: 100, 6: 96, 10: 100, 14: 96},
+    "waltz":    {4: 106, 8: 106},
 }
 
 # ---- the melodies: per bar {step: (note, vel)}, A minor pentatonic and chord tones.
@@ -150,20 +172,40 @@ DRUMS = {
                   D((0, K, 124), (8, S, 118), (15, S, 48), (6, CH, 86), (10, CH, 86), (14, OH, 96))],
     "uk2step":   [D((0, K, 118), (10, K, 112), (4, P, 108), (12, P, 108), (2, CH, 82), (3, CH, 68), (6, CH, 78), (7, CH, 66), (11, CH, 68), (14, CH, 78), (15, CH, 66)) for _ in range(4)],
     "bassline":  [D((0, K, 122), (4, K, 116), (8, K, 122), (12, K, 116), (6, P, 104), (14, P, 100), (2, CH, 84), (10, CH, 84)) for _ in range(4)],
+    # ---- the MT-40's rhythm unit, rebuilt: the Rock's straight beat with the thin digital
+    # snare, the fills its FILL-IN switch dropped at the bar ends (a drum fill, or a snare
+    # roll), the samba's agogo on the rim, the waltz's oom-pah-pah on a four-four grid
+    "mt_rock":   [D((0, K, 118), (4, S, 108), (8, K, 112), (12, S, 108), (2, CH, 84), (6, CH, 84), (10, CH, 84), (14, CH, 84)) for _ in range(3)]
+               + [D((0, K, 118), (4, S, 108), (8, K, 112), (12, S, 112), (14, S, 100), (15, S, 90), (2, CH, 84), (6, CH, 84), (10, CH, 84))],
+    "mt_pops":   [D((0, K, 114), (4, S, 100), (6, K, 98), (12, S, 100), (2, CH, 80), (8, CH, 80), (10, CH, 80), (14, CH, 84)) for _ in range(2)]
+               + [D((0, K, 114), (4, S, 100), (6, K, 98), (12, S, 100), (2, CH, 80), (8, CH, 80), (10, CH, 80), (14, OH, 92))]
+               + [D((0, K, 114), (4, S, 104), (6, K, 98), (12, S, 108), (14, S, 96), (15, S, 84), (2, CH, 80), (8, CH, 80), (10, CH, 80))],
+    "mt_slow":   [D((0, K, 120), (8, S, 102), (2, CH, 70), (6, CH, 76), (10, CH, 70), (14, CH, 76)) for _ in range(3)]
+               + [D((0, K, 120), (6, K, 96), (8, S, 102), (12, S, 96), (14, S, 88), (2, CH, 70), (10, CH, 70))],
+    "mt_swing":  [D((0, K, 110), (4, S, 92), (8, K, 106), (12, S, 92), (7, R, 56), (15, R, 56), (2, CH, 72), (6, CH, 72), (10, CH, 72), (14, CH, 72)) for _ in range(3)]
+               + [D((0, K, 110), (4, S, 92), (8, K, 106), (12, S, 96), (14, S, 86), (15, S, 74), (7, R, 56), (2, CH, 72), (6, CH, 72), (10, CH, 72))],
+    "mt_waltz":  [D((0, K, 114), (4, CH, 80), (8, CH, 80), (12, R, 70)) for _ in range(3)]
+               + [D((0, K, 114), (4, CH, 80), (8, CH, 80), (12, S, 88), (15, S, 76))],
+    "mt_samba":  [D((0, K, 118), (6, K, 100), (10, K, 112), (13, K, 96), (3, R, 72), (7, R, 66), (11, R, 72), (15, R, 66), (2, CH, 78), (8, CH, 78), (14, OH, 88)) for b in range(2)]
+               + [D((0, K, 118), (6, K, 100), (10, K, 112), (13, K, 96), (3, R, 72), (7, R, 66), (11, R, 72), (15, R, 66), (2, CH, 78), (8, CH, 78), (14, CH, 78))]
+               + [D((0, K, 118), (6, K, 100), (10, K, 112), (12, K, 104), (14, K, 100), (3, R, 72), (7, R, 66), (11, R, 72), (2, CH, 78), (8, CH, 78))],
 }
 
-# ---- the twenty-two riddims. roots: the four bars' bass roots (MIDI). skank: the stabs.
+# ---- the twenty-eight riddims. roots: the four bars' bass roots (MIDI). skank: the stabs.
 # bass: the groove, bass_alt: the groove the 3rd and 4th bars swap to (a dub's B half).
-# Genre order: reggae / dub / roots, ska, dancehall, the UK bass music. BPMs for the
-# docs: ONE DROP 72, STEPPERS 76, ROCKERS 80, DUBWALK 70, DIGITAL 92, LOVERS 84,
+# Genre order: reggae / dub / roots, ska, dancehall, the UK bass music, the MT-40's six.
+# BPMs for the docs: ONE DROP 72, STEPPERS 76, ROCKERS 80, DUBWALK 70, DIGITAL 92, LOVERS 84,
 # MEDITATE 66, SKANKIN 88, DUB CUT 74, ZION 68, SKA 88, TWO TONE 92, ROCKSTDY 76,
 # DANCEHALL 95, DEMBOW 100, UK STEPPA 84, DNB STEP 174, JUNGLE 172, RAGGA JGL 170,
-# DUBSTEP 140, UK 2STEP 134, BASSLINE 132.
+# DUBSTEP 140, UK 2STEP 134, BASSLINE 132, SLENG TENG 82 (the tune's own tempo),
+# MT40 POPS 96, MT40 SLOWRK 66, MT40 SWING 84, MT40 WALTZ 90, MT40 SAMBA 100.
 RIDDIM_NAMES = ["ONE DROP", "STEPPERS", "ROCKERS", "DUBWALK", "DIGITAL",
                 "LOVERS", "MEDITATE", "SKANKIN", "DUB CUT", "ZION",
                 "SKA", "TWO TONE", "ROCKSTDY", "DANCEHALL", "DEMBOW",
                 "UK STEPPA", "DNB STEP", "JUNGLE", "RAGGA JGL", "DUBSTEP",
-                "UK 2STEP", "BASSLINE"]
+                "UK 2STEP", "BASSLINE",
+                "SLENG TENG", "MT40 POPS", "MT40 SLOWRK", "MT40 SWING",
+                "MT40 WALTZ", "MT40 SAMBA"]
 
 RIDDIM_DEFS = [
     #  name         roots                bass groove pair   skank      melody
@@ -193,6 +235,16 @@ RIDDIM_DEFS = [
     ("DUBSTEP", [33, 33, 31, 31], ("wobble", "wobble_b"), "dark", "dark"),
     ("UK 2STEP", [33, 38, 43, 45], ("garage", "garage"), "shuf", "sigh"),
     ("BASSLINE", [40, 40, 43, 45], ("off16", "off16_b"), "two_four", "offbeat"),
+    # ---- the Casio MT-40's auto-rhythms, rebuilt by hand. The machine played one measure
+    # of bass and drums per chord (major, minor, seventh) and nothing else: the skank is
+    # the player's offbeat, the melody the toaster's. The Rock preset is the Sleng Teng,
+    # the C#-minor bounce of "Under Mi Sleng Teng" (Wayne Smith, King Jammy's, 1985).
+    ("SLENG TENG", [37, 35, 33, 35], ("sleng", "sleng_b"), "mtup", "rest"),
+    ("MT40 POPS", [40, 43, 45, 40], ("mtpops", "mtpops_b"), "upbeats", "rest"),
+    ("MT40 SLOWRK", [33, 33, 40, 38], ("mtslow", "mtslow_b"), "sparse", "rest"),
+    ("MT40 SWING", [45, 41, 43, 40], ("mtwalk", "mtwalk_b"), "two_four", "rest"),
+    ("MT40 WALTZ", [45, 42, 38, 40], ("mtwaltz", "mtwaltz_b"), "waltz", "rest"),
+    ("MT40 SAMBA", [45, 45, 43, 43], ("mtsamba", "mtsamba_b"), "toast", "rest"),
 ]
 
 
@@ -222,6 +274,8 @@ DRUM_MAP = {
     "DANCEHALL": "dancehall", "DEMBOW": "dembow", "UK STEPPA": "uksteppa",
     "DNB STEP": "dnb", "JUNGLE": "jungle", "RAGGA JGL": "ragjgl",
     "DUBSTEP": "dubstep", "UK 2STEP": "uk2step", "BASSLINE": "bassline",
+    "SLENG TENG": "mt_rock", "MT40 POPS": "mt_pops", "MT40 SLOWRK": "mt_slow",
+    "MT40 SWING": "mt_swing", "MT40 WALTZ": "mt_waltz", "MT40 SAMBA": "mt_samba",
 }
 
 
@@ -269,8 +323,8 @@ def emit():
     rows = []
     rows.append("/* SPDX-License-Identifier: GPL-3.0-only")
     rows.append(" * Generated by tools/gen_riddims.py -- do not edit by hand: change the generator")
-    rows.append(" * and run it again. Twenty-two 64-step sound-system riddims (reggae, dub, roots,")
-    rows.append(" * ska, dancehall, UK bass music), four tracks each")
+    rows.append(" * and run it again. Twenty-eight 64-step sound-system riddims (reggae, dub, roots,")
+    rows.append(" * ska, dancehall, UK bass music, the Casio MT-40's six auto-rhythms), four tracks each")
     rows.append(" * (DUB_TRK_BASS, DUB_TRK_SKANK, DUB_TRK_MEL, DUB_TRK_DRUM), one step a sixteenth:")
     rows.append(" * four bars, DUB_SEQ_REST (255) is a rest. The dub_riddim_t struct is in dub.h. */")
     rows.append("#ifndef SLOOP_DUB_RIDDIM_H")

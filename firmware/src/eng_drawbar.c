@@ -282,6 +282,11 @@ static const preset_t DRAWBAR_PRESETS[] = {
     {"SKA ORGN", {13, 2, 0, 1, 1, 80, 20, 0}, {0, 56, 30, 22}, 0, 0, FX(0, 10, 12, 18)},
     {"REGGAE ORG", {2, 0, 0, 0, 0, 60, 10, 0}, {0, 52, 0, 24}, 0, 0, FX(0, 0, 10, 15)},
     {"GOSPEL ORG", {6, 0, 0, 0, 1, 60, 40, 2}, {0, 64, 127, 45}, 0, 0, FX(0, 0, 0, 30)},
+    /* the Casio MT-40's organ tones (8 Organ, 10 Pipe Organ, 11 Oriental Pipe), rebuilt:
+     * the home-keyboard registrations, the nasal reed pipe included */
+    {"MT ORGAN", {2, 0, 0, 1, 1, 55, 8, 0}, {0, 60, 0, 30}, 0, 0, FX(0, 6, 8, 12)},
+    {"MT PIPE", {6, 0, 0, 0, 0, 45, 0, 1}, {40, 80, 100, 55}, 0, 0, FX(0, 12, 8, 24)},
+    {"MT ORIENT", {4, 0, 0, 0, 0, 30, 0, 0}, {0, 75, 100, 60}, 0, 0, FX(0, 8, 8, 16)},
 };
 
 static const engine_t ENG_DRAWBAR = {

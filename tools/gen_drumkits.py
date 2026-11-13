@@ -421,6 +421,27 @@ KITS = [
         RIDE=S(None, 320, src="cym", nlev=90, ndec=2400, filt=("bp", 6500, .35), hpf=3500, click=16),
         TOMLO=S("sine", 110, 3, 30, 6, 400, 106, 1.5, 40, 20, "white", 16, 0, 40, ("lp", 2000, .1)),
         TOMHI=S("sine", 160, 3, 30, 6, 340, 104, 1.5, 40, 20, "white", 16, 0, 40, ("lp", 2500, .1)))),
+    # the Casio MT-40's rhythm unit (1981), rebuilt: the thin chip-noise snare, the short boxy
+    # kick, the tiny hats, the short crash — the voices of the Sleng Teng era. A touch of crush
+    # (1 bit, sample and hold 2) for the machine's early-eighties DAC.
+    ("MT40", "CASIO MT-40", 0x11, dict(
+        KICK=S("sine", 62, 12, 26, 4, 200, 112, click=30, drive=44),
+        KICK2=S("sine", 55, 9, 28, 6, 280, 112, click=22, drive=40),
+        SNARE=S("tri", 245, 6, 10, 0, 65, 84, 1.6, 50, 30, "chip", 98, 0, 85, ("hp", 1500, .2), drive=24),
+        SNARE2=S("tri", 285, 5, 8, 0, 55, 80, 1.5, 46, 26, "chip", 92, 0, 70, ("hp", 2200, .2), drive=20),
+        CLAP=S(None, src="chip", nlev=92, nhold=4, ndec=70, filt=("bp", 1900, .3)),
+        CHH=S(None, 250, src="chip", nlev=102, ndec=28, filt=("hp", 7000, .2), click=8),
+        OHH=S(None, 250, src="chip", nlev=96, nhold=12, ndec=170, filt=("hp", 6400, .2)),
+        TOMLO=S("tri", 115, 8, 40, 6, 240, 108, 1.5, 40, 20, "chip", 22, 0, 30, ("lp", 2200, .1)),
+        TOMHI=S("tri", 170, 8, 40, 6, 210, 106, 1.5, 40, 20, "chip", 22, 0, 30, ("lp", 2800, .1)),
+        CRASH=S(None, 260, src="chip", nlev=98, nhold=8, ndec=850, filt=("hp", 4800, .15)),
+        RIDE=S("bell", 720, 0, 6, 4, 300, 92, filt=("bp", 4200, .5, "all"), click=10),
+        SHAKER=S(None, src="chip", nlev=88, nhold=10, ndec=48, filt=("hp", 5000, .25)),
+        CONGA=S("tri", 330, 3, 25, 4, 180, 106, 1.5, 30, 20),
+        RIM=S("tri", 1500, 0, 5, 0, 30, 84, 1.47, 66, 36, "chip", 40, 0, 8, ("bp", 2800, .4, "all")),
+        COWBELL=S("bell", 620, 0, 5, 6, 220, 100, filt=("bp", 2800, .5, "all")),
+        CLAVE=S("sine", 2100, 0, 5, 0, 55, 100, click=10),
+    )),
 ]
 
 

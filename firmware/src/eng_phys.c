@@ -263,6 +263,12 @@ static const preset_t PHYS_PRESETS[] = {
     /* the bowed and the drone strings */
     {"BOW STR", {PM_MODAL, 34, 60, 110, 12, 70, 90, 0}, {60, 90, 127, 70}, 0, 0, FX(0, 20, 10, 55)},
     {"TANPURA", {PM_SYMP, 0, 70, 120, 90, 80, 110, 0}, {0, 100, 127, 100}, 0, 0, FX(0, 10, 10, 60)},
+    /* the Casio MT-40's string tones (2 Banjo, 3 Guitar, 15 Violin, 13 Cello), rebuilt on the
+     * string model: the plucked ones bright and quick, the bowed ones the cheap-strings wheeze */
+    {"MT BANJO", {PM_STRING, 34, 62, 66, 28, 96, 0, 26}, {0, 100, 127, 24}, 0, 0, FX(0, 6, 10, 12), XP(P_TRANS + 1, 12)},
+    {"MT GUITAR", {PM_STRING, 46, 50, 72, 30, 92, 0, 18}, {0, 100, 127, 30}, 0, 0, FX(0, 8, 10, 14)},
+    {"MT VIOLIN", {PM_STRING, 56, 55, 96, 14, 60, 70, 0}, {60, 80, 127, 60}, 0, 0, FX(0, 15, 10, 30)},
+    {"MT CELLO", {PM_STRING, 42, 45, 100, 10, 55, 80, 0}, {70, 85, 127, 70}, 0, 0, FX(0, 10, 8, 28), XP(P_TRANS + 1, -12)},
 };
 
 static const engine_t ENG_PHYS = {

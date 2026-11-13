@@ -144,6 +144,22 @@ static const preset_t DIGITAL_PRESETS[] = {
     {"DNB STAB", {4, 6, 2, 4, 78, 42, 6, 0}, {0, 62, 30, 30}, 30, 0, FX(10, 12, 20, 24)},
     /* a vox-ish pad to sit behind the chords */
     {"VOX FM", {4, 2, 1, 5, 34, 96, 0, 0}, {62, 92, 112, 92}, 0, 0, FX(0, 50, 26, 62), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 40)},
+    /* the Casio MT-40's 22 tones (1981), rebuilt by hand — no factory ROM data: the Casiotone's
+     * thin, hollow, cheerful electro tones as FM stacks (ALG 4), the keys it is remembered for.
+     * Tones 1-11 of the machine's own list. */
+    {"MT E.PIANO", {4, 1, 1, 14, 44, 30, 0, 0}, {0, 72, 30, 44}, 0, 0, FX(0, 12, 10, 18)},
+    {"MT HARPSI", {4, 1, 2, 13, 92, 26, 6, 0}, {0, 60, 30, 14}, 0, 0, FX(0, 8, 8, 10)},
+    {"MT XYLO", {4, 8, 1, 4, 66, 60, 0, 0}, {0, 92, 0, 78}, 0, 0, FX(0, 6, 8, 14)},
+    {"MT CELESTA", {4, 6, 1, 3, 52, 70, 0, 0}, {0, 95, 0, 80}, 0, 0, FX(0, 10, 10, 16)},
+    {"MT GLOCK", {4, 6, 1, 4, 58, 66, 0, 0}, {0, 98, 0, 84}, 0, 0, FX(0, 8, 10, 18)},
+    {"MT ACCORD", {4, 2, 2, 3, 26, 60, 0, 0}, {40, 70, 90, 40}, 0, 0, FX(0, 10, 12, 18), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 78)},
+    /* tones 14-22: the fuzzes, the reeds, the flutes the dancehall producers abused */
+    {"MT SFUZZ", {3, 1, 3, 5, 96, 30, 30, 0}, {0, 55, 40, 16}, 0, 0, FX(10, 8, 12, 10)},
+    {"MT TRUMPET", {4, 1, 3, 8, 70, 40, 0, 0}, {20, 70, 90, 30}, 0, 0, FX(0, 10, 14, 20)},
+    {"MT CLARIN", {4, 1, 1, 1, 22, 50, 0, 0}, {30, 70, 100, 45}, 0, 0, FX(0, 8, 8, 12)},
+    {"MT FLUTE", {4, 1, 1, 2, 30, 46, 0, 0}, {45, 75, 100, 60}, 0, 0, FX(0, 10, 10, 18), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 72)},
+    {"MT RECORD", {4, 1, 1, 1, 18, 55, 0, 0}, {10, 80, 90, 50}, 0, 0, FX(0, 8, 8, 14)},
+    {"MT FOLKFLT", {4, 1, 1, 3, 26, 44, 0, 0}, {40, 80, 100, 55}, 0, 0, FX(0, 10, 10, 18), XP(P_LD_PIT + 1, 1, P_LRATE + 1, 76)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the four operators moved together by r (Q32) of a turn of

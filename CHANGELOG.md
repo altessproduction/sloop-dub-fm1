@@ -3,6 +3,40 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.4 — novembre 2026
+
+**Le Casio MT-40 entre dans la boîte.** Le clavier de 1981 dont un preset — le « Rock »
+de Hiroko Okuda — a fait basculer le reggae dans l'ère digitale fournit maintenant ses
+**six auto-rythmes**, ses **22 sons** et son **unité de rythme** au SLOOP Dub. Tout est
+reconstruit à la main (aucune donnée ROM d'usine copiée), dans l'esprit du dépôt : le
+sleng est reconnaissable à la première mesure.
+
+- **Six riddims MT-40** (`tools/gen_riddims.py`, la banque passe de 22 à **28**) :
+  `SLENG TENG` 82 bpm (la pompe en croches, le pop d'octave, la retombée sur la b7 —
+  la progression de « Under Mi Sleng Teng », C#m–B–A–B), `MT40 POPS` 96, `MT40 SLOWRK` 66,
+  `MT40 SWING` 84 (la basse qui marche), `MT40 WALTZ` 90 (le oom-pah-pah posé sur la
+  grille 4/4), `MT40 SAMBA` 100 (l'agogo au rim, la surdo syncopée). La machine ne jouait
+  que basses et drums : le skank reste la contremise du musicien, la mélodie celle du
+  toaster ; la 4e mesure de chaque riddim porte le **fill-in** que l'interrupteur
+  FILL-IN de la machine lâchait (un rouleau de caisse claire, ou un fill de toms).
+- **Les 22 sons dans une catégorie `MT40`** (page PRESETS), dans l'ordre de la liste de
+  la machine : 1 Electric Piano, 2 Banjo, 3 Guitar, 4 Harpsichord, 5 Xylophone, 6 Celesta,
+  7 Glockenspiel, 8 Organ, 9 Accordion, 10 Pipe Organ, 11 Oriental Pipe, 12 Brass,
+  13 Cello, 14 Synth. Fuzz, 15 Violin, 16 Trumpet, 17 Funny Fuzz, 18 St. Ensemble,
+  19 Clarinet, 20 Flute, 21 Recorder, 22 Folk Flute. Répartis là où ils sonnent juste :
+  12 en DIGITAL (les claviers, mallettes et anches FM), 2 en ANALOG (brass, strings),
+  3 en WHEEL (les orgues), 4 en PHYS (banjo, guitare, violon, violoncelle) et le Funny
+  Fuzz en LOFI. `scripts/update_editor_presets.py` suit.
+- **Le kit `MT-40`** (33e kit synthétisé, `tools/gen_drumkits.py`) : la caisse claire fine
+  au bruit « chip », le kick court et carré, les charleys minuscules, la cymbale courte —
+  et un soupçon de crush (1 bit, sample-and-hold 2) pour le DAC de 1981. Il rejoint la
+  banque drums du module DUB (`DUB_DK_KITS`, 9 kits).
+- **L'émulateur web suit** (`reference_emu/build.sh`, wasm32) : le smoke test attend
+  28 riddims dont `SLENG TENG` et 9 kits — AUDIO-PATH-OK, DUB-SEQ-PLAYS-OK.
+- **La place comptait** : l'image passe de 576 208 à **580 944 o** sur le slot de
+  0x8DFBC (581 564 o) — **620 o de marge**. Les six riddims (+3 Ko de pas), les 22
+  presets (~1 Ko), le kit (~360 o) et leurs noms ont repris presque tout le reste.
+
 ## 1.3 — novembre 2026
 
 **Les riddims suivent le sound system.** La banque passe de dix à **vingt-deux

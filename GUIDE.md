@@ -755,7 +755,7 @@ Notes:
 
 ### The sound bank
 
-**158 sound-system presets** (SLOOP Dub 1.1: reggae, roots, ska, dub, drum & bass, jungle, ragga, dubstep, UK steppers, bass music), every one a full patch on one of the engines, all level-matched (the same LEVEL gives the same loudness). **PRESETS** browses them **by kind** — basses, keys, organs, pads, leads, plucks and bells, stabs, FX — with the kind shown next to the name; your **32 user presets** come after. A new project starts at **90 BPM** with *SKANK SUB* on track 1, *DX SKANK* on track 2, *DUB FLUTE* on track 3 and the ONE DROP kit on track 4.
+**180 sound-system presets** — the 158 genre presets of SLOOP Dub 1.1 (reggae, roots, ska, dub, drum & bass, jungle, ragga, dubstep, UK steppers, bass music) plus the **Casio MT-40's 22 tones** (1.4), every one a full patch on one of the engines, all level-matched (the same LEVEL gives the same loudness). **PRESETS** browses them **by kind** — basses, keys, organs, pads, leads, plucks and bells, stabs, FX, MT40 — with the kind shown next to the name; your **32 user presets** come after. A new project starts at **90 BPM** with *SKANK SUB* on track 1, *DX SKANK* on track 2, *DUB FLUTE* on track 3 and the ONE DROP kit on track 4.
 
 | Kind | Sounds (engine) |
 | --- | --- |

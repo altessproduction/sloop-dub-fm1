@@ -574,7 +574,7 @@ const dub_sound_t DUB_MEL_SOUNDS[] = {
 const uint32_t DUB_MEL_N = sizeof DUB_MEL_SOUNDS / sizeof DUB_MEL_SOUNDS[0];
 /* the drum kits, the drum track's P_E0 (drums.c DRUM_KIT_NAMES: 0 the sampled ONE DROP,
  * 9 VINTAGE, 5 808; the synthesised banks: 22 JUNGLE, 23 DUBSTEP, 32 RAGGA, 24 DEMBOW,
- * 35 STEPPERS) */
-const uint8_t DUB_DK_KITS[] = {0, 35, 9, 5, 22, 23, 32, 24};
-const char *const DUB_DK_NAMES[] = {"ONE DROP", "STEPPERS", "VINTAGE", "808", "JUNGLE", "DUBSTEP", "RAGGA", "DEMBOW"};
+ * 35 STEPPERS, 37 MT40 — the Casio MT-40's rhythm unit, the Sleng Teng era's voices) */
+const uint8_t DUB_DK_KITS[] = {0, 35, 9, 5, 22, 23, 32, 24, 37};
+const char *const DUB_DK_NAMES[] = {"ONE DROP", "STEPPERS", "VINTAGE", "808", "JUNGLE", "DUBSTEP", "RAGGA", "DEMBOW", "MT-40"};
 const uint32_t DUB_DK_N = sizeof DUB_DK_KITS / sizeof DUB_DK_KITS[0];

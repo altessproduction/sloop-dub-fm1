@@ -123,10 +123,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_frame();
     console.log('skank/seq/frame .. OK (no trap)');
 
-    /* 2.9.2: the riddim bank: the 22 sound-system names, one full load, one track load, the names
-     * readable (the ten reggae/dub originals, then ska, dancehall and UK bass music) */
+    /* 2.9.2: the riddim bank: the 28 sound-system names, one full load, one track load, the names
+     * readable (the ten reggae/dub originals, then ska, dancehall, UK bass music and the MT-40's six) */
     const nRid = e.emu_dub_riddim_count();
-    if (nRid !== 22) throw new Error('riddim count ' + nRid);
+    if (nRid !== 28) throw new Error('riddim count ' + nRid);
     const ridNames = [];
     for (let r = 0; r < nRid; r++) {
         const p = e.emu_dub_riddim_name(r);
@@ -136,12 +136,13 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
         ridNames.push(s);
     }
     if (new Set(ridNames).size !== nRid || ridNames[0] !== 'ONE DROP' ||
-        !ridNames.includes('SKA') || !ridNames.includes('DEMBOW') || !ridNames.includes('JUNGLE'))
+        !ridNames.includes('SKA') || !ridNames.includes('DEMBOW') || !ridNames.includes('JUNGLE') ||
+        !ridNames.includes('SLENG TENG'))
         throw new Error('riddim names: ' + ridNames.join(','));
     e.emu_dub_riddim_load(0);          /* ONE DROP into the SLOOP sequencer's tracks (2.9.6) */
     e.emu_dub_riddim_track(1, 3);      /* STEPPERS's drum motif over it */
     e.emu_frame();
-    console.log('riddim bank ....... OK (22: ' + ridNames.join(' ') + ')');
+    console.log('riddim bank ....... OK (28: ' + ridNames.join(' ') + ')');
 
     /* 2.9.6: the load's readback — the steps are in the sequencer's tracks, not a buffer:
      * ONE DROP's bass st0 = 33 with st1 the TIE holding it, the skank's stab at st2, the
@@ -193,10 +194,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
                                         * riddim RMS; the module stays ON, as the walk came */
     console.log('filter/throw/dly ... OK (bipolar filter, the throw, the tape state)');
 
-    /* 2.9.3: the dub sound banks: the PRS lists (bass 10, skanks, melody and kits 8), the names
-     * readable, every role loads */
+    /* 2.9.3: the dub sound banks: the PRS lists (bass 10, skanks, melody 8 and kits 9 — the
+     * MT-40's kit came), the names readable, every role loads */
     const roleNames = [];
-    const roleWant = [10, 8, 8, 8];
+    const roleWant = [10, 8, 8, 9];
     const roleFirst = ['SKANK SUB', 'STEPPA STB', 'MELODICA'];
     for (let role = 0; role < 4; role++) {
         const n = e.emu_dub_sound_count(role);

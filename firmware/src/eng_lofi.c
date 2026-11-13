@@ -214,6 +214,9 @@ static const preset_t LOFI_PRESETS[] = {
     {"CHIP STAB", {2, 0, 64, 0, 0, 0, 2, 110}, {0, 60, 72, 36}, 0, 0, FX(6, 0, 26, 18)},
     {"BIT PAD", {4, 3, 64, 0, 0, 20, 0, 100}, {70, 80, 110, 80}, 0, 0, FX(0, 30, 20, 44)},
     {"CHIP NOIS", {2, 3, 64, 0, 90, 0, 0, 127}, {0, 55, 0, 24}, 0, 0, FX(0, 0, 10, 10)},
+    /* the Casio MT-40's Funny Fuzz (tone 17), rebuilt: the little keyboard's joke sound, a
+     * duty-cycling growl with the sweep the fuzz carried */
+    {"MT FUNNY", {2, 3, 24, 2, 40, 30, 0, 110}, {0, 60, 90, 30}, 0, 0, FX(6, 0, 20, 12)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): the oscillator moved by r (Q32) of a turn of the note and

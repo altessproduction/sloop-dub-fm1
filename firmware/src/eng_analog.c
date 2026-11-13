@@ -159,6 +159,10 @@ static const preset_t ANALOG_PRESETS[] = {
     {"DARK PAD", {0, 18, 64, 0, 48, 8, 0, 32}, {60, 90, 118, 85}, 0, 0, FX(0, 50, 20, 62)},
     {"GONG PAD", {4, 25, 64, 20, 60, 15, 0, 32}, {90, 100, 120, 100}, 0, 0, FX(0, 60, 32, 75), XP(P_LRATE + 1, 18, P_LD_PIT + 1, 1)},
     {"CHIME PLK", {0, 8, 64, 0, 52, 35, 20, 64}, {0, 80, 24, 45}, 48, 0, FX(0, 15, 34, 26)},
+    /* the Casio MT-40's ensemble tones (12 BRASS, 18 St. Ensemble), rebuilt: the little
+     * keyboard's sawtooth section with its fixed cheery detune */
+    {"MT BRASS", {0, 6, 64, 0, 62, 20, 24, 64}, {8, 70, 90, 40}, 0, 0, FX(0, 10, 12, 18)},
+    {"MT ENSMBL", {0, 14, 64, 6, 60, 10, 0, 32}, {50, 90, 115, 80}, 0, 0, FX(0, 25, 20, 45)},
 };
 
 /* (after Clipper 1.2) UNISON (voice.c unison_spread): both oscillators moved by r (Q32) of a turn of the note,

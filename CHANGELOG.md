@@ -36,8 +36,8 @@ extraits sont détectées (tenue modulée 300–3000 Hz) et exclues de chaque pi
   AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK / SLENG-BOUNCE-OK), le wasm de l'éditeur suit,
   l'installateur sert le paquet 1.7 (sha256 vérifié), le STAMP du service worker est
   recalculé, la carte du hub passe à 1.7 (`scripts/bump_hub_card.py 7`).
-- **La place** : l'image est à **581 048 o** sur le slot de 0x8DFBC (581 564 o) —
-  **516 o de marge**.
+- **La place** : l'image est à **581 072 o** sur le slot de 0x8DFBC (581 564 o) —
+  **492 o de marge**.
 
 ## 1.6 — novembre 2026
 

@@ -33,10 +33,11 @@ play — or you load a riddim and dub over it.
 > grew up on** join the bank: **Heavenless, Tonight, Get in the Groove, Hot Milk, Answer,
 > Promised Land, Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany** — from the Studio One
 > rocksteady of 1967–68 to the first digital dancehall of 1985–87, each one a full 64-step
-> riddim with its four patterns, **rebuilt by hand from the records** (no factory ROM data, no
-> sample copied — the groove is recognisable from the first bar; their origins are in
+> riddim with its four patterns, the bass **transcribed from the records themselves** (the
+> uploads pitch-tracked note by note on the records' own grid — no factory ROM data, no
+> sample copied; the groove is recognisable from the first bar; their origins are in
 > [The classic riddims](#the-classic-riddims)). Ten generic riddims step aside so the bank
-> stays at **twenty-eight** and the build fits its slot (588 bytes to spare); the MT-40's six
+> stays at **twenty-eight** and the build fits its slot (524 bytes to spare); the MT-40's six
 > rhythms, its 22 tones and its kit stay (see [The Casio MT-40](#the-casio-mt-40-the-functions-the-rhythms-the-sounds)).
 > The bank counts **180 presets** and **38 kits**, all level-matched. Still custom firmware:
 > install at your own risk, and please [report](../../issues) what you find. Your projects,
@@ -286,12 +287,15 @@ each groove lives; the tempo is yours.
 
 | The classics | BPM | | BPM |
 | --- | --- | --- | --- |
-| HEAVENLESS | 80 | GUNMAN | 78 |
-| TONIGHT | 84 | HERE I COME | 95 |
-| GET IN GROOVE | 88 | SLENG TENG | 82 |
-| HOT MILK | 92 | TEMPO | 88 |
-| ANSWER | 82 | PEANY PEANY | 92 |
-| PROMISED LAND | 78 | | |
+| HEAVENLESS | ~82 | GUNMAN | ~82 |
+| TONIGHT | ~82 | HERE I COME | ~82 |
+| GET IN GROOVE | ~82 | SLENG TENG | 82 |
+| HOT MILK | ~82 | TEMPO | ~82 |
+| ANSWER | ~82 | PEANY PEANY | ~82 |
+| PROMISED LAND | ~82 | | |
+
+(the ten classics' extracts run at one tempo, ~82.4 — the patterns are grid data, they play
+true at any tempo; set the project's BPM to the feel you want)
 
 | Dancehall / ragga | BPM | UK bass music | BPM |
 | --- | --- | --- | --- |

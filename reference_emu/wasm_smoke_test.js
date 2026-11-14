@@ -151,9 +151,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     if (e.emu_dub_seq_len() !== 64) throw new Error('seq len ' + e.emu_dub_seq_len());
     if (note(0, 0) !== 33) throw new Error('bass st0 ' + note(0, 0));
     if (note(0, 1) !== 254) throw new Error('bass st1 tie ' + note(0, 1));
-    if (note(1, 2) % 12 !== 66 % 12) throw new Error('skank st2 ' + note(1, 2));   /* the stab is the SKANK
-        * page's chord built from the riddim's note class (F# here): its root lands at the page's
-        * octave (42 with the boot config), the readback's note[0] is that chord root, not 66 */
+    if (note(1, 2) % 12 !== 69 % 12) throw new Error('skank st2 ' + note(1, 2));   /* the stab is the SKANK
+        * page's chord built from the riddim's note class (A here — the bar root's own class): its
+        * root lands at the page's octave (45 with the boot config), the readback's note[0] is that
+        * chord root, not 69 */
     if (note(3, 0) !== 36) throw new Error('drum st0 ' + note(3, 0));
     for (let t = 0; t < 4; t++)
         if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));

@@ -3,12 +3,13 @@
 # Generates firmware/src/dub_riddim.h: twenty-eight 64-step sound-system riddims, four
 # tracks each (BASS, SKANK, MEL, DRUM = DUB_TRK_* in dub.h), one step a sixteenth,
 # four bars. Reggae / dub / roots first (ONE DROP .. ZION, SKA), then the classic
-# riddims every sound system grew up on, rebuilt by hand from the records' feel: the
-# Studio One / rocksteady family (HEAVENLESS, TONIGHT, GET IN GROOVE, HOT MILK, ANSWER,
-# PROMISED LAND), the band and digital dancehall of the early eighties (GUNMAN, HERE I
-# COME, SLENG TENG, TEMPO, PEANY PEANY), then DANCEHALL, DEMBOW, the UK bass music
-# (JUNGLE, DUBSTEP) and the Casio MT-40's other five auto-rhythms (POPS, SLOWRK, SWING,
-# WALTZ, SAMBA; SLENG TENG above is the machine's famous Rock preset).
+# riddims transcribed note by note from the records themselves (the uploaded WAVs,
+# pitch-tracked and gridded at the records' own ~82.4 bpm): the Studio One / rocksteady
+# family (HEAVENLESS, TONIGHT, GET IN GROOVE, HOT MILK, ANSWER, PROMISED LAND), the band
+# and digital dancehall of the early eighties (GUNMAN, HERE I COME, SLENG TENG, TEMPO,
+# PEANY PEANY), then DANCEHALL, DEMBOW, the UK bass music (JUNGLE, DUBSTEP) and the Casio
+# MT-40's other five auto-rhythms (POPS, SLOWRK, SWING, WALTZ, SAMBA; SLENG TENG above is
+# the machine's famous Rock preset).
 # Run from the repo root:  python3 tools/gen_riddims.py
 # The table is committed: the firmware builds need no Python.
 
@@ -32,7 +33,7 @@ def blank():
 def put(notes, vels, track, step, note, vel):
     assert 0 <= step < STEPS, step
     assert note == REST or 0 <= note <= 127, note
-    assert 0 <= vel <= 127, vel
+    assert 0 <= vel <= 255, vel               # the bass may ride the bounce flag (bit 7)
     assert notes[track][step] == REST, f"step {step} of track {track} hit twice"
     notes[track][step] = note
     vels[track][step] = vel
@@ -138,6 +139,135 @@ def D(*hits):
     return {s: (gm, v) for s, gm, v in hits}
 
 
+# ---- the classic riddims' bass lines, transcribed from the records (the uploaded
+# WAVs, pitch-tracked at the records' own tempo and gridded on sixteenths). One entry
+# per bar: (step, degree, vel, again); the degree resolves on the bar's root and any
+# semitone offset is legal (the walks are chromatic); again=1 flags the bounce — the
+# note strikes again halfway through its step (the loader writes a ratchet x2, the
+# Sleng Teng pluck, Here I Come's 32nd pairs). A note holds over the unwritten steps
+# (the loader's TIE) until the next written one, so (0,0),(2,0) is root, hold, re-attack.
+EXPLICIT_BASS = {
+    # Here I Come (Barrington Levy, 1985): the Dm/Bb bounce with the chromatic C#-C walk,
+    # the F-F#-F lower neighbour and the double-bounce turnaround of the fourth bar
+    "HERE I COME": [
+        [(0, 0, 120), (1, 0, 96), (2, 3, 112), (5, 11, 104), (6, 10, 110),
+         (8, 10, 108, 1), (9, 10, 94), (10, 3, 112), (13, 11, 102), (14, 10, 108)],
+        [(0, -5, 112), (2, 0, 118), (5, -4, 96), (6, -5, 108), (8, -5, 104, 1),
+         (9, -5, 92), (10, 0, 116), (13, -4, 96), (14, -5, 108)],
+        [(0, 4, 104), (2, 3, 110), (5, 11, 102), (6, 10, 108), (8, 10, 100),
+         (10, 3, 110), (13, 11, 102), (14, 10, 108)],
+        [(0, -5, 110), (2, 0, 116), (3, 0, 92), (4, 0, 104, 1), (5, -4, 96, 1),
+         (6, -5, 108), (8, -5, 104), (9, -5, 104, 1), (10, 0, 112), (11, 0, 100),
+         (12, 0, 104), (13, -4, 96), (14, -5, 108)],
+    ],
+    # Gunman (Michael Prophet, 1980): the Roots Radics' heavy march, the same C-C-C#-D-D-C#
+    # riff four bars over, the fourth with the doubled Ds into the turnaround
+    "GUNMAN": [
+        [(0, 0, 122), (4, 0, 112), (6, 1, 108), (8, 2, 118), (12, 2, 112), (14, 1, 104)],
+        [(0, 0, 122), (4, 0, 112), (6, 1, 108), (8, 2, 118), (12, 2, 112), (14, 1, 104)],
+        [(0, 0, 122), (4, 0, 112), (6, 1, 108), (8, 2, 118), (12, 2, 112), (14, 1, 104)],
+        [(0, 0, 122), (4, 0, 112), (6, 1, 108), (8, 2, 118), (10, 2, 108), (12, 2, 112),
+         (14, 1, 104)],
+    ],
+    # Answer (Slim Smith & The Uniques): the F walk F-F-A-Bb-A-Bb-C, the Bb bounce of the
+    # second bar and the F gallop of the third
+    "ANSWER": [
+        [(0, 0, 118), (4, 0, 112), (7, 4, 104), (9, 5, 108), (10, 4, 102),
+         (12, 5, 108), (14, 7, 112)],
+        [(0, 0, 118), (4, 0, 110), (7, 4, 102), (8, 5, 106, 1), (10, 4, 102),
+         (12, 5, 108), (14, 7, 112)],
+        [(0, 0, 116), (1, 0, 104, 1), (2, 0, 100), (4, 0, 108), (5, 0, 100),
+         (7, 4, 102), (9, 5, 108), (10, 4, 102), (12, 5, 108), (14, 7, 112)],
+        [(0, 0, 118), (4, 0, 110), (7, 4, 102), (9, 5, 108), (10, 4, 102),
+         (12, 5, 108), (14, 7, 112)],
+    ],
+    # Heavenless (Vin Gordon, 1968): the G root and the chromatic D-F-F# climb into it
+    "HEAVENLESS": [
+        [(0, 0, 118), (3, 0, 104), (4, -5, 112), (6, -2, 98), (7, -1, 98),
+         (8, 0, 114), (10, 0, 106), (12, -5, 110), (14, -2, 98), (15, -1, 96)],
+        [(0, 0, 118), (3, 0, 104), (4, -5, 112), (6, -2, 98), (7, -1, 98),
+         (8, 0, 114), (10, 0, 106), (12, -5, 110), (14, -2, 98), (15, -1, 96)],
+        [(0, 0, 118), (3, 0, 104), (4, -5, 112), (6, -2, 98), (7, -1, 98),
+         (8, 0, 114), (10, 0, 106), (12, -5, 110), (14, -2, 98), (15, -1, 96)],
+        [(0, 0, 118), (3, 0, 104), (4, -5, 112), (6, -2, 98), (7, -1, 98),
+         (8, 0, 114), (9, 0, 96), (10, 0, 104), (12, -5, 110), (14, -2, 98), (15, -1, 96)],
+    ],
+    # Tonight (Keith & Tex, 1967): the rolling G-G-D-C#-C-C-F, the F four steps into the
+    # ground, the fourth bar's F stutter into the loop
+    "TONIGHT": [
+        [(0, -5, 116), (3, -5, 102), (4, 2, 112), (6, 1, 104), (8, 0, 114),
+         (11, 0, 100), (12, -7, 112)],
+        [(0, -5, 116), (3, -5, 102), (4, 2, 112), (6, 1, 104), (8, 0, 112, 1),
+         (12, -7, 112)],
+        [(0, -5, 116), (3, -5, 102), (4, 2, 112), (6, 1, 104), (8, 0, 114),
+         (11, 0, 100), (12, -7, 112)],
+        [(0, -5, 116), (3, -5, 102), (4, 2, 112), (6, 1, 104), (8, 0, 114),
+         (11, 0, 100), (12, -7, 110), (13, -7, 96), (14, -7, 100), (15, -7, 92)],
+    ],
+    # Get in the Groove (Studio One, 1968): the horn line's bass C-C-C-E-G, the D-D-D
+    # answer, the two-bar phrase with the G# flick into the repeat
+    "GET IN GROOVE": [
+        [(0, 0, 118), (3, 0, 104), (4, 4, 108), (5, 7, 112), (8, 2, 110, 1),
+         (10, 2, 100), (12, 2, 106), (14, 7, 112)],
+        [(0, 0, 118), (3, 0, 104), (4, 4, 108), (5, 7, 112), (8, 2, 112),
+         (12, 2, 106), (14, 7, 112), (15, 8, 88)],
+        [(0, 0, 118), (3, 0, 104), (4, 4, 108), (5, 7, 112), (8, 2, 110, 1),
+         (10, 2, 100), (12, 2, 106), (14, 7, 112)],
+        [(0, 0, 118), (3, 0, 104), (4, 4, 108), (5, 7, 112), (8, 2, 112),
+         (12, 2, 106), (14, 7, 112), (15, 8, 88)],
+    ],
+    # Hot Milk (Jackie Mittoo, 1968): the Ab vamp, its fifth, the bVII Gb turn — the
+    # stutter roll in the first bar, the holds in the second and third
+    "HOT MILK": [
+        [(0, -1, 96), (1, 0, 118), (4, -5, 108), (5, 0, 110), (7, 0, 108),
+         (11, -2, 102), (12, -2, 96), (13, -2, 100), (14, -2, 96), (15, -2, 98)],
+        [(1, 0, 116), (4, -5, 106), (5, 0, 110), (7, 0, 108), (9, -5, 96),
+         (10, -2, 108), (13, -2, 104), (15, -2, 96)],
+        [(1, 0, 100), (2, 0, 114), (4, -5, 106), (5, 0, 110), (7, 0, 108), (9, -5, 96),
+         (10, -2, 106), (11, -2, 102), (13, -2, 108)],
+        [(1, 0, 116), (4, -5, 106), (6, 0, 108), (8, 0, 94), (9, -5, 92),
+         (10, -2, 100), (11, -2, 96), (12, -2, 100), (13, -2, 104), (15, -2, 94)],
+    ],
+    # Peanie Peany (Little John, 1987): the digital gallop, the octave drop G1 of the
+    # second bar's head, the D-F-D-F sixteenth run and the stutter tail
+    "PEANY PEANY": [
+        [(0, 0, 100), (1, 0, 116), (3, -2, 108), (4, -5, 92), (6, -2, 104),
+         (7, 0, 114), (9, 0, 100), (10, -5, 102)],
+        [(0, -12, 98), (1, -12, 94), (2, 0, 100), (3, -2, 104), (4, -5, 100),
+         (5, -5, 92), (6, -2, 104), (7, 0, 114), (9, 0, 100), (10, -5, 102),
+         (11, -2, 104), (12, -5, 100), (13, -2, 104), (14, -5, 92), (15, 0, 116)],
+        [(3, -2, 106), (4, -5, 96), (6, -2, 104), (7, 0, 116), (10, -5, 102),
+         (11, -2, 104), (12, -5, 100), (13, -2, 104), (14, -5, 100), (15, 0, 112)],
+        [(1, 0, 116), (3, -2, 106), (4, -5, 96), (6, -2, 104), (7, 0, 114),
+         (9, 0, 92), (10, -5, 100), (11, -2, 98), (12, -5, 96)],
+    ],
+    # Promised Land (Dennis Brown, 1981): the F minor soul walk F-F-Ab-Bb-C-C-Eb-C-Eb,
+    # the long F anchors, the fourth bar resolving on C instead of the F
+    "PROMISED LAND": [
+        [(0, 0, 118), (2, 0, 112), (4, 3, 96), (5, 5, 106), (6, 7, 112), (8, 7, 108),
+         (10, 10, 102), (11, 7, 100), (12, 10, 108), (14, 0, 116)],
+        [(2, 0, 112), (4, 3, 94), (5, 5, 106), (6, 7, 112), (8, 7, 108),
+         (10, 10, 102), (11, 7, 100), (12, 10, 108), (14, 0, 116)],
+        [(2, 0, 112), (4, 3, 96), (5, 5, 104), (6, 7, 112), (8, 7, 108),
+         (10, 10, 102), (11, 7, 100), (12, 10, 108), (14, 0, 116)],
+        [(2, 0, 112), (4, 3, 96), (5, 5, 104), (6, 7, 112), (8, 7, 108),
+         (10, 10, 102), (11, 7, 100), (12, 10, 108), (14, 7, 110)],
+    ],
+    # Tempo (Anthony Red Rose, 1985): the G vamp and the D-D# wobble (the b13 that
+    # gave the tune its name-check), the D# bounce pair of the fourth bar
+    "TEMPO": [
+        [(0, 0, 118), (2, 0, 112), (4, 0, 100), (7, -5, 104), (8, -4, 94),
+         (9, -5, 102), (10, -4, 108), (12, -4, 110), (14, -5, 110)],
+        [(0, 0, 118), (2, 0, 112), (4, 0, 96), (7, -5, 104), (8, -4, 92),
+         (9, -5, 102), (10, -4, 106), (11, -5, 98), (12, -4, 110), (14, -5, 110)],
+        [(0, 0, 118), (2, 0, 112), (4, 0, 96), (7, -5, 102), (8, -4, 92),
+         (9, -5, 102), (10, -4, 106), (12, -4, 110), (14, -5, 110)],
+        [(0, 0, 118), (2, 0, 112), (7, -5, 104), (8, -4, 104, 1), (9, -5, 100),
+         (10, -4, 106), (11, -5, 96), (12, -4, 110)],
+    ],
+}
+
+
 DRUMS = {
     # the reggae / dub drums, fixed to their intended grooves: a track holds one lane
     # per step, so the one drop's kick rides a sixteenth before its snare (the roots'
@@ -199,9 +329,10 @@ DRUMS = {
 # on (the Studio One / rocksteady family, the early-eighties band and digital dancehall),
 # dancehall, the UK bass music, the MT-40's other five.
 # BPMs for the docs: ONE DROP 72, STEPPERS 76, ROCKERS 80, DUBWALK 70, MEDITATE 66,
-# DUB CUT 74, ZION 68, SKA 88, HEAVENLESS 80, TONIGHT 84, GET IN GROOVE 88, HOT MILK 92,
-# ANSWER 82, PROMISED LAND 78, GUNMAN 78, HERE I COME 95, SLENG TENG 82 (the tune's own
-# tempo), TEMPO 88, PEANY PEANY 92, DANCEHALL 95, DEMBOW 100, JUNGLE 172, DUBSTEP 140,
+# DUB CUT 74, ZION 68, SKA 88, and the ten classics ~82 (the extracts' own tempo — the
+# records' feel at the compilation's speed; the patterns are grid data, tempo-free),
+# SLENG TENG 82 (the tune's own
+# tempo), DANCEHALL 95, DEMBOW 100, JUNGLE 172, DUBSTEP 140,
 # MT40 POPS 96, MT40 SLOWRK 66, MT40 SWING 84, MT40 WALTZ 90, MT40 SAMBA 100.
 RIDDIM_NAMES = ["ONE DROP", "STEPPERS", "ROCKERS", "DUBWALK", "MEDITATE", "DUB CUT", "ZION",
                 "SKA",
@@ -229,23 +360,23 @@ RIDDIM_DEFS = [
     # Milk (1968, Studio One, the floating lead), the Answer's one-chord gallop (Slim
     # Smith & The Uniques, "I'll Never Let You Go", 1967) and Dennis Brown's Promised
     # Land (1981, with Aswad, cut on the UK side as "Love Fire").
-    ("HEAVENLESS", [33, 41, 33, 43], ("hvn", "hvn_b"), "upbeats", "sigh"),
-    ("TONIGHT", [40, 45, 43, 40], ("rockst", "drop_b"), "upbeats", "sigh"),
-    ("GET IN GROOVE", [41, 45, 43, 41], ("walk", "walk"), "upbeats", "rest"),
-    ("HOT MILK", [36, 41, 43, 36], ("lovers", "drop_b"), "upbeats", "call"),
-    ("ANSWER", [33, 33, 33, 33], ("steppers", "steppers"), "upbeats", "rest"),
-    ("PROMISED LAND", [41, 46, 36, 43], ("zion", "drop_b"), "upbeats", "call"),
+    ("HEAVENLESS", [43, 43, 43, 43], ("hvn", "hvn_b"), "upbeats", "sigh"),
+    ("TONIGHT", [48, 48, 48, 48], ("rockst", "drop_b"), "upbeats", "sigh"),
+    ("GET IN GROOVE", [36, 36, 36, 36], ("walk", "walk"), "upbeats", "rest"),
+    ("HOT MILK", [44, 44, 44, 44], ("lovers", "drop_b"), "upbeats", "call"),
+    ("ANSWER", [41, 41, 41, 41], ("steppers", "steppers"), "upbeats", "rest"),
+    ("PROMISED LAND", [41, 41, 41, 41], ("zion", "drop_b"), "upbeats", "call"),
     # ---- the band and digital dancehall of the early eighties: Michael Prophet's
     # Gunman (1980, Henry "Junjo" Lawes at Channel One, the Roots Radics' heavy march,
     # Scientist at the mix), Barrington Levy's Here I Come (1985, the bouncy octave
     # pump), the Sleng Teng (the MT-40's Rock preset — Wayne Smith, King Jammy's, 1985),
     # Anthony Red Rose's Tempo (1985, King Tubby's Firehouse) and the Peanie Peany /
     # Fade Away riddim (Bobby Digital, 1987; Little John voiced it first).
-    ("GUNMAN", [36, 36, 32, 34], ("gunman", "gunman_b"), "sparse", "deep"),
-    ("HERE I COME", [33, 36, 38, 40], ("octave", "octave"), "upbeats", "call"),
+    ("GUNMAN", [36, 36, 36, 36], ("gunman", "gunman_b"), "sparse", "deep"),
+    ("HERE I COME", [38, 46, 38, 46], ("octave", "octave"), "upbeats", "call"),
     ("SLENG TENG", [37, 35, 33, 35], ("sleng", "sleng_b"), "mtup", "rest"),
-    ("TEMPO", [33, 36, 38, 33], ("digital", "digital"), "pushed", "rest"),
-    ("PEANY PEANY", [33, 36, 33, 40], ("peany", "peany_b"), "mtup", "rest"),
+    ("TEMPO", [43, 43, 43, 43], ("digital", "digital"), "pushed", "rest"),
+    ("PEANY PEANY", [43, 43, 43, 43], ("peany", "peany_b"), "mtup", "rest"),
     # ---- dancehall / ragga: the 3+3+2 clap, the dembow's boom-ch-boom-chick
     ("DANCEHALL", [33, 38, 33, 43], ("dembo", "dembo"), "pushed", "brass"),
     ("DEMBOW", [33, 33, 40, 40], ("meditate", "dembo"), "toast", "rest"),
@@ -269,11 +400,20 @@ def build_riddim(defn):
     notes, vels = blank()
     bar_roots_ = bar_roots(roots)
     for b, root in enumerate(bar_roots_):
-        groove = GROOVES[g_a if b < 2 else g_b]
-        for st, (deg, vel) in groove.items():
-            put(notes, vels, BASS, b * 16 + st, root + deg, vel)
+        if name in EXPLICIT_BASS:
+            for e in EXPLICIT_BASS[name][b]:
+                st, deg, vel = e[0], e[1], e[2]
+                again = e[3] if len(e) > 3 else 0
+                # the bounce flag rides the velocity's high bit: the loader turns it
+                # into a ratchet x2 (the note strikes again halfway through its step)
+                put(notes, vels, BASS, b * 16 + st, root + deg,
+                    vel | (0x80 if again else 0))
+        else:
+            groove = GROOVES[g_a if b < 2 else g_b]
+            for st, (deg, vel) in groove.items():
+                put(notes, vels, BASS, b * 16 + st, root + deg, vel)
         for st, vel in SKANKS[skank].items():
-            put(notes, vels, SKANK, b * 16 + st, (root % 12) + 57, vel)   # the chord's root, one octave up
+            put(notes, vels, SKANK, b * 16 + st, (root % 12) + 60, vel)   # the chord's root, one octave up
         for st, (note, vel) in MELODIES[mel][b].items():
             put(notes, vels, MEL, b * 16 + st, note, vel)
         for st, (gm, vel) in DRUMS[drum_key(defn[0])][b].items():
@@ -315,13 +455,27 @@ def check_bank():
         assert mel in MELODIES and len(MELODIES[mel]) == 4, f"{name}: no melody {mel}"
         assert drum_key(name) in DRUMS, f"{name}: no drum pattern"
         assert len(DRUMS[drum_key(name)]) == 4, f"{name}: the drums must be four bars"
+        if name in EXPLICIT_BASS:
+            bars = EXPLICIT_BASS[name]
+            assert len(bars) == 4, f"{name}: the explicit bass must be four bars"
+            for bar in bars:
+                seen = set()
+                for e in bar:
+                    st, deg, vel = e[0], e[1], e[2]
+                    again = e[3] if len(e) > 3 else 0
+                    assert 0 <= st < 16, f"{name}: bass step {st} out of the bar"
+                    assert st not in seen, f"{name}: bass step {st} twice"
+                    seen.add(st)
+                    assert -24 <= deg <= 24, f"{name}: bass degree {deg} wild"
+                    assert 0 <= vel <= 127 and again in (0, 1), f"{name}: bass vel {vel} again {again}"
         notes, vels = build_riddim(defn)
         for tr in range(4):
             hits = sum(1 for n in notes[tr] if n != REST)
             assert hits > 0, f"{name}: track {tr} is empty"
             for st, n in enumerate(notes[tr]):
                 assert n == REST or 0 <= n <= 127, f"{name}: track {tr} step {st}: note {n}"
-                assert 0 <= vels[tr][st] <= 127, f"{name}: track {tr} step {st}: vel {vels[tr][st]}"
+                hi = 255 if tr == BASS else 127          # the bass rides the bounce flag
+                assert 0 <= vels[tr][st] <= hi, f"{name}: track {tr} step {st}: vel {vels[tr][st]}"
     assert len(set(d[0] for d in RIDDIM_DEFS)) == len(RIDDIM_DEFS), "a name twice"
     assert len(set(DRUM_MAP)) == len(RIDDIM_DEFS), "the drum map is not one to one"
     # every D() call in the source keeps all its hits: a same-step overwrite in the
@@ -343,10 +497,13 @@ def emit():
     rows.append("/* SPDX-License-Identifier: GPL-3.0-only")
     rows.append(" * Generated by tools/gen_riddims.py -- do not edit by hand: change the generator")
     rows.append(" * and run it again. Twenty-eight 64-step sound-system riddims (reggae, dub, roots,")
-    rows.append(" * ska, the Studio One and early-digital classics, dancehall, UK bass music, the Casio")
+    rows.append(" * ska, the Studio One and early-digital classics transcribed from the records,")
+    rows.append(" * dancehall, UK bass music, the Casio")
     rows.append(" * MT-40), four tracks each")
     rows.append(" * (DUB_TRK_BASS, DUB_TRK_SKANK, DUB_TRK_MEL, DUB_TRK_DRUM), one step a sixteenth:")
-    rows.append(" * four bars, DUB_SEQ_REST (255) is a rest. The dub_riddim_t struct is in dub.h. */")
+    rows.append(" * four bars, DUB_SEQ_REST (255) is a rest. The classic bass lines ride the")
+    rows.append(" * velocity's high bit as the bounce flag (the loader writes a ratchet x2: the note")
+    rows.append(" * strikes again halfway through its step). The dub_riddim_t struct is in dub.h. */")
     rows.append("#ifndef SLOOP_DUB_RIDDIM_H")
     rows.append("#define SLOOP_DUB_RIDDIM_H")
     rows.append('#include "dub.h"')

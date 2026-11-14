@@ -2024,8 +2024,17 @@ void dub_tracks_load(const dub_seq_t *s, uint32_t mask, uint8_t len)
                 step_t *sp = &t->step[st];
                 uint8_t note = st < len ? s->notes[tr][st] : DUB_SEQ_REST;
                 uint8_t vel = st < len ? s->velocity[tr][st] : 0u;
+                uint8_t bounce = 0;                    /* the generator's bounce flag rides
+                                                        * the bass velocity's high bit: this
+                                                        * note strikes again at the 32nd */
+                if (tr == DUB_TRK_BASS && (vel & 0x80u)) {
+                    bounce = 1u;
+                    vel &= 0x7Fu;
+                }
                 sp->flags = sp->lvl = sp->rat = 0;
                 sp->vel = vel;
+                if (bounce)
+                    sp->rat = 1u;                      /* ratchet x2, seq_ratchets plays it */
                 if (tr == DUB_TRK_SKANK) {             /* the stab: its chord, one step, off */
                     if (note != DUB_SEQ_REST) {
                         dub_skank_t c;

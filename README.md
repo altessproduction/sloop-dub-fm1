@@ -959,3 +959,5 @@ Code: GPL-3.0-only (see [LICENSE](LICENSE), and [LICENSING.md](LICENSING.md) for
 warranty. M-VAVE and FM-1 are trademarks of their owners; SLOOP is not affiliated with M-VAVE,
 teenage engineering, Elektron or Akai. Drum kit names and riddim names describe styles, not
 products.
+
+You can also try SLOOP Dub in the browser, no flashing needed, in the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).

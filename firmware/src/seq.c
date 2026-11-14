@@ -2053,6 +2053,12 @@ void dub_tracks_load(const dub_seq_t *s, uint32_t mask, uint8_t len)
                     }
                     continue;
                 }
+                if (note == DUB_SEQ_CUT) {             /* the rest that cuts: the held note ends */
+                    sp->n = 0;
+                    sp->time = ST_REST;
+                    held = DUB_SEQ_REST;
+                    continue;
+                }
                 if (note == DUB_SEQ_REST) {            /* the hold goes on over a rest: a TIE */
                     sp->n = held != DUB_SEQ_REST;
                     sp->time = held != DUB_SEQ_REST ? ST_TIE : ST_REST;

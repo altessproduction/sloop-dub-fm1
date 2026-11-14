@@ -3,35 +3,89 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.7 — novembre 2026
+
+**Les dix classiques sonnent comme leurs disques : la basse transcrite depuis les
+enregistrements.** Les dix extraits WAV fournis (ils tournent tous à ~82,4 bpm) sont
+pistés en hauteur note par note (autocorrélation), quantifiés sur la grille à la dérive
+du disque près, et le doute tranche toujours à l'audio — les sirènes dub posées sur les
+extraits sont détectées (tenue modulée 300–3000 Hz) et exclues de chaque piste.
+
+- **Les dix lignes de basse, notes réelles** (`tools/gen_riddims.py`, `EXPLICIT_BASS`) :
+  `HEAVENLESS` (le G et sa montée D–F–F♯), `TONIGHT` (le roulement G–G–D–C♯–C–C–F et son
+  bégaiement final), `GET IN GROOVE` (la phrase C-C-C-E-G / D-D-D-G, le flick G♯),
+  `HOT MILK` (le vamp La♭–Mi♭, le tournant ♭7), `ANSWER` (la marche F–F–A–B♭–A–B♭–C et
+  son galop), `PROMISED LAND` (la marche mineure F–F–A♭–B♭–C–C–E♭–C–E♭), `GUNMAN` (la
+  marche C–C–C♯–D–D–C♯ mesurée sur l'audio — l'audio tranche : C♯, pas la b3 de la tab),
+  `HERE I COME` (le bounce Dm/Bb, la marche chromatique C♯–C, les paires de 32es),
+  `TEMPO` (le vacillement D–D♯), `PEANY PEANY` (le galop digital et sa chute d'octave).
+  Les racines suivent : Answer passe en **Fa** (elles étaient en La), Heavenless en
+  **Sol**, Tonight en **Do**, Hot Milk en **La♭**, Here I Come en **Ré/Si♭**, Gunman
+  **un do à la barre**. Le Sleng Teng garde la transcription vérifiée du 1.6 (le tab de
+  Noel Davey) — il n'y avait pas d'extrait à reprendre.
+- **Le bounce devient un ratchet** : les re-frappes à la double-croche ne suffisaient pas —
+  Here I Come et Peanie Peany répètent à la **double-croche décalée** (les paires de 32es
+  à ~90 ms). Le générateur écrit le flag de rebond dans le bit de poids fort de la
+  vélocité basse (coût : zéro octet), le chargeur le traduit en **ratchet x2**
+  (`seq_ratchets` re-frappe à la moitié du pas), lisible et éditable au PATTERN.
+- **Le skank sonne la classe de la racine** : son accord était construit trois demi-tons
+  sous la racine (`(root % 12) + 57`) — il prend la classe de la racine elle-même
+  (`+60`), ce que le commentaire du code annonçait déjà. Un pas de plus vers le
+  recognisable : à Here I Come les stabs suivent Ré–Si♭–Ré–Si♭.
+- **La chaîne web suit** : l'émulateur recompilé passe le smoke test (28 riddims,
+  AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK / SLENG-BOUNCE-OK), le wasm de l'éditeur suit,
+  l'installateur sert le paquet 1.7 (sha256 vérifié), le STAMP du service worker est
+  recalculé, la carte du hub passe à 1.7 (`scripts/bump_hub_card.py 7`).
+- **La place** : l'image est à **581 048 o** sur le slot de 0x8DFBC (581 564 o) —
+  **516 o de marge**.
+
+## 1.6 — novembre 2026
+
+**Le Sleng Teng sonne enfin comme le Sleng Teng.** La basse du riddim le plus broyé de
+l'histoire est maintenant **la transcription vérifiée** : la tablature de Noel Davey (le
+claviériste de la session originale) et le rouleau d'Ableton concordent — 82 bpm, **une
+mesure statique en do#** : la racine sur chaque temps, trois doubles-croches un demi-ton
+au-dessus **re-déclenchées une à une**, la queue sol–fa# coupée net — pendant que les accords
+tournent do#m–si–la–si au-dessus. Avant, la basse était une pompe d'octaves générique : le
+riddim était méconnaissable.
+
+- **La figure du preset se partage** : `TEMPO` et `PEANY PEANY` montent le même stutter sur
+  leurs propres accords (c'est ce que fait l'auto-basse du MT-40 — la figure suit l'accord) ;
+  `GUNMAN` marche comme la tablature des Roots Radics — la descente b3–#2–racine, pincée
+  coupe après coupe (`mtmarch`). Les accords du Skeng Teng restent ceux du 1.5
+  (do#m–si–la–si) ; le skank suit désormais une liste d'accords séparée de la basse statique.
+- **Le marqueur de coupe** : `DUB_SEQ_CUT` (253) dans la banque et dans `dub_tracks_load` —
+  la note tenue s'arrête là (les queues pincées du preset) ; le repos seul tient toujours
+  (le glue dub). `check_bank()` refuse une coupe sans note tenue derrière elle.
+- Le smoke test du wasm lit le stutter chargé (37/38/38/38 en attaques fraîches, la queue
+  43/42, les coupes en repos nus — pas des TIE) et joue le riddim sur le transport.
+- L'image passe à 580 992 o (+16 o, la branche de coupe), **572 o de marge** ; le paquet
+  `sloop-dub-1.6.fwsc`, l'éditeur hors-ligne `sloop-editor-1.6.html`, installateur, service
+  worker et carte du hub suivent.
+
 ## 1.5 — novembre 2026
 
 **Les classiques du sound system entrent dans la boîte.** Les onze riddims que tout sound
 system a broyés — de la salle Studio One aux premières heures du digital — sont maintenant
 dans la banque : **Heavenless, Tonight, Get in the Groove, Hot Milk, Answer, Promised Land,
-Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany**. Comme toujours dans ce dépôt, aucun
-échantillon ni ROM copié — mais cette fois la basse n'est plus reconstruite à l'oreille de
-tête : **chaque ligne est transcrite depuis les enregistrements eux-mêmes** (les extraits WAV
-fournis, pistés en hauteur par autocorrélation, quantifiés sur la grille à la dérive du
-disque près — les dix extraits tournent à ~82,4 bpm). La première mesure dit de quel disque
-il vient — et maintenant, la suivante aussi.
+Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany**. Comme toujours dans ce dépôt, tout
+est reconstruit à la main d'après le disque (aucun échantillon ni ROM copié) : le tempo, la
+marche de basse, le drop — la première mesure dit de quel disque il vient.
 
 - **Dix riddims nouveaux** (`tools/gen_riddims.py`), par famille :
-  - **Studio One / rocksteady** — `HEAVENLESS` (Vin Gordon, 1968, Coxsone Dodd ; le G
-    qui monte D–F–F♯ chromatiquement), `TONIGHT` (Keith & Tex, 1967, Derrick Harriott ;
-    le roulement G–G–D–C♯–C–C–F et son bégaiement final), `GET IN GROOVE` (le riddim de
-    1968 alias *Up Park Camp* — John Holt l'a rendu célèbre en 1976 ; la phrase C-C-C-E-G
-    / D-D-D-G), `HOT MILK` (Jackie Mittoo & The Soul Vendors, 1968 ; le vamp La♭–Mi♭ et
-    son tournant ♭7), `ANSWER` (né de « I'll Never Let You Go » de Slim Smith & The
-    Uniques, 1967 ; la marche F–F–A–B♭–A–B♭–C et son galop), `PROMISED LAND` (Dennis
-    Brown avec Aswad, 1981 ; la marche mineure F–F–A♭–B♭–C–C–E♭–C–E♭).
-  - **Dancehall band et digital des années 80** — `GUNMAN` (Michael Prophet, 1980,
-    Henry « Junjo » Lawes à Channel One ; la marche lourde C–C–C♯–D–D–C♯ des Roots
-    Radics, quatre mesures de suite), `HERE I COME` (Barrington Levy, 1985 ; le bounce
-    Dm/Bb, la marche chromatique C♯–C et les paires de doubles-croches), `TEMPO`
-    (Anthony Red Rose, 1985, Firehouse de King Tubby ; le vacillement D–D♯),
-    `PEANY PEANY` (le riddim de Bobby Digital, 1987, alias *Fade Away* — Little John
-    l'a chanté d'abord ; le galop digital et sa chute d'octave) ; le `SLENG TENG` (déjà
-    là depuis le 1.4) les précède.
+  - **Studio One / rocksteady** — `HEAVENLESS` 80 bpm (Vin Gordon, 1968, Coxsone Dodd ;
+    la marche root–quinte), `TONIGHT` 84 (Keith & Tex, 1967, Derrick Harriott ; la basse
+    qui roule), `GET IN GROOVE` 88 (le riddim de 1968 alias *Up Park Camp* — John Holt
+    l'a rendu célèbre en 1976), `HOT MILK` 92 (Jackie Mittoo & The Soul Vendors, 1968 ;
+    le backbeat feutré, la ligne qui flotte), `ANSWER` 82 (le galop d'un seul accord —
+    né de « I'll Never Let You Go » de Slim Smith & The Uniques, 1967), `PROMISED LAND`
+    78 (Dennis Brown avec Aswad, 1981 ; le one-drop, la cadence F–B♭–C–G).
+  - **Dancehall band et digital des années 80** — `GUNMAN` 78 (Michael Prophet, 1980,
+    Henry « Junjo » Lawes à Channel One ; la marche mineure lourde des Roots Radics,
+    le kick qui respire et le fill qui arrive), `HERE I COME` 95 (Barrington Levy, 1985 ;
+    la pompe d'octaves), `TEMPO` 88 (Anthony Red Rose, 1985, Firehouse de King Tubby),
+    `PEANY PEANY` 92 (le riddim de Bobby Digital, 1987, alias *Fade Away* — Little John
+    l'a chanté d'abord) ; le `SLENG TENG` (déjà là depuis le 1.4) les précède.
 - **Dix riddims cèdent leur place** pour tenir dans le slot — la banque reste à **28** et
   l'échange ne coûte que +32 o : `DIGITAL`, `LOVERS`, `SKANKIN`, `ROCKSTDY`, `TWO TONE`,
   `UK STEPPA`, `DNB STEP`, `RAGGA JGL`, `UK 2STEP`, `BASSLINE`. Les racines restent
@@ -46,26 +100,12 @@ il vient — et maintenant, la suivante aussi.
   son gate dans l'attaque suivante ; le glue dub reste sur les silences (la tenue devient un
   TIE, lisible et éditable au PATTERN). Vérifié dans l'émulateur (`scripts/verify_sleng_bounce.js`)
   : SLENG-BOUNCE-OK.
-- **Le bounce des classiques devient un ratchet** : les re-frappes à la double-croche ne
-  suffisaient pas — Here I Come et Peanie Peany répètent à la **double-croche décalée**
-  (les paires de 32es à ~90 ms). Le générateur écrit maintenant le flag de rebond dans le
-  bit de poids fort de la vélocité basse (coût : zéro octet), le chargeur le traduit en
-  **ratchet x2** du séquenceur (la note re-frappe à la moitié de son pas, `seq_ratchets`),
-  lisible et éditable au PATTERN comme tout ratchet. Les racines suivent l'audio aussi :
-  Answer passe en **Fa** (elles étaient en La), Heavenless en **Sol**, Tonight en **Do**,
-  Hot Milk en **La♭**, Here I Come en **Ré/Si♭** — et le skank suit : son accord était
-  construit trois demi-tons sous la racine (`(root % 12) + 57`, un reste de convention) —
-  il sonne maintenant la classe de la racine elle-même (`+60`), ce que le commentaire du
-  code annonçait déjà.
-- **Les dub sirens des extraits ne passent pas** : les enregistrements fournis portent un
-  sirène dub par-dessus le groove ; repéré par détection de tenue modulée (300–3000 Hz),
-  il est exclu de chaque piste — la banque ne retient que basse, skank et batterie.
 - **La chaîne web suit** : l'émulateur recompilé (zig, wasm32) passe le smoke test — 28
   riddims dont les onze, AUDIO-PATH-OK / DUB-SEQ-PLAYS-OK — et le SLENG-BOUNCE-OK ; le wasm
   de l'éditeur suit ; l'installateur web sert le paquet 1.5 (sha256 vérifié), le STAMP du
   service worker est recalculé.
-- **La place** : l'image passe à **581 040 o** (+64 o : le décodeur du flag de rebond) sur
-  le slot de 0x8DFBC (581 564 o) — **524 o de marge**.
+- **La place** : l'image passe de 580 944 à **580 976 o** (+32 o) sur le slot de 0x8DFBC
+  (581 564 o) — **588 o de marge**.
 
 ## 1.4 — novembre 2026
 

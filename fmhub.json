@@ -1,5 +1,5 @@
 {
-  "what": "The SLOOP groovebox for the M-VAVE FM-1, forked for dub: a four-band isolator with mute bands, a bipolar DJ filter, per-track echo throws, a tape echo with free time or synced divisions, an independent siren voice, skank, accents and slides — with a sound-system bank of 180 genre presets (ska to ragga jungle, plus the Casio MT-40's 22 tones), 38 drum kits including the MT-40's rhythm unit and 27 riddims that each load with their four patterns (bass on track 1, skank on track 2, the riddim's remaining instrument on track 3, drums on track 4) — the Riddim Collection bank: the Riddim Real Book's classics (African Beat, Answer, Artibella, Queen Majesty, Real Rock, Swing Easy…), the « RIDDIM MIDI » pack's accompaniments (Bam Bam, Fisherman, Heathen, Java…) and the Sleng Teng, transcribed from altessproduction.github.io/Riddim-collection — over the base SLOOP engines and FM6.",
+  "what": "a four-band isolator with mute bands, a bipolar DJ filter, per-track echo throws, a tape echo and a siren voice. The bank: 180 genre presets, 38 kits and 27 riddims of the Riddim Collection grid (African Beat, Real Rock, Sleng Teng), each loading its four patterns: bass, skank, the rest, drums.",
   "author": "altessproduction",
   "kinds": [
     "groove"
@@ -7,5 +7,6 @@
   "play": "https://altessproduction.github.io/sloop-dub-fm1/dub/",
   "editor": "https://altessproduction.github.io/sloop-dub-fm1/webapp/editor/",
   "image": "assets/hub-card.png",
-  "color": "#1ECC70"
+  "color": "#1ECC70",
+  "sounds": "CC0: VSCO-2 CE / VCSL (Versilian Studios) and Sonic Pi scratch samples, provenance in assets/samples-cc0/ATTRIBUTION.txt"
 }

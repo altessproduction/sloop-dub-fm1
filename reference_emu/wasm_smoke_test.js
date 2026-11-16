@@ -214,6 +214,7 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
 
     /* 2.9.3: the dub sound banks: the PRS lists (bass 10, skanks, melody 8 and kits 9 — the
      * MT-40's kit came), the names readable, every role loads */
+    const bassSt0 = note(0, 0);   /* riddim 0's own bass st0, before any sound load */
     const roleNames = [];
     const roleWant = [10, 8, 8, 9];
     const roleFirst = ['SKANK SUB', 'STEPPA STB', 'MELODICA'];
@@ -232,8 +233,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_frame();
     console.log('sound banks ....... OK (' + roleNames.join(' / ') + ')');
 
-    /* the steps survive the sound swaps: the riddim's bass st0 is still there (2.9.6's readback) */
-    if (note(0, 0) !== 33) throw new Error('steps wiped after the sound loads: bass st0 ' + note(0, 0));
+    /* the steps survive the sound swaps: the riddim's bass st0 is still there (2.9.6's readback;
+     * the want is riddim 0's own bass st0 — 35 on AFRICAN BEAT — captured before the loads) */
+    if (note(0, 0) !== bassSt0) throw new Error('steps wiped after the sound loads: bass st0 ' +
+        note(0, 0) + ' (was ' + bassSt0 + ')');
     console.log('steps survive ..... OK (the loads leave the sequence alone)');
 
     /* 2.9.2: the riddim plays on the transport: PLAY, the dub sequence sounds */

@@ -290,6 +290,9 @@ snare or on the one-drop rimshot, the kick rides in a sixteenth before it (the s
 pickup), the hats it displaces step out. The BPM is the range the collection gives (the export
 tempo is its middle); the tempo is yours.
 
+**Hear the bank first:** [the demo video](https://www.youtube.com/watch?v=PkAke2mBEpI) plays the 27
+riddims and the dub siren, live.
+
 | Riddim (the RDM page) | The collection's | BPM | Style | Came from |
 | --- | --- | --- | --- | --- |
 | AFRICAN BEAT | African Beat | 70–78 | reggae | Studio One, 1968 |

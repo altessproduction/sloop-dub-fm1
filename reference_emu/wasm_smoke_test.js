@@ -123,10 +123,10 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_frame();
     console.log('skank/seq/frame .. OK (no trap)');
 
-    /* 2.9.2: the riddim bank: the 28 sound-system names, one full load, one track load, the names
-     * readable (the ten reggae/dub originals, then ska, dancehall, UK bass music and the MT-40's six) */
+    /* 2.9.2: the riddim bank: the 27 Riddim Collection names, one full load, one track load, the
+     * names readable (the book's Studio One family, the pack's steppers and digitals, the Sleng Teng) */
     const nRid = e.emu_dub_riddim_count();
-    if (nRid !== 28) throw new Error('riddim count ' + nRid);
+    if (nRid !== 27) throw new Error('riddim count ' + nRid);
     const ridNames = [];
     for (let r = 0; r < nRid; r++) {
         const p = e.emu_dub_riddim_name(r);
@@ -135,36 +135,38 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
         for (let k = p; u8[k]; k++) s += String.fromCharCode(u8[k]);
         ridNames.push(s);
     }
-    if (new Set(ridNames).size !== nRid || ridNames[0] !== 'ONE DROP' ||
-        !ridNames.includes('SKA') || !ridNames.includes('DEMBOW') || !ridNames.includes('JUNGLE') ||
+    if (new Set(ridNames).size !== nRid || ridNames[0] !== 'AFRICAN BEAT' ||
+        !ridNames.includes('REAL ROCK') || !ridNames.includes('BAM BAM') || !ridNames.includes('FISHERMAN') ||
         !ridNames.includes('SLENG TENG'))
         throw new Error('riddim names: ' + ridNames.join(','));
-    e.emu_dub_riddim_load(0);          /* ONE DROP into the SLOOP sequencer's tracks (2.9.6) */
-    e.emu_dub_riddim_track(1, 3);      /* STEPPERS's drum motif over it */
+    e.emu_dub_riddim_load(0);          /* AFRICAN BEAT into the SLOOP sequencer's tracks (2.9.6) */
+    e.emu_dub_riddim_track(1, 3);      /* ANSWER's drum motif over it */
     e.emu_frame();
-    console.log('riddim bank ....... OK (28: ' + ridNames.join(' ') + ')');
+    console.log('riddim bank ....... OK (27: ' + ridNames.join(' ') + ')');
 
     /* 2.9.6: the load's readback — the steps are in the sequencer's tracks, not a buffer:
-     * ONE DROP's bass st0 = 33 with st1 the TIE holding it, the skank's stab at st2, the
-     * drum motif's kick at st0, every track's LEN 64. The PATTERN page draws these. */
+     * AFRICAN BEAT's bass st0 = 35 (the B1 of the book's tab, each written step a fresh
+     * strike) with st15 the TIE holding the bar's last note, the skank's stab at st2 (B),
+     * the drum motif's hat at st0, every track's LEN 64. The PATTERN page draws these. */
     const note = (t, s) => e.emu_dub_seq_note(t, s);
     if (e.emu_dub_seq_len() !== 64) throw new Error('seq len ' + e.emu_dub_seq_len());
-    if (note(0, 0) !== 33) throw new Error('bass st0 ' + note(0, 0));
-    if (note(0, 1) !== 254) throw new Error('bass st1 tie ' + note(0, 1));
-    if (note(1, 2) % 12 !== 69 % 12) throw new Error('skank st2 ' + note(1, 2));   /* the stab is the SKANK
-        * page's chord built from the riddim's note class (A here — the bar root's own class): its
+    if (note(0, 0) !== 35) throw new Error('bass st0 ' + note(0, 0));
+    if (note(0, 1) !== 35) throw new Error('bass st1 restrike ' + note(0, 1));
+    if (note(0, 15) !== 254) throw new Error('bass st15 tie ' + note(0, 15));
+    if (note(1, 2) % 12 !== 71 % 12) throw new Error('skank st2 ' + note(1, 2));   /* the stab is the SKANK
+        * page's chord built from the riddim's note class (B here — the chord string's own root): its
         * root lands at the page's octave (45 with the boot config), the readback's note[0] is that
-        * chord root, not 69 */
-    if (note(3, 0) !== 36) throw new Error('drum st0 ' + note(3, 0));
+        * chord root, not 71 */
+    if (note(3, 0) !== 42) throw new Error('drum st0 ' + note(3, 0));
     for (let t = 0; t < 4; t++)
         if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));
     console.log('seq readback ...... OK (steps in the tracks, TIE holds, LEN 64)');
 
-    /* the MT-40's verified stutter: SLENG TENG (16) loads the Rock preset's bass, Noel
-     * Davey's own tab at 82 bpm: the root (C#2, 37), three sixteenths a semitone above
-     * (38, each one a fresh strike, not a TIE), the tail G2 (43) and F#2 (42) cut off
-     * plucked-short (the readback shows a bare rest 255, not the TIE's 254) */
-    e.emu_dub_riddim_load(16);
+    /* the Rock preset's stutter: SLENG TENG (26) loads the collection's transcription at
+     * 82 bpm: the static root (C#2, 37), three sixteenths a semitone above (38, each one a
+     * fresh strike, not a TIE), the tail G2 (43) and F#2 (42) cut off plucked-short
+     * (the readback shows a bare rest 255, not the TIE's 254) */
+    e.emu_dub_riddim_load(26);
     e.emu_frame();
     if (note(0, 0) !== 37) throw new Error('sleng st0 ' + note(0, 0));
     if (note(0, 1) !== 38 || note(0, 2) !== 38 || note(0, 3) !== 38)

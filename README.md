@@ -19,7 +19,7 @@ by isod89, based on <a href="https://github.com/hugelton/Felucca">Felucca</a> by
 
 **SLOOP Dub** turns the FM-1 into the sound system's machine: **three synths and a drum machine**
 you play live, a **DUB module** (bipolar filter, mix, throw), a **dub siren** you hold on OCT+,
-**twenty-eight 64-step riddims** that load into the sequencer with their patterns, a four-band
+**twenty-seven 64-step riddims** that load into the sequencer with their patterns, a four-band
 **isolator** whose mutes really cut, a **tape delay** whose TIME knob bends the loop like a real
 tape echo, per-track **throws** into the delay, and the **WIRES** visualizer — over the whole
 SLOOP base: twelve synthesis engines, **180 sound-system presets** (the genre bank plus the
@@ -29,40 +29,39 @@ dancehall, drum & bass, jungle, ragga jungle, dubstep, UK steppers, bass music �
 the keyboard the Sleng Teng came from: no factory patterns to load, everything you hear, you
 play — or you load a riddim and dub over it.
 
-> **Status: SLOOP Dub 1.7 — the classic riddims, transcribed from the records; the Sleng Teng that finally sounds like the Sleng Teng.** The **eleven riddims every sound system
-> grew up on** join the bank: **Heavenless, Tonight, Get in the Groove, Hot Milk, Answer,
-> Promised Land, Gunman, Here I Come, Sleng Teng, Tempo, Peany Peany** — from the Studio One
-> rocksteady of 1967–68 to the first digital dancehall of 1985–87, each one a full 64-step
-> riddim with its four patterns, the bass **transcribed from the records themselves** (the
-> uploads pitch-tracked note by note on the records' own grid — no factory ROM data, no
-> sample copied; the groove is recognisable from the first bar; their origins are in
-> [The classic riddims](#the-classic-riddims)). Ten generic riddims step aside so the bank
-> stays at **twenty-eight** and the build fits its slot (524 bytes to spare); the MT-40's six
-> rhythms, its 22 tones and its kit stay (see [The Casio MT-40](#the-casio-mt-40-the-functions-the-rhythms-the-sounds)).
-> The bank counts **180 presets** and **38 kits**, all level-matched. Still custom firmware:
-> install at your own risk, and please [report](../../issues) what you find. Your projects,
-> presets, samples and settings are kept when you update, and you can go back at any time
-> (see [Going back](#going-back)).
+> **Status: the Riddim Collection bank — the sound system's classics from
+> [altessproduction.github.io/Riddim-collection](https://altessproduction.github.io/Riddim-collection/riddims.html),
+> transcribed into the firmware.** The stock 1.7 bank steps aside: the bank is now the **twenty-seven
+> riddims of the Riddim Collection page** — African Beat, Answer, Artibella, Bam Bam, Billie Jean,
+> Created By The Father, Queen Majesty, Real Rock, Swing Easy, Baba Boom, Chase Vampire, Drum Song,
+> Dub Organizer, Dubolitions, Every Tongue Shall Tell, Fisherman, Ghetto People Song, Grab Your Lass
+> and Come, Heathen, Java, Liberation, Mr Bassie, Revolution, The Whip, Warriors Don't Cry,
+> When I Fall in Love and the Sleng Teng — each one a full 64-step riddim with its four patterns,
+> loaded in the machine's order: **the bass on track 1, the skank on track 2, the riddim's remaining
+> instrument on track 3, the drums on track 4** (their origins and tempos are in
+> [The riddims: 27](#the-riddims-27)). The bank counts **180 presets** and **38 kits**, all
+> level-matched. Still custom firmware: install at your own risk, and please
+> [report](../../issues) what you find. Your projects, presets, samples and settings are kept when
+> you update, and you can go back at any time (see [Going back](#going-back)).
 
 ## Contents
 
 1. [The Dub wing](#the-dub-wing)
 2. [The sound-system bank: 180 presets](#the-sound-system-bank-180-presets)
 3. [The drum kits: 38](#the-drum-kits-38)
-4. [The riddims: 28](#the-riddims-28)
-5. [The classic riddims](#the-classic-riddims)
-6. [The Casio MT-40: the functions, the rhythms, the sounds](#the-casio-mt-40-the-functions-the-rhythms-the-sounds)
-7. [Your first dub in 60 seconds](#your-first-dub-in-60-seconds)
-8. [Screenshots](#screenshots)
-9. [The base SLOOP](#the-base-sloop)
-10. [Install](#install)
-11. [The controls](#the-controls)
-12. [The menu: settings of the FM-1](#the-menu-settings-of-the-fm-1)
-13. [MIDI and USB audio](#midi-and-usb-audio)
-14. [The web editor](#the-web-editor)
-15. [Compatibility](#compatibility)
-16. [Troubleshooting](#troubleshooting)
-17. [Specifications](#specifications)
+4. [The riddims: 27](#the-riddims-27)
+5. [The Casio MT-40: the functions, the rhythms, the sounds](#the-casio-mt-40-the-functions-the-rhythms-the-sounds)
+6. [Your first dub in 60 seconds](#your-first-dub-in-60-seconds)
+7. [Screenshots](#screenshots)
+8. [The base SLOOP](#the-base-sloop)
+9. [Install](#install)
+10. [The controls](#the-controls)
+11. [The menu: settings of the FM-1](#the-menu-settings-of-the-fm-1)
+12. [MIDI and USB audio](#midi-and-usb-audio)
+13. [The web editor](#the-web-editor)
+14. [Compatibility](#compatibility)
+15. [Troubleshooting](#troubleshooting)
+16. [Specifications](#specifications)
 17. [Documentation](#documentation)
 18. [Building](#building)
 19. [Contributing](#contributing)
@@ -117,8 +116,8 @@ complet du fork est [DUB-FR.md](DUB-FR.md).)
 
 ### The sequencer, the riddims, the sounds — pages RDM and PRS
 
-- The dub tracks are **SLOOP's own sequencer**: **OCT+ on RDM loads one of the twenty-eight 64-step
-  riddims** (the list is [below](#the-riddims-22)) into the four tracks; KN2 / KN3 / KN4 + OCT+
+- The dub tracks are **SLOOP's own sequencer**: **OCT+ on RDM loads one of the twenty-seven 64-step
+  riddims** (the list is [below](#the-riddims-27)) into the four tracks; KN2 / KN3 / KN4 + OCT+
   load one track's pattern alone — the bass, the skanks, the melody or the drums. What loads is
   what plays and what you edit afterwards (PATTERN, NOTES, ACCENTS, SLIDES).
 - **ACCENTS and SLIDES** (the SEQ button) add a second sequencer on the flags: a per-step accent
@@ -269,80 +268,60 @@ synth page.
 | RUBADUB | ARCADE | RAGGA | INDUSTR | GQOM |
 | STEPPERS | JAZZ | MT40 | | |
 
-## The riddims: 28
+## The riddims: 27
 
-Twenty-eight 64-step riddims, four bars each, with their **four patterns** — bass, skanks, melody,
-drums. **OCT+ on RDM loads the whole riddim** into the tracks; KN2 / KN3 / KN4 + OCT+ load one
-track's pattern alone. The loaded bass and melody **strike every written note again — the
-same-pitch repeats too** (the Sleng Teng's bounce, the MT-40's plucks); the dub glue holds the
-note over the rests as TIE steps, visible and editable on the PATTERN page. The BPM is where
-each groove lives; the tempo is yours.
+Twenty-seven 64-step riddims, four bars each, with their **four patterns** — bass, skanks, melody,
+drums. The bank is **the Riddim Collection** (the Riddim Real Book's classics, the « RIDDIM MIDI »
+pack's accompaniments and the Sleng Teng), transcribed into the firmware by
+`tools/gen_riddims_web.py` straight from the collection's own grid (`tools/riddims_db.js`, the data
+behind [the Riddim Collection page](https://altessproduction.github.io/Riddim-collection/riddims.html)).
+**OCT+ on RDM loads the whole riddim** into the tracks; KN2 / KN3 / KN4 + OCT+ load one track's
+pattern alone. The tracks land in the machine's order — **the bass on track 1, the skank on track
+2, the riddim's remaining instrument on track 3, the drums on track 4**: the collection's own
+accompaniment fills the skank track first (its skank or guitar stabs, its chords — the SKANK page
+builds the chord around the stab's root), and track 3 takes what is left (the organ, the brass,
+the second chords, the melody). The riddims the collection plays bass-and-drums only get the
+classic offbeat skank, steps 2 · 6 · 10 · 14 on their chord roots. The loaded bass and melody
+**strike every written note again — the same-pitch repeats too**; the collection's note lengths
+come back as the cuts (`DUB_SEQ_CUT` ends a held note), while the dub glue holds the note over
+the rests as TIE steps — visible and editable on the PATTERN page. The drums ride the collection's
+own patterns, and the bank holds **one drum a step**: where the collection stacks a kick on the
+snare or on the one-drop rimshot, the kick rides in a sixteenth before it (the sound system's
+pickup), the hats it displaces step out. The BPM is the range the collection gives (the export
+tempo is its middle); the tempo is yours.
 
-| Reggae · dub · roots | BPM | | BPM |
-| --- | --- | --- | --- |
-| ONE DROP | 72 | DUBWALK | 70 |
-| STEPPERS | 76 | MEDITATE | 66 |
-| ROCKERS | 80 | DUB CUT | 74 |
-| SKA | 88 | ZION | 68 |
+| Riddim (the RDM page) | The collection's | BPM | Style | Came from |
+| --- | --- | --- | --- | --- |
+| AFRICAN BEAT | African Beat | 70–78 | reggae | Studio One, 1968 |
+| ANSWER | Answer | 75–86 | reggae | Studio One, 1967 — a.k.a. *Never Let You Go* |
+| ARTIBELLA | Artibella | 65–83 | reggae | Phill Pratt |
+| BAM BAM | Bam Bam | 96 | dancehall | the Stalag riddim |
+| BILLIE JEAN | Billie Jean | 72–86 | rockers | after E. Morricone |
+| CREATED FATHER | Created By The Father | 80 | reggae | Studio One, 1970 |
+| QUEEN MAJESTY | Queen Majesty | 94–100 | rocksteady | Treasure Isle, 1967 — after C. Mayfield |
+| REAL ROCK | Real Rock | 70–90 | one drop | Studio One, 1968 |
+| SWING EASY | Swing Easy | 72–92 | one drop | Studio One, 1967 |
+| BABA BOOM | Baba Boom | 82 | steppers | « RIDDIM MIDI » pack |
+| CHASE VAMPIRE | Chase Vampire | 85 | steppers | « RIDDIM MIDI » pack |
+| DRUM SONG | Drum Song | 89 | digital | « RIDDIM MIDI » pack |
+| DUB ORGANIZER | Dub Organizer | 76 | steppers | « RIDDIM MIDI » pack |
+| DUBOLITIONS | Dubolitions | 119 | rocksteady | « RIDDIM MIDI » pack |
+| EVERY TONGUE | Every Tongue Shall Tell | 81 | steppers | « RIDDIM MIDI » pack |
+| FISHERMAN | Fisherman | 75 | steppers | « RIDDIM MIDI » pack |
+| GHETTO PEOPLE | Ghetto People Song | 80 | steppers | « RIDDIM MIDI » pack |
+| GRAB YR LASS | Grab Your Lass and Come | 85 | steppers | « RIDDIM MIDI » pack |
+| HEATHEN | Heathen | 71 | steppers | « RIDDIM MIDI » pack |
+| JAVA | Java | 77 | steppers | « RIDDIM MIDI » pack |
+| LIBERATION | Liberation | 71 | rocksteady | « RIDDIM MIDI » pack |
+| MR BASSIE | Mr Bassie | 86 | rockers | « RIDDIM MIDI » pack |
+| REVOLUTION | Revolution | 89 | steppers | « RIDDIM MIDI » pack |
+| THE WHIP | The Whip | 83 | digital | « RIDDIM MIDI » pack |
+| WARRIORS CRY | Warriors Don't Cry | 89 | digital | « RIDDIM MIDI » pack |
+| WHEN I FALL | When I Fall in Love | 80 | digital | « RIDDIM MIDI » pack |
+| SLENG TENG | Sleng Teng | 82 | digital | Jammy's, 1985 — a.k.a. *Under Mi Sleng Teng* |
 
-| The classics | BPM | | BPM |
-| --- | --- | --- | --- |
-| HEAVENLESS | ~82 | GUNMAN | ~82 |
-| TONIGHT | ~82 | HERE I COME | ~82 |
-| GET IN GROOVE | ~82 | SLENG TENG | 82 |
-| HOT MILK | ~82 | TEMPO | ~82 |
-| ANSWER | ~82 | PEANY PEANY | ~82 |
-| PROMISED LAND | ~82 | | |
-
-(the ten classics' extracts run at one tempo, ~82.4 — the patterns are grid data, they play
-true at any tempo; set the project's BPM to the feel you want)
-
-| Dancehall / ragga | BPM | UK bass music | BPM |
-| --- | --- | --- | --- |
-| DANCEHALL | 95 | JUNGLE | 172 |
-| DEMBOW | 100 | DUBSTEP | 140 |
-
-| Casio MT-40 | BPM | | BPM |
-| --- | --- | --- | --- |
-| MT40 POPS | 96 | MT40 SWING | 84 |
-| MT40 SLOWRK | 66 | MT40 WALTZ | 90 |
-| | | MT40 SAMBA | 100 |
-
-## The classic riddims
-
-The eleven riddims every sound system grew up on, from the 1.5: each one is a full 64-step
-riddim with its four patterns (bass, skanks, melody, drums), and each one is **rebuilt by hand
-from the records** — no sample, no factory ROM data, only the tempo, the bass line and the drop
-reconstructed so the first bar says which record it came from. Their origins:
-
-| Riddim | First came from | Year, studio |
-| --- | --- | --- |
-| **HEAVENLESS** | Vin Gordon's *Heavenless* (cut as Don Drummond Jr) & Sound Dimension | 1968, Studio One (Coxsone Dodd) |
-| **TONIGHT** | Keith & Tex, *Tonight* — the rolling rocksteady bass | 1967, prod. Derrick Harriott |
-| **GET IN GROOVE** | the Get in the Groove riddim, aka *Up Park Camp* — Roy Shirley's *Get in the Groove*, John Holt's *Up Park Camp* | 1968 Studio One; Holt 1976 |
-| **HOT MILK** | Jackie Mittoo & The Soul Vendors, *Hot Milk* — the floating lead | 1968, Studio One (Coxsone Dodd) |
-| **ANSWER** | Slim Smith & The Uniques, *I'll Never Let You Go* — the one-chord gallop | 1967, Studio One; 80s recuts |
-| **PROMISED LAND** | Dennis Brown, *The Promised Land*, with Aswad (cut on the UK side as *Love Fire*) | 1981 |
-| **GUNMAN** | Michael Prophet, *Gunman* — the Roots Radics' heavy march, Scientist at the mix | 1980, Junjo Lawes, Channel One |
-| **HERE I COME** | Barrington Levy, *Here I Come (Broader Than Broadway)* | 1985 |
-| **SLENG TENG** | Wayne Smith, *Under Mi Sleng Teng* — the MT-40's "Rock" preset | 1984/85, King Jammy's |
-| **TEMPO** | Anthony Red Rose, *Tempo* | 1985, Firehouse (King Tubby) |
-| **PEANY PEANY** | the Peanie Peanie riddim, aka *Fade Away* — Little John voiced it first, Shabba Ranks made it famous | 1987, Bobby Digital |
-
-**1.6: the Sleng Teng finally sounds like the Sleng Teng.** Its bass is now the verified
-transcription — Noel Davey's own tab (he played the preset into the original session) and the
-Ableton roll agree, at 82 bpm: one static bar, the root on every beat, three sixteenths a
-semitone above it, each one a fresh strike, the tail a sixth and a fifth above cut off
-plucked-short — while the chords move C#m–B–A–B above it. `TEMPO` and `PEANY PEANY` ride the
-same figure on their own roots (that is what the MT-40's auto-bass does: the figure follows
-the chord), and `GUNMAN` walks the Roots Radics' march, the tab's flat-third–sharp-second
-walk plucked through the bar. A step marker comes with them: `DUB_SEQ_CUT` (253) ends a held
-note — the plucked tails — while a plain rest still holds (the dub glue).
-
-Ten generic riddims of the 1.1–1.4 bank step aside to keep the bank at twenty-eight and the
-image inside its slot: `DIGITAL`, `LOVERS`, `SKANKIN`, `TWO TONE`, `ROCKSTDY`, `UK STEPPA`,
-`DNB STEP`, `RAGGA JGL`, `UK 2STEP`, `BASSLINE`. The bases stay: the reggae / dub / roots
-family, `SKA`, `DANCEHALL`, `DEMBOW`, `JUNGLE`, `DUBSTEP` and the MT-40's five other rhythms.
+(the LCD fits fourteen characters, so six riddims carry a short name — the collection's full name
+is the second column; the pack riddims play their own drums, the book riddims their style's)
 
 ## The Casio MT-40: the functions, the rhythms, the sounds
 
@@ -350,16 +329,16 @@ In 1981 Casio sold a cheap home keyboard, the **Casiotone MT-40**. Its engineer 
 programmed six auto-rhythm presets — and her "Rock" pattern, with its bouncing bassline, left
 Jamaica in 1984 as **the Sleng Teng riddim**: Wayne Smith's *Under Mi Sleng Teng* (King Jammy's,
 1985) was built on it, and it spawned hundreds of tracks — the birth of digital dancehall. The
-keyboard itself is a must of digital reggae, and 1.4 rebuilds it inside SLOOP Dub: its six
-rhythms, its 22 tones and its drum voices, **reconstructed by hand** (no factory ROM data is
+keyboard itself is a must of digital reggae, and 1.4 rebuilds it inside SLOOP Dub: its Rock
+rhythm rides the bank as the Sleng Teng, and its 22 tones and drum voices are **reconstructed by hand** (no factory ROM data is
 copied, in the spirit of this fork — the sleng is recognisable from the first measure).
 
 ### The MT-40's functions, as SLOOP Dub plays them
 
 | The MT-40 (1981) | In SLOOP Dub 1.4 |
 | --- | --- |
-| **6 built-in auto-rhythms** — one measure of bass + drums per chord (major / minor / 7th) | The **six MT-40 riddims** (RDM page), four bars each, their bass follows the roots you set |
-| **FILL-IN** switch — two interludes: a drum fill, a snare roll | The **fourth bar** of every MT-40 riddim carries its fill; live fills stay yours (the CHOP page, the pads) |
+| **6 built-in auto-rhythms** — one measure of bass + drums per chord (major / minor / 7th) | The famous **Rock** preset stays as **SLENG TENG** (RDM page, the Riddim Collection's transcription); the other five rhythms step aside — their bass figures are yours to rebuild on the BASS track |
+| **FILL-IN** switch — two interludes: a drum fill, a snare roll | Live fills stay yours (the CHOP page, the pads); a riddim's fourth bar is its turnaround |
 | **SYNCHRO START** — the rhythm starts with the first note | **PLAY from any page** (2.9.4), MIDI clock sync (INT / USB / TRS) |
 | **Auto bass**, one finger — the chord's bass pattern plays itself | The riddim's **BASS track** (or load a bass pattern alone), the SKANK page's chord qualities MAJ / MIN / 7TH / MIN7 |
 | **4-position tone memory** | The **favourites** (16 slots at the top of the PRESETS list) and the **MT40 kind** |
@@ -368,19 +347,18 @@ copied, in the spirit of this fork — the sleng is recognisable from the first 
 | **Tempo control + tempo lamp** | The transport BPM, the menu bar, the tap tempo |
 | **Pitch control knob** (back panel, tuning) | The project's tune / transpose per track |
 
-### The six rhythms (the RDM page, at the bank's end)
+### The rhythms (the RDM page)
 
-| MT-40 preset | riddim | BPM | What it plays |
+The bank keeps the famous one: the **Rock** preset, Jamaica in 1984 as the **SLENG TENG** riddim —
+in this bank the Riddim Collection's transcription, 82 bpm. The machine's other five auto-rhythms
+no longer ride the RDM page (the bank is the Riddim Collection's), but nothing is lost: the 22
+tones and the MT-40's kit stay below, and a bass figure is a pattern away.
+
+| MT-40 preset | In the bank | BPM | What it plays |
 | --- | --- | --- | --- |
-| **Rock** | **SLENG TENG** | 82 | The famous one: the eighth-note pump, the octave pop, the flat-seventh turnaround — the C#m–B–A–B walk of *Under Mi Sleng Teng*. The machine gave bass and drums only: the skank stays the player's offbeat. |
-| Pops | MT40 POPS | 96 | The eighth-note pop bounce, root–fifth, an open hat answering. |
-| Slow Rock | MT40 SLOWRK | 66 | The lazy half-time, the long bass notes, the hats keeping the sixteenths warm. |
-| Swing | MT40 SWING | 84 | The walking bass (root–fifth–sixth–octave), the rim on the upbeats. |
-| Waltz | MT40 WALTZ | 90 | The oom-pah-pah laid on a 4/4 grid: bass on one, the stabs on two and three, the pickup. |
-| Samba | MT40 SAMBA | 100 | The syncopated surdo, the agogo on the rim, the offbeat hats. |
+| **Rock** | **SLENG TENG** | 82 | The famous one: the stut bass on the static root, the snare's two hits, the hats' sixteenths — the grid the collection transcribes. The machine gave bass and drums only: the skank stays the player's offbeat. |
 
-Each one's fourth bar is the **fill-in** the machine's FILL-IN switch dropped at the bar ends —
-a snare roll, or a tom fill. Load the whole riddim with OCT+ on RDM, or take its bass, skanks or
+Load the whole riddim with OCT+ on RDM, or take its bass, skanks or
 drums alone with KN2 / KN3 / KN4 + OCT+.
 
 ### The 22 tones (the PRESETS page, kind **MT40**)
@@ -875,11 +853,11 @@ the version shown in HOME menu → ABOUT.
 | Sounds | 180 sound-system presets on 13 engines (the genre bank + the Casio MT-40's 22 tones, browsed by kind, level-matched), 6-op FM with DX7 SysEx import and a 27-patch bank, 8 sampled sets (CC0), 4 slots for your own samples (USR1–USR4), 32 user presets |
 | Polyphony | 8 voices shared across the synth tracks; per engine played alone: **8** (ANALOG, DIGITAL, PHASE, LOFI, SAMPLE, TRIO, WHEEL, NOISE), **6** (FM6), **4** (VOICE), **3** (GRAIN, PHYS); MONO / LEGATO play one note at a time; drums 6 |
 | Drum kits | 38 (5 sampled genre kits — ONE DROP, STEPPERS, SKA, ROCKERS, DUB — 33 synthesised incl. ONEDROP, ROCKERS, ROCKSTDY, SKA, DIGITAL, RUBADUB, RAGGA, GQOM, STEPPERS, JUNGLE, DUBSTEP and the MT-40), level-matched, plus your own: USR1–USR4 and USR3+4 (about 15 s), SYN1–SYN4 |
-| Sequencer | 64 steps per track, own length and division each (1/32 to two bars); chords with a level and ratchet per note; drums with a level and ratchet per sound; ties, slide; per-step parameter locks (24 per track), micro timing (±½ step in 1/64) and fill conditions; swing 0 (straight) to 100 (MPC 75 %); one sample-accurate clock (no drift); 28 riddims load with their patterns |
+| Sequencer | 64 steps per track, own length and division each (1/32 to two bars); chords with a level and ratchet per note; drums with a level and ratchet per sound; ties, slide; per-step parameter locks (24 per track), micro timing (±½ step in 1/64) and fill conditions; swing 0 (straight) to 100 (MPC 75 %); one sample-accurate clock (no drift); 27 riddims load with their patterns |
 | Recording | live, quantised as heard (latency-compensated), overdub; free take (the tempo follows you) or the tempo set; start on the first note or a one-bar count-in; 1, 2 or 4 bars |
 | Performance | layers: punch-in FX, erase, note repeat, step entry, key / chords, mute / solo / fill / tap tempo, song sections and a quick chain of up to 8 |
 | Effects | 27 punch-in effects; master DUST, DUCK, DJ filter, limiter; per track drive, slicer, sends to a stereo chorus, a tempo delay (dotted 1/8 and 1/16 too) and a stereo reverb |
-| Dub wing | DUB module (bipolar filter, mix, throw), dub siren (5 LFOs, 5 waves, its own voice), tape delay with varispeed TIME, per-track throws, 28 riddims with their patterns, four-band isolator with real mutes, WIRES |
+| Dub wing | DUB module (bipolar filter, mix, throw), dub siren (5 LFOs, 5 waves, its own voice), tape delay with varispeed TIME, per-track throws, 27 riddims with their patterns, four-band isolator with real mutes, WIRES |
 | Memory | autosave, undo / redo, one song of 4 sections (more as backup files), 32 user presets, 27 FM6 patches, full backup / restore (editor) |
 | Audio | 44.1 kHz, fixed-point DSP; USB audio input (the master output, 16-bit stereo at 44.1 or 48 kHz, class compliant) |
 | MIDI | USB class-compliant in / out (the keys, or the sequencer too); TRS MIDI IN (3.5 mm); MIDI clock in (USB or TRS), clock only if you like (IN = CLOCK) |
@@ -901,7 +879,7 @@ the version shown in HOME menu → ABOUT.
 
 See [BUILDING.md](BUILDING.md). In short: the JieLi toolchain and three files of the AC79 SDK,
 then `./build.sh --release X.Y`, which builds the firmware into `build/felucca.fwsc`. The bank
-comes from the generators (`tools/gen_riddims.py`, `gen_drumkits.py`, `gen_samples.py`,
+comes from the generators (`tools/gen_riddims_web.py` with `tools/riddims_db.js`, `gen_drumkits.py`, `gen_samples.py`,
 `gen_tables.py`, `gen_fm6_patches.py`) — they write the firmware's tables and the editor's.
 The web emulator rebuilds with `sh reference_emu/build.sh` (clang + lld wasm32, no emscripten)
 and checks itself with `node reference_emu/wasm_smoke_test.js docs/dub/sloop.wasm` — the shipped

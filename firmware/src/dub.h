@@ -68,7 +68,7 @@ typedef struct {
     uint8_t velocity[DUB_TRK_N][64];
 } dub_seq_t;
 
-/* the riddim bank (dub_riddim.h, tools/gen_riddims.py): twenty-eight 64-step sequences,
+/* the riddim bank (dub_riddim.h, tools/gen_riddims_web.py): twenty-seven 64-step sequences,
  * four tracks each. A step's note DUB_SEQ_REST (255) is a rest -- and a rest HOLDS (the
  * legato the grooves lean on: a held note carries over rests as a TIE, while every written
  * note strikes again, even the same pitch). DUB_SEQ_CUT (253) is the rest that cuts: the

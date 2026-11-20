@@ -472,32 +472,66 @@ void dub_seq_advance(dub_seq_t *s)
 
 const char *const DUB_TRK_NAMES[DUB_TRK_N] = {"BASS", "SKNK", "MEL", "DRUM"};
 
-void dub_riddim_load(dub_seq_t *s, uint32_t riddim)            /* the whole riddim: four tracks, 64 steps */
+/* The compressed riddim's track decoded into a 64-step grid. The stream (the
+ * generator writes the format out, dub_riddim.h): byte 0 the source bars held
+ * (0 the empty track, 1..4 the distinct bars), then when two or three source
+ * bars a byte of source indices, two bits a bar, bar f's source in bits 2f..2f+1
+ * (one source bar plays everywhere, four are the identity); then a source bar at
+ * a time: a count, and count x { step in the bar, code, level } -- the code the
+ * note 0..127 or DUB_SEQ_CUT, the level the velocity. Every step an event does
+ * not write is DUB_SEQ_REST, the rest that holds, level 0. */
+static void dub_riddim_dec(uint8_t *notes, uint8_t *vels, const uint8_t *p)
 {
-    uint32_t tr, st;
-    if (riddim >= DUB_RIDDIM_COUNT)
-        riddim %= DUB_RIDDIM_COUNT;
-    for (tr = 0; tr < DUB_TRK_N; tr++) {
-        for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
-            s->notes[tr][st] = DUB_RIDDIMS[riddim].note[tr][st];
-            s->velocity[tr][st] = DUB_RIDDIMS[riddim].vel[tr][st];
+    uint32_t st, f, b, i;
+    uint8_t nb = *p++;
+    const uint8_t *bar[4];
+    uint32_t cnt[4];
+    const uint8_t *map = 0;
+    for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
+        notes[st] = DUB_SEQ_REST;
+        vels[st] = 0u;
+    }
+    if (!nb)
+        return;                                    /* the empty track: rests all over */
+    if (nb > 4u)
+        return;                                    /* a corrupted stream holds rests */
+    if (nb > 1u && nb < 4u)
+        map = p++;
+    for (b = 0; b < nb; b++) {
+        cnt[b] = *p;
+        bar[b] = p + 1u;
+        p += 1u + 3u * (uint32_t)*p;
+    }
+    for (f = 0; f < DUB_RIDDIM_BARS; f++) {
+        uint32_t src = (nb == 4u) ? f :
+                       (nb == 1u) ? 0u : (uint32_t)(map[0] >> (2u * f)) & 3u;
+        const uint8_t *e = bar[src];
+        for (i = 0; i < cnt[src]; i++, e += 3u) {
+            uint32_t at = f * (DUB_RIDDIM_STEPS / DUB_RIDDIM_BARS) + e[0];
+            notes[at] = e[1];
+            vels[at] = e[2];
         }
     }
+}
+
+void dub_riddim_load(dub_seq_t *s, uint32_t riddim)            /* the whole riddim: four tracks, 64 steps */
+{
+    uint32_t tr;
+    if (riddim >= DUB_RIDDIM_COUNT)
+        riddim %= DUB_RIDDIM_COUNT;
+    for (tr = 0; tr < DUB_TRK_N; tr++)
+        dub_riddim_dec(s->notes[tr], s->velocity[tr], DUB_RIDDIMS[riddim].tr[tr]);
     s->length = 64;                                            /* a riddim plays its four bars whole */
     s->step = 0;
 }
 
 void dub_riddim_load_track(dub_seq_t *s, uint32_t riddim, uint32_t track)   /* one track's motif only */
 {
-    uint32_t st;
     if (riddim >= DUB_RIDDIM_COUNT)
         riddim %= DUB_RIDDIM_COUNT;
     if (track >= DUB_TRK_N)
         return;
-    for (st = 0; st < DUB_RIDDIM_STEPS; st++) {
-        s->notes[track][st] = DUB_RIDDIMS[riddim].note[track][st];
-        s->velocity[track][st] = DUB_RIDDIMS[riddim].vel[track][st];
-    }
+    dub_riddim_dec(s->notes[track], s->velocity[track], DUB_RIDDIMS[riddim].tr[track]);
     if (s->length < DUB_RIDDIM_STEPS) {
         s->length = 64;                                        /* the motif's bars need the four */
         s->step = 0;

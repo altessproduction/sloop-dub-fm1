@@ -123,10 +123,11 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     e.emu_frame();
     console.log('skank/seq/frame .. OK (no trap)');
 
-    /* 2.9.2: the riddim bank: the 27 Riddim Collection names, one full load, one track load, the
-     * names readable (the book's Studio One family, the pack's steppers and digitals, the Sleng Teng) */
+    /* 2.9.2: the riddim bank: all 75 Riddim Collection riddims (the page's own order: the
+     * book's 38, the pack's 36, the Sleng Teng last), one full load, one track load, the
+     * names readable */
     const nRid = e.emu_dub_riddim_count();
-    if (nRid !== 27) throw new Error('riddim count ' + nRid);
+    if (nRid !== 75) throw new Error('riddim count ' + nRid);
     const ridNames = [];
     for (let r = 0; r < nRid; r++) {
         const p = e.emu_dub_riddim_name(r);
@@ -137,12 +138,12 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
     }
     if (new Set(ridNames).size !== nRid || ridNames[0] !== 'AFRICAN BEAT' ||
         !ridNames.includes('REAL ROCK') || !ridNames.includes('BAM BAM') || !ridNames.includes('FISHERMAN') ||
-        !ridNames.includes('SLENG TENG'))
+        !ridNames.includes('SATTA MASSAGA') || !ridNames.includes('SLENG TENG'))
         throw new Error('riddim names: ' + ridNames.join(','));
     e.emu_dub_riddim_load(0);          /* AFRICAN BEAT into the SLOOP sequencer's tracks (2.9.6) */
-    e.emu_dub_riddim_track(1, 3);      /* ANSWER's drum motif over it */
+    e.emu_dub_riddim_track(2, 3);      /* ANSWER's drum motif over it */
     e.emu_frame();
-    console.log('riddim bank ....... OK (27: ' + ridNames.join(' ') + ')');
+    console.log('riddim bank ....... OK (75: ' + ridNames[0] + ' .. ' + ridNames[nRid - 1] + ')');
 
     /* 2.9.6: the load's readback — the steps are in the sequencer's tracks, not a buffer:
      * AFRICAN BEAT's bass st0 = 35 (the B1 of the book's tab, each written step a fresh
@@ -162,11 +163,11 @@ const PLAYB = 1 << 12;                             /* panel.c PANEL_DEFAULT: B_P
         if (e.emu_dub_seq_track_len(t) !== 64) throw new Error('track ' + t + ' len ' + e.emu_dub_seq_track_len(t));
     console.log('seq readback ...... OK (steps in the tracks, TIE holds, LEN 64)');
 
-    /* the Rock preset's stutter: SLENG TENG (26) loads the collection's transcription at
-     * 82 bpm: the static root (C#2, 37), three sixteenths a semitone above (38, each one a
-     * fresh strike, not a TIE), the tail G2 (43) and F#2 (42) cut off plucked-short
-     * (the readback shows a bare rest 255, not the TIE's 254) */
-    e.emu_dub_riddim_load(26);
+    /* the Rock preset's stutter: SLENG TENG (74, the page's last) loads the collection's
+     * transcription at 82 bpm: the static root (C#2, 37), three sixteenths a semitone above
+     * (38, each one a fresh strike, not a TIE), the tail G2 (43) and F#2 (42) cut off
+     * plucked-short (the readback shows a bare rest 255, not the TIE's 254) */
+    e.emu_dub_riddim_load(74);
     e.emu_frame();
     if (note(0, 0) !== 37) throw new Error('sleng st0 ' + note(0, 0));
     if (note(0, 1) !== 38 || note(0, 2) !== 38 || note(0, 3) !== 38)

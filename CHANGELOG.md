@@ -3,6 +3,30 @@
 Le fil des versions du fork Dub. La base SLOOP et son histoire : [SLOOP.md](SLOOP.md)
 et les [releases](https://github.com/isod89/sloop-fm1/releases) du dépôt d'origine.
 
+## 1.8 — novembre 2026
+
+**Toute la Riddim Collection : les soixante-quinze riddims de la page, chacun 64 pas en boucle.**
+La banque passe de 27 à 75 riddims — les 38 du Riddim Real Book, les 36 du pack « RIDDIM MIDI » et
+le Sleng Teng, dans l'ordre de la page
+([riddims.html](https://altessproduction.github.io/Riddim-collection/riddims.html)).
+
+- **La banque entière tient dans le slot.** Chaque piste de chaque riddim est stockée compressée :
+  un flux d'événements (pas, code de note, vélocité), les mesures sources dédupliquées et rejouées
+  par une carte de mesures (1 octet d'en-tête par piste). `dub_riddim_dec()` (`dub.c`) décompresse
+  dans les 64 pas au chargement — en RAM, la séquence reste la grille complète et éditable comme
+  avant. Les grilles des 27 riddims du 1.7 sont conservées **pas à pas** (notes et vélocités).
+- **Les mesures silencieuses restent hors boucle** : les arrangements longs de la page (Fade Away
+  16 mesures, Freedom Blues 20 — sa basse n'entre qu'à la cinquième) bouclent à partir de la
+  première mesure où la basse sonne : les 64 pas tournent sur le groove complet.
+- **Taille** : image 579 824 o sur le slot 0x8DFBC (581 564 o), **1 740 o de marge** — la banque
+  compressée des 75 (10 911 o de flux) est plus petite que la banque brute des 27 (13 932 o)
+  qu'elle remplace.
+- **La preuve en C du aller-retour** : `tools/verify_riddims.sh` régénère la banque et les grilles
+  brutes du même passage, puis `tests/riddim_check.c` charge les 75 riddims par le chargeur du
+  firmware et compare les 4 pistes × 64 pas, notes et vélocités, au `memcmp` — sans hardware.
+- L'émulateur web (`docs/dub/sloop.wasm`), l'aperçu de l'éditeur (`docs/webapp/editor/`) et le
+  smoke test jouent les 75 ; l'installateur web sert le 1.8 (`sloop-dub-1.8.fwsc`, sha256 vérifié).
+
 ## 1.7 — novembre 2026
 
 **Les dix classiques sonnent comme leurs disques : la basse transcrite depuis les

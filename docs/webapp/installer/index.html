@@ -73,7 +73,7 @@
   <p id="status"></p>
   <pre id="log"></pre>
   <a class="ed" href="../editor/" data-t="editor"></a>
-  <p class="small"><a href="../editor/sloop-editor.html" download="sloop-editor-1.7.html" data-t="edOffline"></a></p>
+  <p class="small"><a href="../editor/sloop-editor.html" download="sloop-editor-1.8.html" data-t="edOffline"></a></p>
   <p><button id="app" class="ed" hidden data-t="appInstall"></button></p>
   <hr>
   <p class="small" data-t="direct"></p>
@@ -519,7 +519,7 @@ const sayK = (k, arg = "") => { lastKey = k; lastArg = arg; $("status").textCont
 const say = (txt) => { lastKey = null; $("status").textContent = txt; };
 const log = (t) => { $("log").textContent += t + "\n"; };
 let image = null;
-const meta = {"version": "1.7", "product": "FM-1_234", "pkg": "../../firmware/sloop-dub-1.7.fwsc", "sha256": "a699472caf09f57187aa2a915bfeb47ba5bc7c739b7a5baf608be86b7ed8aff6"};
+const meta = {"version": "1.8", "product": "FM-1_234", "pkg": "../../firmware/sloop-dub-1.8.fwsc", "sha256": "937d62417d53eb12de5aabe4886c0c59e3c8f79471df746563f9a045a0aa8b01"};
 
 let writing = false;
 const lockAll = (on) => {

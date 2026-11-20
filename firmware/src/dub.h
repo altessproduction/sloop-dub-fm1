@@ -68,20 +68,24 @@ typedef struct {
     uint8_t velocity[DUB_TRK_N][64];
 } dub_seq_t;
 
-/* the riddim bank (dub_riddim.h, tools/gen_riddims_web.py): twenty-seven 64-step sequences,
- * four tracks each. A step's note DUB_SEQ_REST (255) is a rest -- and a rest HOLDS (the
- * legato the grooves lean on: a held note carries over rests as a TIE, while every written
- * note strikes again, even the same pitch). DUB_SEQ_CUT (253) is the rest that cuts: the
- * held note ends there (the plucked tails the MT-40's bass lives on). The RIDDIM page loads a
- * whole riddim (OCT+ on KNOB 1) or one track's motif (OCT+ on KNOB 2..4) into the
- * dub sequence; seq.c plays it on the transport's sixteenths. */
+/* the riddim bank (dub_riddim.h, tools/gen_riddims_web.py): all the Riddim-collection
+ * page's riddims -- seventy-five 64-step loops, four tracks each, four bars of sixteen
+ * sixteenths played in a circle. A step's note DUB_SEQ_REST (255) is a rest -- and a rest
+ * HOLDS (the legato the grooves lean on: a held note carries over rests as a TIE, while
+ * every written note strikes again, even the same pitch). DUB_SEQ_CUT (253) is the rest
+ * that cuts: the held note ends there (the plucked tails the MT-40's bass lives on). The
+ * RIDDIM page loads a whole riddim (OCT+ on KNOB 1) or one track's motif (OCT+ on
+ * KNOB 2..4) into the dub sequence; seq.c plays it on the transport's sixteenths.
+ * The bank is COMPRESSED, one stream a track (the app slot holds no seventy-five raw
+ * grids): dub_riddim_dec() in dub.c expands the stream into the dub sequence at load --
+ * the format is written out at dub_riddim_dec and in the generator's head. */
 #define DUB_SEQ_REST 255u
 #define DUB_SEQ_CUT 253u
 #define DUB_RIDDIM_STEPS 64u
+#define DUB_RIDDIM_BARS 4u                             /* the 64 steps, four bars of sixteen */
 typedef struct {
     const char *name;                              /* "ONE DROP", the LCD and the web tab */
-    uint8_t note[DUB_TRK_N][DUB_RIDDIM_STEPS];
-    uint8_t vel[DUB_TRK_N][DUB_RIDDIM_STEPS];
+    const uint8_t *tr[DUB_TRK_N];                  /* the four compressed track streams */
 } dub_riddim_t;
 extern const dub_riddim_t DUB_RIDDIMS[];
 

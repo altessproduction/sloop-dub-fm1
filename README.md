@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/hub-card.png" alt="SLOOP DUB 1.7 · FM-1" width="360"></p>
+<p align="center"><img src="assets/hub-card.png" alt="SLOOP DUB 1.8 · FM-1" width="360"></p>
 
 <p align="center"><b>SLOOP DUB — the sound-system firmware for the M-VAVE FM-1.</b><br>
 A four-track groovebox with a full dub wing and a reggae / dub / ska / jungle / bass-music bank,
@@ -8,7 +8,7 @@ by isod89, based on <a href="https://github.com/hugelton/Felucca">Felucca</a> by
 <p align="center">
 <a href="https://altessproduction.github.io/sloop-dub-fm1/dub/"><b>Play SLOOP Dub in the browser</b></a> ·
 <a href="https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/"><b>Install it from the browser</b></a> ·
-<a href="docs/firmware/sloop-dub-1.7.fwsc">the 1.7 package (.fwsc)</a> ·
+<a href="docs/firmware/sloop-dub-1.8.fwsc">the 1.8 package (.fwsc)</a> ·
 <a href="DUB-FR.md">Le manuel Dub (FR)</a> ·
 <a href="GUIDE.md">The complete guide</a> ·
 <a href="CHANGELOG.md">Changelog</a> ·
@@ -19,7 +19,7 @@ by isod89, based on <a href="https://github.com/hugelton/Felucca">Felucca</a> by
 
 **SLOOP Dub** turns the FM-1 into the sound system's machine: **three synths and a drum machine**
 you play live, a **DUB module** (bipolar filter, mix, throw), a **dub siren** you hold on OCT+,
-**twenty-seven 64-step riddims** that load into the sequencer with their patterns, a four-band
+**seventy-five 64-step riddims** that load into the sequencer with their patterns, a four-band
 **isolator** whose mutes really cut, a **tape delay** whose TIME knob bends the loop like a real
 tape echo, per-track **throws** into the delay, and the **WIRES** visualizer — over the whole
 SLOOP base: twelve synthesis engines, **180 sound-system presets** (the genre bank plus the
@@ -31,15 +31,14 @@ play — or you load a riddim and dub over it.
 
 > **Status: the Riddim Collection bank — the sound system's classics from
 > [altessproduction.github.io/Riddim-collection](https://altessproduction.github.io/Riddim-collection/riddims.html),
-> transcribed into the firmware.** The stock 1.7 bank steps aside: the bank is now the **twenty-seven
-> riddims of the Riddim Collection page** — African Beat, Answer, Artibella, Bam Bam, Billie Jean,
-> Created By The Father, Queen Majesty, Real Rock, Swing Easy, Baba Boom, Chase Vampire, Drum Song,
-> Dub Organizer, Dubolitions, Every Tongue Shall Tell, Fisherman, Ghetto People Song, Grab Your Lass
-> and Come, Heathen, Java, Liberation, Mr Bassie, Revolution, The Whip, Warriors Don't Cry,
-> When I Fall in Love and the Sleng Teng — each one a full 64-step riddim with its four patterns,
+> transcribed into the firmware.** The stock 1.7 bank steps aside: the bank is now **all the seventy-five
+> riddims of the Riddim Collection page** — the Riddim Real Book's 38 (African Beat, Answer, Artibella,
+> Real Rock, Queen Majesty, Swing Easy, Bunny Lee's Better Must Come, Keith Hudson's All We Need Is
+> Love…), the « RIDDIM MIDI » pack's 36 (Bam Bam, Baba Boom, Fisherman, Satta Massagana, Fade Away…)
+> and the Sleng Teng, in the page's order — each one a full 64-step riddim with its four patterns,
 > loaded in the machine's order: **the bass on track 1, the skank on track 2, the riddim's remaining
 > instrument on track 3, the drums on track 4** (their origins and tempos are in
-> [The riddims: 27](#the-riddims-27)). The bank counts **180 presets** and **38 kits**, all
+> [The riddims: 75](#the-riddims-75)). The bank counts **180 presets** and **38 kits**, all
 > level-matched. Still custom firmware: install at your own risk, and please
 > [report](../../issues) what you find. Your projects, presets, samples and settings are kept when
 > you update, and you can go back at any time (see [Going back](#going-back)).
@@ -49,7 +48,7 @@ play — or you load a riddim and dub over it.
 1. [The Dub wing](#the-dub-wing)
 2. [The sound-system bank: 180 presets](#the-sound-system-bank-180-presets)
 3. [The drum kits: 38](#the-drum-kits-38)
-4. [The riddims: 27](#the-riddims-27)
+4. [The riddims: 75](#the-riddims-75)
 5. [The Casio MT-40: the functions, the rhythms, the sounds](#the-casio-mt-40-the-functions-the-rhythms-the-sounds)
 6. [Your first dub in 60 seconds](#your-first-dub-in-60-seconds)
 7. [Screenshots](#screenshots)
@@ -116,7 +115,7 @@ complet du fork est [DUB-FR.md](DUB-FR.md).)
 
 ### The sequencer, the riddims, the sounds — pages RDM and PRS
 
-- The dub tracks are **SLOOP's own sequencer**: **OCT+ on RDM loads one of the twenty-seven 64-step
+- The dub tracks are **SLOOP's own sequencer**: **OCT+ on RDM loads one of the seventy-five 64-step
   riddims** (the list is [below](#the-riddims-27)) into the four tracks; KN2 / KN3 / KN4 + OCT+
   load one track's pattern alone — the bass, the skanks, the melody or the drums. What loads is
   what plays and what you edit afterwards (PATTERN, NOTES, ACCENTS, SLIDES).
@@ -268,13 +267,16 @@ synth page.
 | RUBADUB | ARCADE | RAGGA | INDUSTR | GQOM |
 | STEPPERS | JAZZ | MT40 | | |
 
-## The riddims: 27
+## The riddims: 75
 
-Twenty-seven 64-step riddims, four bars each, with their **four patterns** — bass, skanks, melody,
-drums. The bank is **the Riddim Collection** (the Riddim Real Book's classics, the « RIDDIM MIDI »
-pack's accompaniments and the Sleng Teng), transcribed into the firmware by
+Seventy-five 64-step riddims — four bars each, played in a loop — with their **four patterns** — bass,
+skanks, melody, drums. The bank is **all the Riddim Collection** (the Riddim Real Book's 38 classics,
+the « RIDDIM MIDI » pack's 36 accompaniments and the Sleng Teng), transcribed into the firmware by
 `tools/gen_riddims_web.py` straight from the collection's own grid (`tools/riddims_db.js`, the data
 behind [the Riddim Collection page](https://altessproduction.github.io/Riddim-collection/riddims.html)).
+The bank is stored **compressed** — one event stream a track, the collection's source bars held and
+replayed — and the loader expands it into the 64 steps at load (`dub_riddim_dec`, dub.c): all
+seventy-five fit the app slot with room to spare, and the played grids are the collection's own.
 **OCT+ on RDM loads the whole riddim** into the tracks; KN2 / KN3 / KN4 + OCT+ load one track's
 pattern alone. The tracks land in the machine's order — **the bass on track 1, the skank on track
 2, the riddim's remaining instrument on track 3, the drums on track 4**: the collection's own
@@ -290,41 +292,88 @@ snare or on the one-drop rimshot, the kick rides in a sixteenth before it (the s
 pickup), the hats it displaces step out. The BPM is the range the collection gives (the export
 tempo is its middle); the tempo is yours.
 
-**Hear the bank first:** [the demo video](https://www.youtube.com/watch?v=PkAke2mBEpI) plays the 27
-riddims and the dub siren, live.
+**Hear the bank first:** [the demo video](https://www.youtube.com/watch?v=PkAke2mBEpI) plays the bank
+and the dub siren, live.
 
 | Riddim (the RDM page) | The collection's | BPM | Style | Came from |
 | --- | --- | --- | --- | --- |
 | AFRICAN BEAT | African Beat | 70–78 | reggae | Studio One, 1968 |
-| ANSWER | Answer | 75–86 | reggae | Studio One, 1967 — a.k.a. *Never Let You Go* |
+| ALL WE NEED | All We Need Is Love | 70 | reggae | Keith Hudson, 1972 |
+| ANSWER | Answer | 75–86 | reggae | Studio One, 1967 — *a.k.a. Never Let You Go* |
 | ARTIBELLA | Artibella | 65–83 | reggae | Phill Pratt |
-| BAM BAM | Bam Bam | 96 | dancehall | the Stalag riddim |
-| BILLIE JEAN | Billie Jean | 72–86 | rockers | after E. Morricone |
+| BABY I LOVE | Baby I Love You So | 58–68 | reggae | the book |
+| BALLISTIC | Ballistic Affair | 66–82 | reggae | the book |
+| BAM BAM | Bam Bam | 96 | dancehall | the book — *riddim Stalag* |
+| BEAT DOWN | Beat Down Babylon | 70 | reggae | the book |
+| BETTER MUST | Better Must Come | 67–80 | reggae | Bunny Lee |
+| BILLIE JEAN | Billie Jean | 72–86 | rockers | the book — *d'après E. Morricone* |
 | CREATED FATHER | Created By The Father | 80 | reggae | Studio One, 1970 |
-| QUEEN MAJESTY | Queen Majesty | 94–100 | rocksteady | Treasure Isle, 1967 — after C. Mayfield |
-| REAL ROCK | Real Rock | 70–90 | one drop | Studio One, 1968 |
-| SWING EASY | Swing Easy | 72–92 | one drop | Studio One, 1967 |
+| CUSS CUSS | Cuss Cuss | 70–74 | rockers | Harry J, 1968 |
+| DEATH IN ARENA | Death In The Arena | 70–74 | steppers | Studio One, 1968 — *d'après P. Purdie* |
+| DIRTY HARRY | Dirty Harry | 65–80 | reggae | Glen Brown, 1972 |
+| DRIFTER | Drifter | 65–83 | reggae | Harry Mudie, 1969 |
+| DUCK | Duck | 90–100 | digital | Jammy's, 1987 |
+| EXPO TRAIN | Expo Train | 76–90 | reggae | Treasure Isle, 1967 — *a.k.a. The Last Train* |
+| FAR EAST | Far East | 65–86 | reggae | Treasure Isle, 1967 |
+| FATTIE FATTIE | Fattie Fattie | 62–88 | rocksteady | Studio One, 1967 |
+| GET IN GROOVE | Get In The Groove | 82–90 | reggae | Studio One |
+| HEAD TO TOE | Head To Toe | 70–90 | rockers | Jammy's, 1986 |
+| MOVIE STAR | Movie Star | 68–84 | reggae | Studio One, 1970 |
+| CONVERSATION | My Conversation | 68–84 | rocksteady | Bunny Lee |
+| MY JAMAICAN | My Jamaican Girl | 60–80 | reggae | Beverleys, 1970 |
+| PICK UP PIECES | Pick Up The Pieces | 75–95 | reggae | Studio One, 1967 |
+| PRESSURE SLIDE | Pressure And Slide | 75–85 | onedrop | Studio One, 1967 |
+| PRETTY LOOKS | Pretty Looks | 86–90 | reggae | Studio One, 1968 |
+| PUNAANY | Punaany | 80–84 | digital | Jammy's, 1987 |
+| QUEEN MAJESTY | Queen Majesty | 94–100 | rocksteady | Treasure Isle, 1967 — *d'après C. Mayfield* |
+| REAL ROCK | Real Rock | 70–90 | onedrop | Studio One, 1968 |
+| STALAG | Stalag | 78–95 | reggae | Techniques, 1973 |
+| STARS | Stars | 69–80 | reggae | Studio One |
+| SWING EASY | Swing Easy | 72–92 | onedrop | Studio One, 1967 |
+| TAKE A RIDE | Take A Ride | 80–90 | reggae | Studio One — *a.k.a. Truth & Rights* |
+| TEMPO | Tempo | 75–82 | digital | Penthouse |
+| WORLD A MUSIC | World A Music | 72–84 | rockers | Taxi, 1983 |
+| YOU DONT CARE | You Don't Care | 65–86 | rocksteady | Treasure Isle, 1967 — *a.k.a. Barbwire* |
+| YOUTH MAN | Youth Man | 65–86 | reggae | Glen Brown — *a.k.a. Wicked Can't Run Away* |
 | BABA BOOM | Baba Boom | 82 | steppers | « RIDDIM MIDI » pack |
 | CHASE VAMPIRE | Chase Vampire | 85 | steppers | « RIDDIM MIDI » pack |
+| CHERRY OH BABY | Cherry Oh Baby | 75 | steppers | « RIDDIM MIDI » pack |
+| DARKER SHADE | Darker Shade of Black | 83 | steppers | « RIDDIM MIDI » pack |
 | DRUM SONG | Drum Song | 89 | digital | « RIDDIM MIDI » pack |
 | DUB ORGANIZER | Dub Organizer | 76 | steppers | « RIDDIM MIDI » pack |
 | DUBOLITIONS | Dubolitions | 119 | rocksteady | « RIDDIM MIDI » pack |
+| ETHIOPIAN KINGS | Ethiopian Kings | 65 | digital | « RIDDIM MIDI » pack |
 | EVERY TONGUE | Every Tongue Shall Tell | 81 | steppers | « RIDDIM MIDI » pack |
+| FADE AWAY | Fade Away | 75 | steppers | « RIDDIM MIDI » pack |
 | FISHERMAN | Fisherman | 75 | steppers | « RIDDIM MIDI » pack |
+| FREEDOM BLUES | Freedom Blues | 68 | rockers | « RIDDIM MIDI » pack |
 | GHETTO PEOPLE | Ghetto People Song | 80 | steppers | « RIDDIM MIDI » pack |
 | GRAB YR LASS | Grab Your Lass and Come | 85 | steppers | « RIDDIM MIDI » pack |
+| GUNMAN | Gunman | 78 | digital | « RIDDIM MIDI » pack |
 | HEATHEN | Heathen | 71 | steppers | « RIDDIM MIDI » pack |
+| HEAVENLESS | Heavenless | 77 | digital | « RIDDIM MIDI » pack |
+| JAH SHAKEY | Jah Shakey | 74 | steppers | « RIDDIM MIDI » pack |
 | JAVA | Java | 77 | steppers | « RIDDIM MIDI » pack |
+| JOHNNY DOLLAR | Johnny Dollar | 88 | steppers | « RIDDIM MIDI » pack |
+| JUMP UP | Jump Up | 86 | rockers | « RIDDIM MIDI » pack |
 | LIBERATION | Liberation | 71 | rocksteady | « RIDDIM MIDI » pack |
 | MR BASSIE | Mr Bassie | 86 | rockers | « RIDDIM MIDI » pack |
+| NANNY GOAT | Nanny Goat | 81 | steppers | « RIDDIM MIDI » pack |
+| PEANIE PEANIE | Peanie Peanie | 81 | digital | « RIDDIM MIDI » pack |
 | REVOLUTION | Revolution | 89 | steppers | « RIDDIM MIDI » pack |
+| ROCKFORT ROCK | Rockfort Rock | 83 | steppers | « RIDDIM MIDI » pack |
+| ROUGHER YET | Rougher Yet | 80 | digital | « RIDDIM MIDI » pack |
+| RUN DOWN WORLD | Run Down the World | 81 | steppers | « RIDDIM MIDI » pack |
+| SATTA MASSAGA | Satta Massagana | 77 | steppers | « RIDDIM MIDI » pack |
+| SHANK I SHECK | Shank I Sheck | 85 | steppers | « RIDDIM MIDI » pack |
+| SKYLARKING | Skylarking | 75 | digital | « RIDDIM MIDI » pack |
 | THE WHIP | The Whip | 83 | digital | « RIDDIM MIDI » pack |
+| WARNING | Warning | 76 | steppers | « RIDDIM MIDI » pack |
 | WARRIORS CRY | Warriors Don't Cry | 89 | digital | « RIDDIM MIDI » pack |
 | WHEN I FALL | When I Fall in Love | 80 | digital | « RIDDIM MIDI » pack |
-| SLENG TENG | Sleng Teng | 82 | digital | Jammy's, 1985 — a.k.a. *Under Mi Sleng Teng* |
-
-(the LCD fits fourteen characters, so six riddims carry a short name — the collection's full name
-is the second column; the pack riddims play their own drums, the book riddims their style's)
+| SLENG TENG | Sleng Teng | 82 | digital | Jammy's, 1985 — *a.k.a. Under Mi Sleng Teng* |
+(the LCD fits fourteen characters, so the longer names carry a short one — the collection's full
+name is the second column; the pack riddims play their own drums, the book riddims their style's)
 
 ## The Casio MT-40: the functions, the rhythms, the sounds
 
@@ -552,7 +601,7 @@ glow too; the notes playing can light their keys. Details: [The menu](#the-menu-
    in **Chrome or Edge** on a computer.
 2. Connect the FM-1 by USB — a **data** cable, directly (no hub).
 3. Press **INSTALL**, allow MIDI access, and wait for *Done*. The FM-1 restarts on the SLOOP Dub
-   logo. The installer serves **SLOOP Dub 1.7** (`sloop-dub-1.7.fwsc`); you can also pick another
+   logo. The installer serves **SLOOP Dub 1.8** (`sloop-dub-1.8.fwsc`); you can also pick another
    `.fwsc` with its file picker.
 
 Nothing to download or compile. Your projects, user presets, samples and settings are kept.
@@ -561,8 +610,8 @@ input.
 
 ### Other ways
 
-- **Direct download:** [sloop-dub-1.7.fwsc](docs/firmware/sloop-dub-1.7.fwsc), installed with the
-  installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.7.fwsc` (needs
+- **Direct download:** [sloop-dub-1.8.fwsc](docs/firmware/sloop-dub-1.8.fwsc), installed with the
+  installer's file picker, or with `python tools/fm1_install.py sloop-dub-1.8.fwsc` (needs
   `pip install mido python-rtmidi`).
 - **Build it yourself:** see [Building](#building).
 
@@ -761,7 +810,7 @@ current page session. This mode makes no MIDI requests and does not connect to o
 Audio preview requires the served site, rather than the downloaded single-file editor.
 
 **Offline.** *Download the editor* (under Connect, or on the installer page) saves the whole
-editor as one file for a computer, `sloop-editor-1.7.html`, also on the
+editor as one file for a computer, `sloop-editor-1.8.html`, also on the
 [installer page](https://altessproduction.github.io/sloop-dub-fm1/webapp/installer/).
 Double-click it: it opens in Chrome or Edge without internet (Chrome asks once to allow MIDI) and
 works as the online one. Its sound library (kept in the browser) is its own, apart from the
@@ -856,11 +905,11 @@ the version shown in HOME menu → ABOUT.
 | Sounds | 180 sound-system presets on 13 engines (the genre bank + the Casio MT-40's 22 tones, browsed by kind, level-matched), 6-op FM with DX7 SysEx import and a 27-patch bank, 8 sampled sets (CC0), 4 slots for your own samples (USR1–USR4), 32 user presets |
 | Polyphony | 8 voices shared across the synth tracks; per engine played alone: **8** (ANALOG, DIGITAL, PHASE, LOFI, SAMPLE, TRIO, WHEEL, NOISE), **6** (FM6), **4** (VOICE), **3** (GRAIN, PHYS); MONO / LEGATO play one note at a time; drums 6 |
 | Drum kits | 38 (5 sampled genre kits — ONE DROP, STEPPERS, SKA, ROCKERS, DUB — 33 synthesised incl. ONEDROP, ROCKERS, ROCKSTDY, SKA, DIGITAL, RUBADUB, RAGGA, GQOM, STEPPERS, JUNGLE, DUBSTEP and the MT-40), level-matched, plus your own: USR1–USR4 and USR3+4 (about 15 s), SYN1–SYN4 |
-| Sequencer | 64 steps per track, own length and division each (1/32 to two bars); chords with a level and ratchet per note; drums with a level and ratchet per sound; ties, slide; per-step parameter locks (24 per track), micro timing (±½ step in 1/64) and fill conditions; swing 0 (straight) to 100 (MPC 75 %); one sample-accurate clock (no drift); 27 riddims load with their patterns |
+| Sequencer | 64 steps per track, own length and division each (1/32 to two bars); chords with a level and ratchet per note; drums with a level and ratchet per sound; ties, slide; per-step parameter locks (24 per track), micro timing (±½ step in 1/64) and fill conditions; swing 0 (straight) to 100 (MPC 75 %); one sample-accurate clock (no drift); 75 riddims load with their patterns |
 | Recording | live, quantised as heard (latency-compensated), overdub; free take (the tempo follows you) or the tempo set; start on the first note or a one-bar count-in; 1, 2 or 4 bars |
 | Performance | layers: punch-in FX, erase, note repeat, step entry, key / chords, mute / solo / fill / tap tempo, song sections and a quick chain of up to 8 |
 | Effects | 27 punch-in effects; master DUST, DUCK, DJ filter, limiter; per track drive, slicer, sends to a stereo chorus, a tempo delay (dotted 1/8 and 1/16 too) and a stereo reverb |
-| Dub wing | DUB module (bipolar filter, mix, throw), dub siren (5 LFOs, 5 waves, its own voice), tape delay with varispeed TIME, per-track throws, 27 riddims with their patterns, four-band isolator with real mutes, WIRES |
+| Dub wing | DUB module (bipolar filter, mix, throw), dub siren (5 LFOs, 5 waves, its own voice), tape delay with varispeed TIME, per-track throws, 75 riddims with their patterns, four-band isolator with real mutes, WIRES |
 | Memory | autosave, undo / redo, one song of 4 sections (more as backup files), 32 user presets, 27 FM6 patches, full backup / restore (editor) |
 | Audio | 44.1 kHz, fixed-point DSP; USB audio input (the master output, 16-bit stereo at 44.1 or 48 kHz, class compliant) |
 | MIDI | USB class-compliant in / out (the keys, or the sequencer too); TRS MIDI IN (3.5 mm); MIDI clock in (USB or TRS), clock only if you like (IN = CLOCK) |

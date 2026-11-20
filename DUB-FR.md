@@ -10,7 +10,7 @@ Le fork ajoute une extension DSP indépendante dans `firmware/src/dub.c` et `dub
   - **L'ISO fonctionne** — les coefficients du crossover étaient ~100 fois trop faibles (`hz * 2100 / FS` donne 4 sur 32767 à 90 Hz) : SUB, BASS et MIDS sortaient quasi muets et TOPS, le reste non filtré, portait tout le signal (le « seul le Top réagit » du retour de test). Reconstruit : une échelle de stages un pôle par canal, trois croisements à 90 Hz / 420 Hz / 2,6 kHz, chaque croisement deux passe-bas et un passe-haut à zéro vrai de DC (aucune fuite de phase) ; stéréo ; les gains calculés une fois par bloc et glissés ~12 ms (un mute ne clique jamais). L'égaliseur jamais accessible quitte la structure.
   - **TIME plie la boucle comme un vrai tape delay** — tourner TIME avec une boucle dans le delay accélère ou ralentit la boucle en continu : la tête de lecture marche à au plus la moitié de la vitesse de la bande (`DUB_TAPE_SLEW`), régulièrement à travers chaque bloc (`dly_a` → `dly_b`, Q8 échantillon par échantillon) — la tonalité monte en raccourcissant, descend en allongeant, le pliage tient tant que la tête avance (parcours complet ≈ 2,7 s). Avant, le glissement `(cible − courant) >> 4` par bloc balayait la tête en ~12 ms — le saut entendu.
   - **Les lignes suivent les knobs** — DLY LEVEL et SIREN LEVEL ne se redessinaient pas : `song.g[G_DMIX]`, `dub_menu_siren` et `song.g[G_BPM]` manquaient à la signature de redraw du menu.
-  - Le paquet à flasher est publié à `docs/firmware/sloop-dub-1.8.fwsc` (image 579 824 o de 581 564 [slot 0x8DFBC], marge 1 740 o) et l'installateur web le sert par défaut. Empreinte complète plus bas.
+  - Le paquet à flasher est publié à `docs/firmware/sloop-dub-1.8.fwsc` (image 580 736 o de 581 564 [slot 0x8DFBC], marge 828 o) et l'installateur web le sert par défaut. Empreinte complète plus bas.
 
 - **Dub siren** (2.9.1) : une vraie siren dub style NJD — oscillateur au choix (`SQR`, `PLS`, `SAW`, `TRI`, `SIN`), **balayage de pitch exponentiel** piloté par un LFO au choix (`WAIL` triangle, `HILO` deux tons, `RAMP` la charge du yelp, `SWEEP` la chute, `SPACE` l'échantillonneur glissé), symétrie du LFO, vitesse 1 à 16 Hz, profondeur 0 à 2 octaves, et **envoi vers le delay** du projet SLOOP.
 - **Séquenceur dub** (2.9.2) : **quatre pistes** (basse, skanks, mélodie, drums) de 16, 32 ou 64 pas, note et vélocité par pas, jouées sur le transport (DUB ENABLE + PLAY) — basse et mélodie tenues sur les silences (le glue dub devient un TIE éditable) mais **chaque note écrite ré-attaque, les répétitions comprises** (le bounce du Sleng Teng), le marqueur `DUB_SEQ_CUT` (253) coupe la note tenue — les queues pincées du MT-40 —, skanks en piqué d'accord, drums en notes General MIDI.
@@ -137,7 +137,7 @@ Cette prévisualisation reste un adaptateur navigateur : elle ne remplace pas en
 
 ## Empreinte FM-1 (mesurée, la banque Riddim Collection)
 
-Empreinte du paquet publié : `937d62417d53eb12de5aabe4886c0c59e3c8f79471df746563f9a045a0aa8b01`
+Empreinte du paquet publié : `16ce4bcd96ee47685f59748926dfeba21812de5943937e0dbf19c2fdf9944d4c`
 (`docs/firmware/sloop-dub-1.8.fwsc`, 609 936 o).
 
 Mesures réelles obtenues avec la chaîne JieLi (clang 4.0.1 pi32v2) sur ce dépôt ; la base SLOOP 2.9.6
@@ -147,7 +147,7 @@ sound-system (1.1 : 158 presets, 1.2 : 37 kits, 1.3 : 22 riddims et leurs patter
 la marge jusqu'à 576 208 o ; le 1.4 y ajoute les six riddims et les 22 sons du Casio MT-40, le kit
 MT40 et leurs noms (580 944 o) ; le 1.5 échange dix riddims génériques contre les onze classiques
 du sound system (+32 o) ; le 1.6 retrace la basse du Sleng Teng (le stutter vérifié, le marqueur de coupe
-en plus) et l'image s'établit à 580 992 o — **572 o de marge** sur le slot de 0x8DFBC ; la banque Riddim Collection du 1.7 (vingt-sept riddims bruts) s'établit à 580 656 o — 908 o de marge ; le 1.8 embarque **tous les soixante-quinze riddims de la page** (stockés compressés, un flux d'événements par piste, `dub_riddim_dec` décompresse au chargement) et ramène l'image à 579 824 o — **1 740 o de marge**. La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
+en plus) et l'image s'établit à 580 992 o — **572 o de marge** sur le slot de 0x8DFBC ; la banque Riddim Collection du 1.7 (vingt-sept riddims bruts) s'établit à 580 656 o — 908 o de marge ; le 1.8 embarque **tous les soixante-quinze riddims de la page** (stockés compressés, un flux d'événements par piste, `dub_riddim_dec` décompresse au chargement) et ramène l'image à 580 736 o — **828 o de marge** (le visuel : la carte du dépôt et le splash d'allumage adoptent la nouvelle tour, +930 o de RLE). La flash du FM-1 offre 0x93000 o (588 Ko) au paquet ; le slot
 application fait 0x8DFBC o (581 Ko) — en 2.9.6 il était déjà rempli à 99,9 % (360 o de marge).
 
 | Ressource | 2.9.6 (base) | 2.9.13 | 2.9.16 | **1.6 (ce build)** | Capacité | Marge 1.6 |

@@ -12,7 +12,7 @@ boucle**.
 
 `sloop-dub-1.8.fwsc` — construit avec `./build.sh --release 1.8`
 (identité **FM-1_234**, la même que le 1.7 officiel ; projets, presets, samples et réglages
-conservés à la mise à jour). Image 579 824 o pour un slot de 581 564 o — **1 740 o de marge**.
+conservés à la mise à jour). Image 580 736 o pour un slot de 581 564 o — **828 o de marge**.
 
 ## La banque (l'ordre de la page RDM)
 
@@ -161,8 +161,8 @@ RUN DOWN WORLD, JOHNNY DOLLAR, PEANIE PEANIE, ROCKFORT ROCK, FREEDOM BLUES, GHET
 - **Compile C** : `gcc -std=c99 -Wall -Wextra` propre sur `dub.c` + le test ;
   `sizeof DUB_RIDDIMS/…[0]` = 75.
 - **Build complet** avec la toolchain JieLi (clang 4.0.1 pi32v2) : toutes les vérifications
-  du build passent (`image 579 824 B`, accès registres, RAM) ; la banque tient le slot avec
-  1 740 o de marge.
+  du build passent (`image 580 736 B`, accès registres, RAM) ; la banque tient le slot avec
+  828 o de marge.
 - **Émulateur web** : le smoke test (`reference_emu/wasm_smoke_test.js`) passe sur le
   `sloop.wasm` reconstruit — compte 75, les noms de la page, le readback du chargeur
   (basse AFRICAN BEAT, stutter SLENG TENG), le transport qui joue.
@@ -192,7 +192,7 @@ AC79NN_SDK_V1.2.1_2023-12-13). L'aperçu de l'éditeur : `sh scripts/build_previ
   compression → chargement.
 - `README.md`, `DUB-FR.md`, `CHANGELOG.md`, `fmhub.json`, `docs/index.html`,
   `docs/webapp/sw.js`, `docs/webapp/installer/index.html` — les sections riddims et le paquet
-  1.8 (empreinte sha256 de `docs/firmware/sloop-dub-1.8.fwsc` : `937d62417d53eb12de5aabe4886c0c59e3c8f79471df746563f9a045a0aa8b01`).
+  1.8 (empreinte sha256 de `docs/firmware/sloop-dub-1.8.fwsc` : `16ce4bcd96ee47685f59748926dfeba21812de5943937e0dbf19c2fdf9944d4c`).
 - `docs/dub/sloop.wasm`, `docs/webapp/editor/sloop-preview.wasm` et
   `reference_emu/wasm_smoke_test.js` — l'émulateur et l'aperçu jouent les 75.
 

@@ -18,12 +18,13 @@ le Sleng Teng, dans l'ordre de la page
 - **Les mesures silencieuses restent hors boucle** : les arrangements longs de la page (Fade Away
   16 mesures, Freedom Blues 20 — sa basse n'entre qu'à la cinquième) bouclent à partir de la
   première mesure où la basse sonne : les 64 pas tournent sur le groove complet.
-- **Taille** : image 579 824 o sur le slot 0x8DFBC (581 564 o), **1 740 o de marge** — la banque
+- **Taille** : image 580 736 o sur le slot 0x8DFBC (581 564 o), **828 o de marge** — la banque
   compressée des 75 (10 911 o de flux) est plus petite que la banque brute des 27 (13 932 o)
   qu'elle remplace.
 - **La preuve en C du aller-retour** : `tools/verify_riddims.sh` régénère la banque et les grilles
   brutes du même passage, puis `tests/riddim_check.c` charge les 75 riddims par le chargeur du
   firmware et compare les 4 pistes × 64 pas, notes et vélocités, au `memcmp` — sans hardware.
+- **Le visuel suit** : la carte du dépôt (README, `fmhub.json`, 1024 × 1024) et le **splash d'allumage** adoptent la nouvelle tour — icônes web, bannière et aperçu régénérés par `gen_logo.py` (le splash passe à 9 986 o de RLE, 240 × 188, 16 couleurs).
 - L'émulateur web (`docs/dub/sloop.wasm`), l'aperçu de l'éditeur (`docs/webapp/editor/`) et le
   smoke test jouent les 75 ; l'installateur web sert le 1.8 (`sloop-dub-1.8.fwsc`, sha256 vérifié).
 
